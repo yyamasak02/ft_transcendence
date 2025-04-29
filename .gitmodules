@@ -1,0 +1,6 @@
+[submodule "be_transcendence"]
+	path = be_transcendence
+	url = git@github.com:yuhe-02/be_transcendence.git
+[submodule "fe_transcendence"]
+	path = fe_transcendence
+	url = git@github.com:yuhe-02/fe_transcendence.git
