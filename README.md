@@ -13,3 +13,9 @@
 - [日本版subject](./subjects/ja.subject.md)
 - [設計]()
 - [進捗管理]()
+
+## TODO
+- test環境
+- API設計、フォルダ構成
+- 機能確認
+- DB接続、実装
