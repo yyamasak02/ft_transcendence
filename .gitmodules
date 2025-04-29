@@ -4,3 +4,9 @@
 [submodule "fe_transcendence"]
 	path = fe_transcendence
 	url = git@github.com:yuhe-02/fe_transcendence.git
+[submodule "db_transcendence"]
+	path = db_transcendence
+	url = git@github.com:yuhe-02/db_transcendence.git
+[submodule "mock_transcendence"]
+	path = mock_transcendence
+	url = git@github.com:yuhe-02/mock_transcendence.git
