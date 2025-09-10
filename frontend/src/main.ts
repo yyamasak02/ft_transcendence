@@ -15,9 +15,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="card">
       <button id="counter" type="button"></button>
     </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
+    <h1 class="text-3xl font-bold underline">
+      Hello world!
+    </h1>
   </div>
 `;
 
