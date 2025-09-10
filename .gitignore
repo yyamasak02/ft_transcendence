@@ -1,2 +1,4 @@
 .venv
 convertPDFtoHTML.py
+.env*
+!.env.local
