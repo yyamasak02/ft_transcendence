@@ -1,6 +1,5 @@
-import type { Component } from "@/models/component";
-import type { Route } from "@/models/routes";
-import { startPingPongGame } from "@/tobaba";
+import type { Component } from "@/types/component";
+import { startPingPongGame } from "@/pages/pingpong/scripts/play";
 import "./styles.css";
 
 class PingPongComponent implements Component {
@@ -33,7 +32,7 @@ class PingPongComponent implements Component {
   };
 }
 
-import type { Routes } from "@/models/routes";
+import type { Routes } from "@/types/routes";
 
 const pingPongComponent = new PingPongComponent();
 

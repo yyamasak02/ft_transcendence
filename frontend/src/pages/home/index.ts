@@ -1,4 +1,4 @@
-import type { Route } from "@/models/routes";
+import type { Route } from "@/types/routes";
 
 class HomeComponent {
   render = () => {
