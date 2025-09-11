@@ -1,0 +1,123 @@
+.pingpong-page .game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center; /* canvasを中央配置 */
+  align-items: center;
+}
+
+.pingpong-page #gameCanvas {
+  border: 2px solid #fff;
+  cursor: none;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  background-color: #000;
+  display: block;
+}
+
+/* UIパネル */
+.pingpong-page .ui-panel {
+  position: absolute;
+  top: 170px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 50px;
+}
+
+.pingpong-page .left-panel {
+  left: 40px;
+}
+
+.pingpong-page .right-panel {
+  right: 40px;
+}
+
+/* クールダウンゲージ */
+.pingpong-page .cooldown-gauge-container {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(100px);
+}
+
+.pingpong-page .cooldown-gauge-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(red 0%, transparent 0%);
+}
+
+.pingpong-page .cooldown-gauge-container::after {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: black;
+  border-radius: 50%;
+}
+
+/* スタミナゲージ */
+.pingpong-page .stamina-gauge-container {
+  width: 80px;
+  height: 320px;
+  border: 2px solid #fff;
+  display: flex;
+  flex-direction: column-reverse;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.pingpong-page .stamina-gauge-fill {
+  width: 100%;
+  background-color: #00f;
+  transition: height 0.1s linear;
+}
+
+/* キャラ画像 */
+.pingpong-page .char-image-container {
+  position: absolute;
+  bottom: 40px;
+  width: 350px;
+  height: 350px;
+  border: 2px solid #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.pingpong-page .left-char-image {
+  left: 40px;
+}
+
+.pingpong-page .right-char-image {
+  right: 40px;
+}
+
+.pingpong-page .char-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* レスポンシブ: 横幅800px以上ならキャラ画像を表示 */
+@media (min-width: 800px) {
+  .pingpong-page .game-container {
+    flex-direction: row;
+  }
+  .pingpong-page .char-image-container {
+    display: block;
+  }
+}
