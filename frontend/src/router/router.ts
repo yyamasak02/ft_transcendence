@@ -3,14 +3,23 @@ import { routes } from "./routes";
 const app = document.querySelector<HTMLElement>("#app")!;
 const nav = document.querySelector<HTMLElement>("#nav")!;
 
+let currentRoute: string | null = null;
+
 const renderPage = (route: string) => {
+  // Call onUnmount for the previous route
+  if (currentRoute && routes[currentRoute]?.onUnmount) {
+    routes[currentRoute].onUnmount();
+  }
+
   const r = routes[route];
   if (!r) {
     app.innerHTML = "<h1>404</h1>";
+    currentRoute = null;
     return;
   }
 
   app.innerHTML = r.content;
+  currentRoute = route;
 
   if (r.onMount) r.onMount();
 

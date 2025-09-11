@@ -1,6 +1,7 @@
 import type { Component } from "@/models/component";
 import type { Route } from "@/models/routes";
 import { startPingPongGame } from "@/tobaba";
+import "./styles.css";
 
 class PingPongComponent implements Component {
   render = (): string => {
@@ -32,15 +33,24 @@ class PingPongComponent implements Component {
   };
 }
 
-export const PingPongRoute: Record<string, Route> = {
-  "/ping_pong": {
-    linkLabel: "PingPong",
-    content: new PingPongComponent().render(),
+import type { Routes } from "@/models/routes";
+
+const pingPongComponent = new PingPongComponent();
+
+export const PingPongRoute: Routes = {
+  "/pingpong": {
+    linkLabel: "Ping Pong",
+    content: pingPongComponent.render(),
     onMount: () => {
+      console.log("Ping Pong page mounted");
+      document.body.classList.add("pingpong-page");
       startPingPongGame();
     },
+    onUnmount: () => {
+      document.body.classList.remove("pingpong-page");
+    },
     head: {
-      title: "ft_transcendence - Pong",
+      title: "Ping Pong Game",
     },
   },
 };
