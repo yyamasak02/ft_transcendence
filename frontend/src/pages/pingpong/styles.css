@@ -1,110 +1,24 @@
-/* Ping Pong page specific styles */
-.pingpong-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  background-color: #000;
-}
-
 .pingpong-page .game-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  max-width: 100%;
-  padding: 10px;
-}
-
-.pingpong-page .ui-panel {
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 0;
-  width: 150px;
-  height: 600px;
-  background-color: rgba(0, 0, 0, 0.8);
-  border: 2px solid #333;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.pingpong-page .cooldown-gauge-container,
-.pingpong-page .stamina-gauge-container {
-  width: 100%;
-  height: 30px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid #666;
   position: relative;
-}
-
-.pingpong-page .stamina-gauge-fill {
   width: 100%;
   height: 100%;
-  background-color: #00ff00;
-  transition: width 0.3s ease;
-}
-
-.pingpong-page .char-image-container {
-  display: none;
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.pingpong-page .left-char-image {
-  left: 20px;
-}
-
-.pingpong-page .right-char-image {
-  right: 20px;
-}
-
-.pingpong-page .char-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  display: flex;
+  justify-content: center; /* canvasを中央配置 */
+  align-items: center;
 }
 
 .pingpong-page #gameCanvas {
+  border: 2px solid #fff;
+  cursor: none;
   max-width: 100%;
   height: auto;
   aspect-ratio: 4 / 3;
-  border: 2px solid #333;
   background-color: #000;
   display: block;
 }
 
-@media (min-width: 800px) {
-  .pingpong-page .game-container {
-    flex-direction: row;
-  }
-  .pingpong-page .char-image-container {
-    display: block;
-  }
-}
-body {
-  background-color: #000;
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  overflow: hidden;
-}
-
-canvas {
-  border: 2px solid #fff;
-  cursor: none;
-}
-
-.ui-panel {
+/* UIパネル */
+.pingpong-page .ui-panel {
   position: absolute;
   top: 170px;
   display: flex;
@@ -113,15 +27,16 @@ canvas {
   gap: 50px;
 }
 
-.left-panel {
+.pingpong-page .left-panel {
   left: 40px;
 }
 
-.right-panel {
+.pingpong-page .right-panel {
   right: 40px;
 }
 
-.cooldown-gauge-container {
+/* クールダウンゲージ */
+.pingpong-page .cooldown-gauge-container {
   width: 200px;
   height: 200px;
   border-radius: 50%;
@@ -133,7 +48,7 @@ canvas {
   transform: translateY(100px);
 }
 
-.cooldown-gauge-container::before {
+.pingpong-page .cooldown-gauge-container::before {
   content: "";
   position: absolute;
   top: 0;
@@ -144,7 +59,7 @@ canvas {
   background: conic-gradient(red 0%, transparent 0%);
 }
 
-.cooldown-gauge-container::after {
+.pingpong-page .cooldown-gauge-container::after {
   content: "";
   position: absolute;
   width: 40px;
@@ -153,7 +68,8 @@ canvas {
   border-radius: 50%;
 }
 
-.stamina-gauge-container {
+/* スタミナゲージ */
+.pingpong-page .stamina-gauge-container {
   width: 80px;
   height: 320px;
   border: 2px solid #fff;
@@ -162,13 +78,14 @@ canvas {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.stamina-gauge-fill {
+.pingpong-page .stamina-gauge-fill {
   width: 100%;
   background-color: #00f;
   transition: height 0.1s linear;
 }
 
-.char-image-container {
+/* キャラ画像 */
+.pingpong-page .char-image-container {
   position: absolute;
   bottom: 40px;
   width: 350px;
@@ -180,17 +97,27 @@ canvas {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.left-char-image {
+.pingpong-page .left-char-image {
   left: 40px;
 }
 
-.right-char-image {
+.pingpong-page .right-char-image {
   right: 40px;
 }
 
-.char-image-container img {
+.pingpong-page .char-image-container img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+/* レスポンシブ: 横幅800px以上ならキャラ画像を表示 */
+@media (min-width: 800px) {
+  .pingpong-page .game-container {
+    flex-direction: row;
+  }
+  .pingpong-page .char-image-container {
+    display: block;
+  }
 }
