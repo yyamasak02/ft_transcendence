@@ -1,0 +1,46 @@
+import type { Component } from "@/models/component";
+import type { Route } from "@/models/routes";
+import { startPingPongGame } from "@/tobaba";
+
+class PingPongComponent implements Component {
+  render = (): string => {
+    return `
+      <div class="game-container">
+        <div class="ui-panel left-panel">
+          <div id="p1-cooldown-gauge-container" class="cooldown-gauge-container"></div>
+          <div id="p1-stamina-gauge-container" class="stamina-gauge-container">
+            <div id="p1-stamina-fill" class="stamina-gauge-fill"></div>
+          </div>
+        </div>
+        <div id="p1-char-image" class="char-image-container left-char-image">
+          <img id="p1-char-img" src="" alt="Player 1 Character">
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="ui-panel right-panel">
+          <div id="p2-cooldown-gauge-container" class="cooldown-gauge-container"></div>
+          <div id="p2-stamina-gauge-container" class="stamina-gauge-container">
+            <div id="p2-stamina-fill" class="stamina-gauge-fill"></div>
+          </div>
+        </div>
+        <div id="p2-char-image" class="char-image-container right-char-image">
+          <img id="p2-char-img" src="" alt="Player 2 Character">
+        </div>
+      </div>
+    `;
+  };
+}
+
+export const PingPongRoute: Record<string, Route> = {
+  "/ping_pong": {
+    linkLabel: "PingPong",
+    content: new PingPongComponent().render(),
+    onMount: () => {
+      startPingPongGame();
+    },
+    head: {
+      title: "ft_transcendence - Pong",
+    },
+  },
+};
