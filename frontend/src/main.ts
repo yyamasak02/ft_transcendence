@@ -1,24 +1,29 @@
+import { renderNavbar } from "@/components/navbar";
+import {
+  renderInitialPage,
+  registerBrowserBackAndForth,
+} from "@/router/router";
 import "./style.css";
-import typescriptLogo from "./typescript.svg";
-import viteLogo from "/vite.svg";
-import { setupCounter } from "./counter.ts";
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <h1 class="text-3xl font-bold underline">
-      Hello world!
-    </h1>
-  </div>
-`;
+const navContainer = document.querySelector("#nav")!;
+navContainer.classList.add(
+  "flex",
+  "gap-4",
+  "fixed",
+  "top-0",
+  "left-0",
+  "w-full",
+  "bg-gray-800",
+  "text-white",
+  "p-2",
+  "box-border",
+  "mb-4",
+);
 
-setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+// 中にリンクを追加
+navContainer.appendChild(
+  renderNavbar(["nav-link", "hover:text-yellow-300", "px-4"]),
+);
+
+registerBrowserBackAndForth();
+renderInitialPage();
