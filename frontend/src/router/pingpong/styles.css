@@ -1,196 +1,190 @@
-/* Ping Pong page specific styles */
-.pingpong-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  background-color: #000;
-}
-
-.pingpong-page .game-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  max-width: 100%;
-  padding: 10px;
-}
-
-.pingpong-page .ui-panel {
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 0;
-  width: 150px;
-  height: 600px;
-  background-color: rgba(0, 0, 0, 0.8);
-  border: 2px solid #333;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.pingpong-page .cooldown-gauge-container,
-.pingpong-page .stamina-gauge-container {
-  width: 100%;
-  height: 30px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid #666;
-  position: relative;
-}
-
-.pingpong-page .stamina-gauge-fill {
-  width: 100%;
-  height: 100%;
-  background-color: #00ff00;
-  transition: width 0.3s ease;
-}
-
-.pingpong-page .char-image-container {
-  display: none;
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.pingpong-page .left-char-image {
-  left: 20px;
-}
-
-.pingpong-page .right-char-image {
-  right: 20px;
-}
-
-.pingpong-page .char-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.pingpong-page #gameCanvas {
-  max-width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  border: 2px solid #333;
-  background-color: #000;
-  display: block;
-}
-
-@media (min-width: 800px) {
-  .pingpong-page .game-container {
-    flex-direction: row;
-  }
-  .pingpong-page .char-image-container {
-    display: block;
-  }
-}
 body {
-  background-color: #000;
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  overflow: hidden;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
 }
 
 canvas {
-  border: 2px solid #fff;
-  cursor: none;
+    border: 4px solid #fff;
+    cursor: none;
+    width: 60vw;
+    height: 75vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    box-sizing: border-box;
 }
 
 .ui-panel {
-  position: absolute;
-  top: 170px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 50px;
+    position: absolute;
+    top: 20%;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 6%;
 }
 
 .left-panel {
-  left: 40px;
+    left: 5%;
 }
 
 .right-panel {
-  right: 40px;
+    right: 5%;
 }
 
 .cooldown-gauge-container {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(100px);
-}
-
-.cooldown-gauge-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(red 0%, transparent 0%);
-}
-
-.cooldown-gauge-container::after {
-  content: "";
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background-color: black;
-  border-radius: 50%;
+    width: 20%;
+    height: 20%;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(0, 0, 0);
+    transform: translateY(10%);
 }
 
 .stamina-gauge-container {
-  width: 80px;
-  height: 320px;
-  border: 2px solid #fff;
-  display: flex;
-  flex-direction: column-reverse;
-  background-color: rgba(255, 255, 255, 0.1);
+    width: 4vw;
+    height: 30vh;
+    border: 0.5vw solid #fff;
+    box-shadow: 0 0 0 1vw #000, 0 0 2vw #0cf;
+    display: flex;
+    flex-direction: column-reverse;
+    background: repeating-linear-gradient(
+        0deg,
+        #222 0 1vw,
+        #333 1vw 2vw
+    );
+    position: static;
+    image-rendering: pixelated;
+    margin: 0 2vw;
 }
 
 .stamina-gauge-fill {
-  width: 100%;
-  background-color: #00f;
-  transition: height 0.1s linear;
+    width: 100%;
+    background: linear-gradient(180deg, #0ff 0%, #00f 100%);
+    box-shadow: 0 0 4% #0ff, 0 0 8% #00f;
+    border-top: 0.5% solid #fff;
+    transition: height 0.2s cubic-bezier(.4,2,.6,1);
+    image-rendering: pixelated;
+    animation: staminaPulse 1.2s infinite;
+}
+
+@keyframes staminaPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+}
+
+.game-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
 }
 
 .char-image-container {
-  position: absolute;
-  bottom: 40px;
-  width: 350px;
-  height: 350px;
-  border: 2px solid #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.1);
+    position: static;
+    width: 20vw;  
+    height: 20vw; 
+    border: 4px solid #000;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    background-color: #000;
+    margin: 50vh 2vw 0 2vw;
 }
 
+
 .left-char-image {
-  left: 40px;
+    left: 1%;
 }
 
 .right-char-image {
-  right: 40px;
+    right: 1%;
 }
 
 .char-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.usage-bar {
+    width: 1000%; 
+    height: 0.8em; 
+    border-radius: 0.3em;
+    background: #222;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #000, 0 0 0 4px #fff;
+    image-rendering: pixelated;
+    margin: 0.6em 0;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.usage-bar.active {
+    background: #0cf;
+    border-color: #fff;
+    box-shadow: 0 0 0 1% #000, 0 0 4% rgb(247, 130, 19);
+    animation: blink 0.7s steps(1) infinite;
+}
+
+@keyframes blink {
+    0%, 100% { background: rgb(247, 130, 19); }
+    50% { background: #fff; }
+}
+
+.usage-bar.none {
+    background: linear-gradient(90deg, #400 0%, #a00 100%);
+    border: 0.15em dashed #fff;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1em;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px #f00;
+    animation: noneBlink 1s steps(1) infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; 
+    max-width: 12em; 
+    min-width: 6em;
+}
+
+@keyframes noneBlink {
+    0%, 100% { background: linear-gradient(90deg, #400 0%, #a00 100%); }
+    50% { background: linear-gradient(90deg, #a00 0%, #400 100%); }
+}
+
+.usage-bar.infinite {
+    background: linear-gradient(90deg, #0f0 0%, #0ff 100%);
+    border: 0.15em solid #fff;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.8em;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px #0ff;
+    animation: infBlink 1s steps(1) infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 12em;
+    min-width: 6em;
+}
+
+@keyframes infBlink {
+    0%, 100% { color: #fff; }
+    50% { color: #0f0; }
 }

@@ -35,8 +35,10 @@ function checkCollision(ball: any, player: any) {
         } else {
             gameData.ball.power = 1;
         }
+        
         let opponent = player.isPlayer1 ? gameData.player2 : gameData.player1;
         opponent.stamina = Math.max(0, opponent.stamina - (gameData.ball.power * 5));
+
         let newSpeedX = BASE_BALL_SPEED * Math.cos(angleRad) * gameData.ball.power;
         let newSpeedY = BASE_BALL_SPEED * Math.sin(angleRad) * gameData.ball.power;
 
@@ -53,6 +55,7 @@ export function update() {
     if (gameData.ball.y + gameData.ball.size / 2 > canvas.height || gameData.ball.y - gameData.ball.size / 2 < 0) {
         gameData.ball.speedY = -gameData.ball.speedY;
     }
+    
     if (gameData.ball.speedX < 0) {
         if (checkCollision(gameData.ball, gameData.player1)) {
             if (characters[gameData.player1CharIndex].name === "Gust") {
@@ -64,6 +67,7 @@ export function update() {
             }
         }
     }
+
     if (gameData.ball.x - gameData.ball.size / 2 < 0) {
         gameData.player2.score++;
         resetBall();
@@ -71,6 +75,7 @@ export function update() {
         gameData.player1.score++;
         resetBall();
     }
+
     if (gameData.player1.score >= WINNING_SCORE || gameData.player2.score >= WINNING_SCORE) {
         setGameState('gameover');
     }

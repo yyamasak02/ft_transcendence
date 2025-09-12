@@ -8,222 +8,166 @@ import {
   characters,
   COUNTDOWN_INTERVAL,
   BASE_BALL_SPEED,
-} from "./data";
-import { update } from "./game";
+} from './data';
+import { update } from './game';
+import { drawRect, drawBall, drawScore, drawMenu, drawGameOver, drawPauseMenu, drawCountdown, drawCharacterSelect } from './draw';
 import {
-  drawRect,
-  drawBall,
-  drawScore,
-  drawMenu,
-  drawGameOver,
-  drawPauseMenu,
-  drawCountdown,
-  drawCharacterSelect,
-} from "./draw";
+    toggleUIElements, updateCharacterImages, applyCharacterStats,
+    resetBall, updateUI, preloadCharacterIcons
+} from './ui';
 import {
-  toggleUIElements,
-  updateCharacterImages,
-  applyCharacterStats,
-  resetBall,
-  updateUI,
-  preloadCharacterIcons,
-} from "./ui";
-import {
-  setPlayer1CharIndex,
-  setPlayer2CharIndex,
-  setPlayer1Ready,
-  setPlayer2Ready,
-  handleCharacterSelection,
-} from "./state";
+    setPlayer1CharIndex, setPlayer2CharIndex,
+    setPlayer1Ready, setPlayer2Ready,
+    handleCharacterSelection
+} from './state';
 
 let lastTime = 0;
 let countdownTimer = 0;
 
 export function setGameState(newState: typeof gameData.gameState) {
-  gameData.gameState = newState;
+    gameData.gameState = newState;
 }
 
 export function setCountdown(newCountdown: number) {
-  gameData.countdown = newCountdown;
+    gameData.countdown = newCountdown;
 }
 
 function updateTimers(timestamp: number) {
-  const deltaTime = (timestamp - lastTime) / 1000;
-  lastTime = timestamp;
+    const deltaTime = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
 
-  if (gameData.gameState === "game") {
-    if (
-      gameData.player1.cooldownTimer <
-      characters[gameData.player1CharIndex].cooldown
-    ) {
-      gameData.player1.cooldownTimer = Math.min(
-        characters[gameData.player1CharIndex].cooldown,
-        gameData.player1.cooldownTimer + deltaTime,
-      );
-    }
-    if (
-      gameData.player2.cooldownTimer <
-      characters[gameData.player2CharIndex].cooldown
-    ) {
-      gameData.player2.cooldownTimer = Math.min(
-        characters[gameData.player2CharIndex].cooldown,
-        gameData.player2.cooldownTimer + deltaTime,
-      );
-    }
+    if (gameData.gameState === 'game') {
+        
+        let isPlayer1Moving = gameData.keysPressed['w'] || gameData.keysPressed['s'];
+        let isPlayer2Moving = gameData.keysPressed['ArrowUp'] || gameData.keysPressed['ArrowDown'];
 
-    let isPlayer1Moving =
-      gameData.keysPressed["w"] || gameData.keysPressed["s"];
-    let isPlayer2Moving =
-      gameData.keysPressed["ArrowUp"] || gameData.keysPressed["ArrowDown"];
-
-    if (!isPlayer1Moving) {
-      gameData.player1.stamina = Math.min(
-        gameData.player1.maxStamina,
-        gameData.player1.stamina +
-          gameData.player1.staminaRecoveryRate * deltaTime,
-      );
+        if (!isPlayer1Moving) {
+            gameData.player1.stamina = Math.min(gameData.player1.maxStamina, gameData.player1.stamina + gameData.player1.staminaRecoveryRate * deltaTime);
+        }
+        if (!isPlayer2Moving) {
+            gameData.player2.stamina = Math.min(gameData.player2.maxStamina, gameData.player2.stamina + gameData.player2.staminaRecoveryRate * deltaTime);
+        }
     }
-    if (!isPlayer2Moving) {
-      gameData.player2.stamina = Math.min(
-        gameData.player2.maxStamina,
-        gameData.player2.stamina +
-          gameData.player2.staminaRecoveryRate * deltaTime,
-      );
+    if (gameData.gameState === 'countingDown') {
+        countdownTimer += deltaTime * 1000;
+        if (countdownTimer >= COUNTDOWN_INTERVAL) {
+            gameData.countdown--;
+            countdownTimer = 0;
+            if (gameData.countdown <= 0) {
+                const startDirection = (gameData.player1.score > gameData.player2.score) ? -1 : 1;
+                gameData.ball.speedX = BASE_BALL_SPEED * startDirection;
+                gameData.ball.speedY = 0;
+                setGameState('game');
+            }
+        }
     }
-  }
-  if (gameData.gameState === "countingDown") {
-    countdownTimer += deltaTime * 1000;
-    if (countdownTimer >= COUNTDOWN_INTERVAL) {
-      gameData.countdown--;
-      countdownTimer = 0;
-      if (gameData.countdown <= 0) {
-        const startDirection =
-          gameData.player1.score > gameData.player2.score ? -1 : 1;
-        gameData.ball.speedX = BASE_BALL_SPEED * startDirection;
-        gameData.ball.speedY = 0;
-        setGameState("game");
-      }
-    }
-  }
 }
 
-// ユーザー入力
-document.addEventListener("keydown", (e) => {
-  gameData.keysPressed[e.key] = true;
-  if (e.key.toLowerCase() === "p") {
-    if (gameData.gameState === "game") {
-      setGameState("paused");
-    } else if (gameData.gameState === "paused") {
-      setGameState("game");
-    }
-    toggleUIElements();
-    return;
-  }
-
-  if (gameData.gameState === "characterSelect") {
-    switch (e.key) {
-      case "w":
-        if (!gameData.player1Ready) {
-          setPlayer1CharIndex(
-            gameData.player1CharIndex > 0
-              ? gameData.player1CharIndex - 1
-              : characters.length - 1,
-          );
+document.addEventListener('keydown', (e) => {
+    gameData.keysPressed[e.key] = true;
+    if (e.key.toLowerCase() === 'p') {
+        if (gameData.gameState === 'game') {
+            setGameState('paused');
+        } else if (gameData.gameState === 'paused') {
+            setGameState('game');
         }
-        break;
-      case "s":
-        if (!gameData.player1Ready) {
-          setPlayer1CharIndex(
-            gameData.player1CharIndex < characters.length - 1
-              ? gameData.player1CharIndex + 1
-              : 0,
-          );
-        }
-        break;
-      case "ArrowUp":
-        if (!gameData.player2Ready) {
-          setPlayer2CharIndex(
-            gameData.player2CharIndex > 0
-              ? gameData.player2CharIndex - 1
-              : characters.length - 1,
-          );
-        }
-        break;
-      case "ArrowDown":
-        if (!gameData.player2Ready) {
-          setPlayer2CharIndex(
-            gameData.player2CharIndex < characters.length - 1
-              ? gameData.player2CharIndex + 1
-              : 0,
-          );
-        }
-        break;
-      case "d":
-        if (!gameData.player1Ready) {
-          setPlayer1Ready(true);
-        }
-        break;
-      case "ArrowLeft":
-        if (!gameData.player2Ready) {
-          setPlayer2Ready(true);
-        }
-        break;
+        toggleUIElements();
+        return;
     }
 
-    handleCharacterSelection();
-    return;
-  }
+    if (gameData.gameState === 'characterSelect') {
+        switch (e.key) {
+            case 'w':
+                if (!gameData.player1Ready) {
+                    setPlayer1CharIndex((gameData.player1CharIndex > 0) ? gameData.player1CharIndex - 1 : characters.length - 1);
+                }
+                break;
+            case 's':
+                if (!gameData.player1Ready) {
+                    setPlayer1CharIndex((gameData.player1CharIndex < characters.length - 1) ? gameData.player1CharIndex + 1 : 0);
+                }
+                break;
+            case 'ArrowUp':
+                if (!gameData.player2Ready) {
+                    setPlayer2CharIndex((gameData.player2CharIndex > 0) ? gameData.player2CharIndex - 1 : characters.length - 1);
+                }
+                break;
+            case 'ArrowDown':
+                if (!gameData.player2Ready) {
+                    setPlayer2CharIndex((gameData.player2CharIndex < characters.length - 1) ? gameData.player2CharIndex + 1 : 0);
+                }
+                break;
+            case 'd':
+                if (!gameData.player1Ready) {
+                    setPlayer1Ready(true);
+                }
+                break;
+            case 'ArrowLeft':
+                if (!gameData.player2Ready) {
+                    setPlayer2Ready(true);
+                }
+                break;
+        }
 
-  if (gameData.gameState === "game" || gameData.gameState === "countingDown") {
-    if (e.key.toLowerCase() === "f") {
-      const char = characters[gameData.player1CharIndex];
-      if (
-        char.abilityName === "Shot" &&
-        gameData.player1.cooldownTimer >= char.cooldown
-      ) {
-        gameData.ball.speedY = -gameData.ball.speedY;
-        gameData.ball.isInverted = !gameData.ball.isInverted;
-        gameData.player1.cooldownTimer = 0;
-      } else {
-        char.ability(gameData.player1, gameData.player1CharIndex);
-      }
+        handleCharacterSelection();
+        return;
     }
-    if (e.key.toLowerCase() === "j") {
-      const char = characters[gameData.player2CharIndex];
-      if (
-        char.abilityName === "Shot" &&
-        gameData.player2.cooldownTimer >= char.cooldown
-      ) {
-        gameData.ball.speedY = -gameData.ball.speedY;
-        gameData.ball.isInverted = !gameData.ball.isInverted;
-        gameData.player2.cooldownTimer = 0;
-      } else {
-        char.ability(gameData.player2, gameData.player2CharIndex);
-      }
-    }
-  }
 
-  if (e.key === "Enter") {
-    if (gameData.gameState === "menu") {
-      setGameState("characterSelect");
-      toggleUIElements();
-      updateCharacterImages();
-    } else if (gameData.gameState === "gameover") {
-      setGameState("menu");
-      gameData.player1.score = 0;
-      gameData.player2.score = 0;
-      applyCharacterStats();
-      toggleUIElements();
+    if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
+        if (e.key.toLowerCase() === 'f') {
+            const char = characters[gameData.player1CharIndex];
+            
+            const canUse = char.maxUsages === -1 || gameData.player1.abilityUsages < char.maxUsages;
+            
+            if (canUse) {
+                if (char.abilityName === "Shot") {
+                    gameData.ball.speedY = -gameData.ball.speedY;
+                    gameData.ball.isInverted = !gameData.ball.isInverted;
+                    gameData.player1.abilityUsages++;
+                } else {
+                    char.ability(gameData.player1, gameData.player1CharIndex);
+                }
+            }
+        }
+        
+        if (e.key.toLowerCase() === 'j') {
+            const char = characters[gameData.player2CharIndex];
+            
+            const canUse = char.maxUsages === -1 || gameData.player2.abilityUsages < char.maxUsages;
+            
+            if (canUse) {
+                if (char.abilityName === "Shot") {
+                    gameData.ball.speedY = -gameData.ball.speedY;
+                    gameData.ball.isInverted = !gameData.ball.isInverted;
+                    gameData.player2.abilityUsages++;
+                } else {
+                    char.ability(gameData.player2, gameData.player2CharIndex);
+                }
+            }
+        }
     }
-  }
+
+    if (e.key === 'Enter') {
+        if (gameData.gameState === 'menu') {
+            setGameState('characterSelect');
+            toggleUIElements();
+            updateCharacterImages();
+        } else if (gameData.gameState === 'gameover') {
+            setGameState('menu');
+            gameData.player1.score = 0;
+            gameData.player2.score = 0;
+            applyCharacterStats();
+            toggleUIElements();
+        }
+    }
 });
 
-document.addEventListener("keyup", (e) => {
-  gameData.keysPressed[e.key] = false;
+document.addEventListener('keyup', (e) => {
+    gameData.keysPressed[e.key] = false;
 });
 
 function gameLoop(timestamp: number) {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = "white";
@@ -360,10 +304,8 @@ function gameLoop(timestamp: number) {
 }
 
 export function startPingPongGame() {
-  initDOMRefs();
-  gameData.ball.x = canvas.width / 2;
-  gameData.ball.y = canvas.height / 2;
-  preloadCharacterIcons();
-  updateCharacterImages();
-  requestAnimationFrame(gameLoop);
+    initDOMRefs();
+    preloadCharacterIcons();
+    updateCharacterImages();
+    requestAnimationFrame(gameLoop);
 }

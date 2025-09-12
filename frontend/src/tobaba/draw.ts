@@ -4,7 +4,6 @@ import {
     ctx, canvas, gameData, characters, WINNING_SCORE, BASE_BALL_SPEED 
 } from './data';
 
-// 描画関数
 export function drawRect(x: number, y: number, w: number, h: number, color: string, isGlowing: boolean, effectColor: string = "#0f0", isStealth: boolean = false) {
     if (isStealth) {
         ctx.globalAlpha = 0.3;
@@ -116,7 +115,6 @@ export function drawCountdown() {
     ctx.fillText(gameData.countdown.toString(), canvas.width / 2, canvas.height / 2);
 }
 
-// 5段階評価のバーを描画する関数
 export function drawStatsBar(x: number, y: number, rank: number, label: string, color: string, totalBlocks: number = 5) {
     const BAR_BLOCK_WIDTH = 30;
     const BAR_HEIGHT = 12;
@@ -133,7 +131,6 @@ export function drawStatsBar(x: number, y: number, rank: number, label: string, 
     }
 }
 
-// テキストを自動で折り返して描画する関数
 function wrapText(text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
     const words = text.split(' ');
     let line = '';
@@ -155,7 +152,6 @@ function wrapText(text: string, x: number, y: number, maxWidth: number, lineHeig
     ctx.fillText(line.trim(), x, y + lineCount * lineHeight);
 }
 
-// プレイヤーパネルの描画
 export function drawPlayerPanel(x: number, y: number, char: any, isPlayer1: boolean) {
     const PANEL_WIDTH = 300;
     const PANEL_HEIGHT = 350;
