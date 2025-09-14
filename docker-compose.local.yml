@@ -15,3 +15,18 @@ services:
     ports:
       - 5173:5173
     command: npm run dev
+  be_common:
+    build:
+      context: ./backends/common
+      dockerfile: ./docker/Dockerfile
+    image: be_common
+    container_name: be_common
+    volumes:
+      - ./backends/common:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    ports:
+      - 8080:8080
+    command: npm run dev
