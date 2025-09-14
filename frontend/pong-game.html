@@ -4,58 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ft_transcendence - Pong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* 既存のstyle.cssに追加するか、ここに直接記述してください */
-        body {
-            display: flex;
-            justify-content: center; /* 水平方向の中央揃え */
-            align-items: center;     /* 垂直方向の中央揃え */
-            min-height: 100vh;       /* ビューポートの高さいっぱいを使用 */
-            margin: 0;
-            background-color: #000;  /* ゲームの背景色に合わせて設定 */
-        }
-        
-        .game-container {
-            display: flex;
-            flex-direction: column;  /* 垂直方向に並べる */
-            justify-content: center;
-            align-items: center;
-            max-width: 100%;
-            padding: 10px;
-        }
-
-        .ui-panel {
-            flex-grow: 1;
-            flex-shrink: 1;
-            min-width: 0;
-        }
-
-        .char-image-container {
-            display: none; /* 小さい画面ではキャラクター画像を非表示に */
-        }
-
-        #gameCanvas {
-            max-width: 100%;
-            height: auto;
-            aspect-ratio: 4 / 3; /* 元のゲームのアスペクト比を維持 */
-        }
-
-        /* 画面幅が広い場合のみのスタイル */
-        @media (min-width: 800px) {
-            .game-container {
-                flex-direction: row; /* 広い画面では水平方向に並べる */
-            }
-            .char-image-container {
-                display: block; /* 広い画面ではキャラクター画像を表示 */
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="game-container">
         <div class="ui-panel left-panel">
-            <div id="p1-cooldown-gauge-container" class="cooldown-gauge-container"></div>
+            <div id="p1-using-gauge-container" class="using-gauge-container"></div>
             <div id="p1-stamina-gauge-container" class="stamina-gauge-container">
                 <div id="p1-stamina-fill" class="stamina-gauge-fill"></div>
             </div>
@@ -67,7 +22,7 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
 
         <div class="ui-panel right-panel">
-            <div id="p2-cooldown-gauge-container" class="cooldown-gauge-container"></div>
+            <div id="p2-using-gauge-container" class="using-gauge-container"></div>
             <div id="p2-stamina-gauge-container" class="stamina-gauge-container">
                 <div id="p2-stamina-fill" class="stamina-gauge-fill"></div>
             </div>

@@ -22,6 +22,10 @@ export function setPlayer2Ready(ready: boolean) {
     gameData.player2Ready = ready;
 }
 
+export function setPlayer2AILevel(level: 'Player' | 'AI: easy' | 'AI: normal' | 'AI: hard') {
+    gameData.player2AILevel = level;
+}
+
 export function handleCharacterSelection() {
     if (gameData.player1Ready && gameData.player2Ready) {
         applyCharacterStats();

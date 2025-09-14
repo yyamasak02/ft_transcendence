@@ -3,7 +3,7 @@
 import {
     gameData, characters,
     p1UIPanel, p2UIPanel, p1CharImageContainer, p2CharImageContainer,
-    p1CharImg, p2CharImg, p1StaminaFill, p2StaminaFill, p1CooldownGaugeContainer, p2CooldownGaugeContainer,
+    p1CharImg, p2CharImg, p1StaminaFill, p2StaminaFill, p1UsingGaugeContainer, p2UsingGaugeContainer,
     canvas
 } from './data';
 
@@ -13,7 +13,6 @@ export function resetBall() {
     gameData.ball.speedX = 0;
     gameData.ball.speedY = 0;
     gameData.ball.power = 1;
-    gameData.ball.isInverted = false;
     gameData.gameState = 'countingDown';
     gameData.countdown = 3;
 }
@@ -29,10 +28,9 @@ export function applyCharacterStats() {
     gameData.player1.y = canvas.height / 2 - p1Char.paddleHeight / 2;
     gameData.player1.x = 0;
     gameData.player1.stamina = gameData.player1.maxStamina;
-    gameData.player1.cooldownTimer = p1Char.cooldown; 
     gameData.player1.isSuiciderActive = false;
-    gameData.player1.abilityUsages = 0;
-    gameData.player1.maxAbilityUsages = p1Char.maxUsages;
+    gameData.player1.abilityUsages = 0; // 使用回数をリセット
+    gameData.player1.maxAbilityUsages = p1Char.maxUsages; // 最大使用回数を設定
 
     const p2Char = characters[gameData.player2CharIndex];
     gameData.player2.height = p2Char.paddleHeight;
@@ -44,49 +42,45 @@ export function applyCharacterStats() {
     gameData.player2.y = canvas.height / 2 - p2Char.paddleHeight / 2;
     gameData.player2.x = canvas.width - gameData.player2.width;
     gameData.player2.stamina = gameData.player2.maxStamina;
-    gameData.player2.cooldownTimer = p2Char.cooldown;
     gameData.player2.isSuiciderActive = false;
-    gameData.player2.abilityUsages = 0;
-    gameData.player2.maxAbilityUsages = p2Char.maxUsages;
+	gameData.player2.isSniperActive = false;
+    gameData.player2.abilityUsages = 0; // 使用回数をリセット
+    gameData.player2.maxAbilityUsages = p2Char.maxUsages; // 最大使用回数を設定
 }
 
-export function updateUI() {
 function renderUsageBars(container: HTMLElement, char: any, player: any) {
-        container.innerHTML = '';
-        const bars = document.createElement('div');
-        bars.className = 'usage-bars';
-    
-        if (char.maxUsages === 0) {
-            const bar = document.createElement('div');
-            bar.className = 'usage-bar none';
-            bar.textContent = 'NONE';
-            bars.appendChild(bar);
-        } else if (char.maxUsages === -1) {
-            const bar = document.createElement('div');
-            bar.className = 'usage-bar infinite';
-            bar.textContent = '∞ INF';
-            bars.appendChild(bar);
-        } else {
-            for (let i = 0; i < player.abilityUsages; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'usage-bar inactive';
-                bars.appendChild(bar);
-            }
-            for (let i = 0; i < char.maxUsages - player.abilityUsages; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'usage-bar active';
-                bars.appendChild(bar);
-            }
-        }
-        container.appendChild(bars);
-    }
+    container.innerHTML = '';
+    const bars = document.createElement('div');
+    bars.className = 'usage-bars';
 
-    if (p1CooldownGaugeContainer) {
-        renderUsageBars(p1CooldownGaugeContainer, characters[gameData.player1CharIndex], gameData.player1);
+    if (char.maxUsages === 0) {
+        const bar = document.createElement('div');
+        bar.className = 'usage-bar none';
+        bar.textContent = 'NONE';
+        bars.appendChild(bar);
+    } else if (char.maxUsages === -1) {
+        const bar = document.createElement('div');
+        bar.className = 'usage-bar infinite';
+        bar.textContent = '∞ INF';
+        bars.appendChild(bar);
+    } else {
+        // 未消費バー（active）を先に追加（視覚的に上に表示される）
+        for (let i = 0; i < char.maxUsages - player.abilityUsages; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'usage-bar active';
+            bars.appendChild(bar);
+        }
+        // 消費済みバー（inactive）を後に追加（視覚的に下に表示される）
+        for (let i = 0; i < player.abilityUsages; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'usage-bar inactive';
+            bars.appendChild(bar);
+        }
     }
-    if (p2CooldownGaugeContainer) {
-        renderUsageBars(p2CooldownGaugeContainer, characters[gameData.player2CharIndex], gameData.player2);
-    }
+    container.appendChild(bars);
+}
+
+function renderStaminaBars() {
     if (p1StaminaFill) {
         const p1StaminaPercentage = (gameData.player1.stamina / gameData.player1.maxStamina) * 100;
         p1StaminaFill.style.height = `${Math.max(0, p1StaminaPercentage)}%`;
@@ -95,6 +89,16 @@ function renderUsageBars(container: HTMLElement, char: any, player: any) {
         const p2StaminaPercentage = (gameData.player2.stamina / gameData.player2.maxStamina) * 100;
         p2StaminaFill.style.height = `${Math.max(0, p2StaminaPercentage)}%`;
     }
+}
+
+export function updateUI() {
+    if (p1UsingGaugeContainer) {
+        renderUsageBars(p1UsingGaugeContainer, characters[gameData.player1CharIndex], gameData.player1);
+    }
+    if (p2UsingGaugeContainer) {
+        renderUsageBars(p2UsingGaugeContainer, characters[gameData.player2CharIndex], gameData.player2);
+    }
+    renderStaminaBars();
 }
 
 export function toggleUIElements() {

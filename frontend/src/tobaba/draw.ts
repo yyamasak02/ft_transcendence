@@ -44,6 +44,40 @@ export function drawMenu() {
     ctx.fillText("Press 'Enter' to Start", canvas.width / 2, canvas.height / 2 + 50);
 }
 
+export function drawModeSelect() {
+    ctx.fillStyle = "#fff";
+    ctx.font = "32px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.fillText("SELECT GAME MODE", canvas.width / 2, canvas.height / 2 - 120);
+
+    const localY = canvas.height / 2 - 20;
+    const onlineY = canvas.height / 2 + 40;
+    
+    if (gameData.gameMode === 'local') {
+        ctx.fillStyle = "#a8fbacff";
+        ctx.fillRect(canvas.width / 2 - 180, localY - 40, 360, 50);
+    } else {
+        ctx.fillStyle = "#82c3f8ff";
+        ctx.fillRect(canvas.width / 2 - 180, onlineY - 40, 360, 50);
+    }
+
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.fillText("LOCAL BATTLE", canvas.width / 2, localY);
+    ctx.fillText("ONLINE BATTLE", canvas.width / 2, onlineY);
+
+    ctx.font = "14px 'Press Start 2P'";
+    ctx.fillText("Use W/S or UP/DOWN to select", canvas.width / 2, canvas.height / 2 + 120);
+    ctx.fillText("Press Enter to confirm", canvas.width / 2, canvas.height / 2 + 150);
+
+    ctx.font = "12px 'Press Start 2P'";
+    if (gameData.gameMode === 'local') {
+        ctx.fillText("Play with a friend on the same device", canvas.width / 2, canvas.height / 2 + 200);
+    } else {
+        ctx.fillText("Play with someone online (Coming Soon)", canvas.width / 2, canvas.height / 2 + 200);
+    }
+}
+
 export function drawGameOver() {
     ctx.fillStyle = "#fff";
     ctx.font = "30px 'Press Start 2P'";
@@ -220,6 +254,11 @@ export function drawCharacterSelect() {
     ctx.fillStyle = "#fff";
     ctx.font = "16px 'Press Start 2P'";
     ctx.textAlign = "center";
-    ctx.fillText("Player 1: W/S to select, D to confirm", canvas.width / 2, canvas.height - 100);
-    ctx.fillText("Player 2: UP/DOWN to select, LEFT to confirm", canvas.width / 2, canvas.height - 70);
+    ctx.fillText("Player 1: W/S to select, D to confirm", canvas.width / 2, canvas.height - 70);
+    ctx.fillText("Player 2: UP/DOWN to select, LEFT to confirm", canvas.width / 2, canvas.height - 40);
+    ctx.font = "18px 'Press Start 2P'";
+    ctx.fillStyle = 'rgba(138, 137, 137, 0.33)';
+    ctx.fillRect(450, 450, 300, 35);
+	ctx.fillStyle = "#fff";
+    ctx.fillText(`2P ${gameData.player2AILevel.toUpperCase()}`, canvas.width * 3 / 4, canvas.height - 120);
 }

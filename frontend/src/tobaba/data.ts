@@ -2,16 +2,19 @@
 
 export type GameState =
   | "menu"
+  | 'modeSelect'
   | "characterSelect"
   | "game"
   | "paused"
   | "gameover"
   | "countingDown";
 
+export type GameMode = 'local' | 'online';
+
 export const WINNING_SCORE = 10;
 export const BALL_SIZE = 10;
 export const COUNTDOWN_INTERVAL = 1000;
-export const BASE_BALL_SPEED = 3;
+export const BASE_BALL_SPEED = 5;
 
 export let canvas: HTMLCanvasElement;
 export let ctx: CanvasRenderingContext2D;
@@ -25,6 +28,8 @@ export let p1UIPanel: HTMLDivElement;
 export let p2UIPanel: HTMLDivElement;
 export let p1CooldownGaugeContainer: HTMLDivElement;
 export let p2CooldownGaugeContainer: HTMLDivElement;
+export let p1UsingGaugeContainer: HTMLDivElement;
+export let p2UsingGaugeContainer: HTMLDivElement;
 
 /**
  * ページにDOMが描画された後に呼んで初期化する
@@ -60,12 +65,14 @@ export function initDOMRefs() {
 // ----------------- gameData とキャラ定義 -----------------
 
 export const gameData = {
-    gameState: "menu" as GameState,
+    gameState: 'menu' as GameState,
+    gameMode: 'local' as GameMode, // 追加: デフォルトはローカル対戦
     countdown: 3,
     player1CharIndex: 0,
     player2CharIndex: 0,
     player1Ready: false,
     player2Ready: false,
+	player2AILevel: 'Player',
     ball: {
         x: 0,
         y: 0,
@@ -73,15 +80,13 @@ export const gameData = {
         speedX: 0,
         speedY: 0,
         power: 1,
-        isInverted: false
     },
     player1: {
         x: 0,
         y: 0,
-        width: 10,
+        width: 15,
         height: 100,
         score: 0,
-        cooldownTimer: 0, 
         isAbilityActive: false,
         speedMultiplier: 1,
         baseSpeed: 5,
@@ -99,10 +104,9 @@ export const gameData = {
     player2: {
         x: 0,
         y: 0,
-        width: 10,
+        width: 15,
         height: 100,
         score: 0,
-        cooldownTimer: 0, 
         isAbilityActive: false,
         speedMultiplier: 1,
         baseSpeed: 5,
@@ -112,6 +116,7 @@ export const gameData = {
         staminaRecoveryRate: 10,
         power: 1.1,
         isSuiciderActive: false,
+		isSniperActive: false,
         isPlayer1: false,
         isAI: false,
         abilityUsages: 0, 
@@ -119,6 +124,10 @@ export const gameData = {
     },
     keysPressed: {} as { [key: string]: boolean }
 };
+
+export function setGameMode(mode: GameMode) {
+    gameData.gameMode = mode;
+}
 
 export const characters = [
     {
@@ -138,7 +147,6 @@ export const characters = [
         ability: (player: any, charIndex: number) => { 
             console.log("Defaulko ability called - no effect");
         },
-        cooldown: 0, 
         maxUsages: 0, 
         effectColor: "",
         imagePath: "@/../assets/defaulko/default.png",
@@ -176,7 +184,6 @@ export const characters = [
                 console.log("Gust ability: no uses remaining");
             }
         },
-        cooldown: 5,
         maxUsages: 3, 
         effectColor: "#0f0",
         imagePath: "@/../assets/gust/normal.png",
@@ -196,27 +203,26 @@ export const characters = [
         staminaRank: 5,
         sizeRank: 5,
         abilityName: "M★E★G★A",
-        abilityDescription: "For 5 seconds, the paddle will grow 1.5 times larger. (2 uses)",
+        abilityDescription: "For 20 seconds, the paddle will grow 2.5 times larger. (1 uses)",
         ability: (player: any, charIndex: number) => {
             console.log("M ability called, usages:", player.abilityUsages, "max:", characters[charIndex].maxUsages);
             if (player.abilityUsages < characters[charIndex].maxUsages) {
                 console.log("M ability activated!");
                 const originalHeight = player.height;
                 player.isAbilityActive = true;
-                player.height = originalHeight * 1.5;
+                player.height = originalHeight * 2.5;
                 player.abilityUsages++;
 
                 setTimeout(() => {
                     player.height = originalHeight;
                     player.isAbilityActive = false;
                     console.log("M ability ended");
-                }, 5000);
+                }, 20000);
             } else {
                 console.log("M ability: no uses remaining");
             }
         },
-        cooldown: 8,
-        maxUsages: 2,
+        maxUsages: 1,
         effectColor: "#0f0",
         imagePath: "@/../assets/M/normal.png",
         winIconPath: "@/../assets/defaulko/defaultWin.png",
@@ -241,7 +247,6 @@ export const characters = [
             player.isSuiciderActive = !player.isSuiciderActive;
             console.log("Suicider active:", player.isSuiciderActive);
         },
-        cooldown: 0, 
         maxUsages: -1,
         effectColor: "#0f0",
         imagePath: "@/../assets/Suicider/normal.png",
@@ -261,7 +266,7 @@ export const characters = [
         staminaRank: 3,
         sizeRank: 3,
         abilityName: "Shot",
-        abilityDescription: "Reverse the up and down movement of the ball. (4 uses)",
+        abilityDescription: "Reverse the up and down movement of the ball. (10 uses)",
         ability: (player: any, charIndex: number) => {
             console.log("Sniper ability called, usages:", player.abilityUsages, "max:", characters[charIndex].maxUsages);
             if (player.abilityUsages < characters[charIndex].maxUsages) {
@@ -277,11 +282,25 @@ export const characters = [
                 console.log("Sniper ability: no uses remaining");
             }
         },
-        cooldown: 8, 
-        maxUsages: 10, 
+        maxUsages: 10,
         effectColor: "#0f0",
          imagePath: "@/../assets/Sniper/normal.png",
         winIconPath: "@/../assets/defaulko/defaultWin.png",
         loseIconPath: "@/../assets/defaulko/defaultLose.png",
     }
 ];
+
+export const AI_LEVELS = {
+    'AI: easy': {
+        trackingSpeed: 0.3, 
+        accuracy: 0.3 
+    },
+    'AI: normal': {
+        trackingSpeed: 0.7,
+        accuracy: 0.1
+    },
+    'AI: hard': {
+        trackingSpeed: 1,
+        accuracy: 0
+    }
+};
