@@ -24,6 +24,8 @@ import {
 
 let lastTime = 0;
 let countdownTimer = 0;
+let accumulator = 0; // 経過時間を蓄積する変数
+const fixedTimeStep = 1000 / 60; // 60 FPSを目標とする
 
 export function setGameState(newState: typeof gameData.gameState) {
     gameData.gameState = newState;
@@ -93,7 +95,6 @@ document.addEventListener('keydown', (e) => {
                 toggleUIElements();
                 updateCharacterImages();
             } else {
-                // オンラインモードは未実装のため警告を表示
                 console.log('Online mode coming soon!');
                 setGameMode('local');
                 setGameState('menu');
@@ -227,7 +228,6 @@ function gameLoop(timestamp: number) {
         const speedMultiplier1 = (gameData.player1.stamina > 10) ? 1 : 0.5;
         const speedMultiplier2 = (gameData.player2.stamina > 10) ? 1 : 0.5;
 
-        // --- プレイヤーの移動処理 ---
         if (gameData.keysPressed['w'] && gameData.player1.y > 0) {
             gameData.player1.y -= gameData.player1.baseSpeed * gameData.player1.speedMultiplier * speedMultiplier1;
             gameData.player1.stamina = Math.max(0, gameData.player1.stamina - 1);
@@ -296,7 +296,7 @@ function gameLoop(timestamp: number) {
     } else if (gameData.gameState === 'menu') {
         drawMenu();
     } else if (gameData.gameState === 'modeSelect') {
-        drawModeSelect(); // モード選択画面を描画
+        drawModeSelect();
     } else if (gameData.gameState === 'characterSelect') {
         drawCharacterSelect();
     } else if (gameData.gameState === 'gameover') {

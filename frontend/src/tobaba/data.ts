@@ -54,12 +54,19 @@ export function initDOMRefs() {
   ) as HTMLDivElement;
   p1UIPanel = document.querySelector(".left-panel") as HTMLDivElement;
   p2UIPanel = document.querySelector(".right-panel") as HTMLDivElement;
-  p1CooldownGaugeContainer = document.getElementById(
-    "p1-cooldown-gauge-container",
-  ) as HTMLDivElement;
-  p2CooldownGaugeContainer = document.getElementById(
-    "p2-cooldown-gauge-container",
-  ) as HTMLDivElement;
+  p1UsingGaugeContainer = document.getElementById('p1-using-gauge-container') as HTMLDivElement;
+  p2UsingGaugeContainer = document.getElementById('p2-using-gauge-container') as HTMLDivElement;
+  
+  // デバッグログをここで実行
+  console.log('DOM elements check:');
+  console.log('p1UsingGaugeContainer:', p1UsingGaugeContainer);
+  console.log('p2UsingGaugeContainer:', p2UsingGaugeContainer);
+  console.log('p1StaminaFill:', p1StaminaFill);
+  console.log('p2StaminaFill:', p2StaminaFill);
+
+  if (!p1UsingGaugeContainer || !p2UsingGaugeContainer) {
+    console.error("Using gauge containers not found!");
+  }
 }
 
 // ----------------- gameData とキャラ定義 -----------------
