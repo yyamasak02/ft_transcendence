@@ -126,7 +126,7 @@ function handlePlayerMovement(deltaTime: number) {
 document.addEventListener('keydown', (e) => {
     gameData.keysPressed[e.key] = true;
     if (e.key.toLowerCase() === 'p') {
-        if (gameData.gameState === 'game') {
+        if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
             setGameState('paused');
         } else if (gameData.gameState === 'paused') {
             setGameState('game');
