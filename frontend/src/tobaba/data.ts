@@ -11,10 +11,8 @@ export type GameState =
 
 export type GameMode = 'local' | 'online';
 
-export const WINNING_SCORE = 10;
 export const BALL_SIZE = 10;
 export const COUNTDOWN_INTERVAL = 1000;
-export const BASE_BALL_SPEED = 5;
 
 export let canvas: HTMLCanvasElement;
 export let ctx: CanvasRenderingContext2D;
@@ -57,7 +55,6 @@ export function initDOMRefs() {
   p1UsingGaugeContainer = document.getElementById('p1-using-gauge-container') as HTMLDivElement;
   p2UsingGaugeContainer = document.getElementById('p2-using-gauge-container') as HTMLDivElement;
   
-  // デバッグログをここで実行
   console.log('DOM elements check:');
   console.log('p1UsingGaugeContainer:', p1UsingGaugeContainer);
   console.log('p2UsingGaugeContainer:', p2UsingGaugeContainer);
@@ -73,7 +70,7 @@ export function initDOMRefs() {
 
 export const gameData = {
     gameState: 'menu' as GameState,
-    gameMode: 'local' as GameMode, // 追加: デフォルトはローカル対戦
+    gameMode: 'local' as GameMode,
     countdown: 3,
     player1CharIndex: 0,
     player2CharIndex: 0,
@@ -91,7 +88,7 @@ export const gameData = {
     player1: {
         x: 0,
         y: 0,
-        width: 15,
+        width: 20,
         height: 100,
         score: 0,
         isAbilityActive: false,
@@ -111,7 +108,7 @@ export const gameData = {
     player2: {
         x: 0,
         y: 0,
-        width: 15,
+        width: 20,
         height: 100,
         score: 0,
         isAbilityActive: false,
@@ -151,7 +148,7 @@ export const characters = [
         sizeRank: 3,
         abilityName: "none",
         abilityDescription: "There are no special abilities.",
-        ability: (player: any, charIndex: number) => { 
+        ability: () => { 
             console.log("Defaulko ability called - no effect");
         },
         maxUsages: 0, 
@@ -249,7 +246,7 @@ export const characters = [
         sizeRank: 3,
         abilityName: "Sacrifice",
         abilityDescription: "Switch the paddle back and forth. (Unlimited)",
-        ability: (player: any, charIndex: number) => {
+        ability: (player: any) => {
             console.log("Suicider ability called - switching position");
             player.isSuiciderActive = !player.isSuiciderActive;
             console.log("Suicider active:", player.isSuiciderActive);

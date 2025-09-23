@@ -1,15 +1,17 @@
 // src/game.ts
 
 import {
-    gameData, canvas, characters, WINNING_SCORE, BASE_BALL_SPEED, AI_LEVELS
+    gameData, canvas, characters, AI_LEVELS
 } from './data';
-import { setGameState } from './index';
+import { setGameState, WINNING_SCORE, BASE_BALL_SPEED } from './index';
 import { resetBall } from './ui';
 
 const CORE_HIT_RANGE = 0.2;
 let lastAITick = 0;
-const AI_TICK_RATE = 1000; // 1000ミリ秒 = 1秒
+const AI_TICK_RATE = 1000;
 let aiTargetY = gameData.player2.y; 
+
+const BASE_FRAME_TIME = 1000 / 60;
 
 function checkCollision(ball: any, player: any) {
     let ballX = ball.x + ball.size / 2;
@@ -48,7 +50,6 @@ function checkCollision(ball: any, player: any) {
         ball.speedX = direction * newSpeedX;
         ball.speedY = newSpeedY;
     }
-    return hit;
 }
 
 function handleAIAbility() {
@@ -65,13 +66,11 @@ function handleAIAbility() {
             if (aiPlayer.abilityUsages < aiChar.maxUsages && Math.abs(gameData.ball.x - aiPlayer.x) < 30 && Math.abs(gameData.ball.y - aiPlayer.y) > 5 && gameData.ball.speedX > 0) {
                 aiChar.ability(aiPlayer, gameData.player2CharIndex);
                 console.log("AI Gust used ability!");
-                // aiPlayer.abilityUsages++;
             }
             break;
         case 'M':
             if (distanceX < 200 && aiPlayer.abilityUsages < aiChar.maxUsages) {
                 aiChar.ability(aiPlayer, gameData.player2CharIndex);
-                // aiPlayer.abilityUsages++;
                 console.log("AI M used ability!");
             }
             break;
@@ -80,13 +79,12 @@ function handleAIAbility() {
                 gameData.ball.speedY = -gameData.ball.speedY;
                 aiPlayer.abilityUsages++;
                 console.log("AI Sniper used ability!");
-				gameData.player2.isSniperActive = true;
+                gameData.player2.isSniperActive = true;
+            } else {
+                if (gameData.ball.speedX > 0) {
+                    gameData.player2.isSniperActive = false;
+                }
             }
-			else
-			{
-				if (gameData.ball.speedX > 0)
-					gameData.player2.isSniperActive = false;
-			}
             break;
         case 'Suicider':
             if (!gameData.player2.isSuiciderActive) {
@@ -106,32 +104,32 @@ function handleAIAbility() {
     }
 }
 
+export function update(deltaTime: number = BASE_FRAME_TIME) {
+    // デルタタイムに基づいてボールの位置を更新
+    const frameMultiplier = deltaTime / BASE_FRAME_TIME;
+    
+    gameData.ball.x += gameData.ball.speedX * frameMultiplier;
+    gameData.ball.y += gameData.ball.speedY * frameMultiplier;
 
-export function update() {
-    gameData.ball.x += gameData.ball.speedX;
-    gameData.ball.y += gameData.ball.speedY;
-
+    // 上下の壁との衝突判定
     if (gameData.ball.y + gameData.ball.size / 2 > canvas.height || gameData.ball.y - gameData.ball.size / 2 < 0) {
         gameData.ball.speedY = -gameData.ball.speedY;
     }
     
-    if (gameData.ball.speedX < 0) {
-        if (checkCollision(gameData.ball, gameData.player1)) {
-            if (characters[gameData.player1CharIndex].name === "Gust") {
-            }
-        }
-    } else if (gameData.ball.speedX > 0) {
-        if (checkCollision(gameData.ball, gameData.player2)) {
-            if (characters[gameData.player2CharIndex].name === "Gust") {
-            }
-        }
-    }
+    // プレイヤーとの衝突判定
+    if (gameData.ball.speedX < 0)
+        checkCollision(gameData.ball, gameData.player1)
+            // プレイヤー1との衝突処理
+    else if (gameData.ball.speedX > 0)
+        checkCollision(gameData.ball, gameData.player2)
+            // プレイヤー2との衝突処理
 
+    // AI の移動処理（フレームレート独立）
     if (gameData.player2AILevel !== 'Player') {
         const aiLevel = AI_LEVELS[gameData.player2AILevel as keyof typeof AI_LEVELS];
         const moveDirection = aiTargetY - gameData.player2.y;
         const distance = Math.abs(moveDirection);
-        const maxSpeed = gameData.player2.baseSpeed * aiLevel.trackingSpeed;
+        const maxSpeed = gameData.player2.baseSpeed * aiLevel.trackingSpeed * frameMultiplier;
 
         const moveStep = Math.min(distance, maxSpeed);
 
@@ -142,11 +140,13 @@ export function update() {
         }
 
         if (moveStep > 0) {
-            gameData.player2.stamina = Math.max(0, gameData.player2.stamina - 1);
+            gameData.player2.stamina = Math.max(0, gameData.player2.stamina - (1 * frameMultiplier));
         }
     }
+    
     handleAIAbility();
 
+    // ゴール判定
     if (gameData.ball.x - gameData.ball.size / 2 < 0) {
         gameData.player2.score++;
         resetBall();
@@ -155,21 +155,23 @@ export function update() {
         resetBall();
     }
 
+    // 勝利判定
     if (gameData.player1.score >= WINNING_SCORE || gameData.player2.score >= WINNING_SCORE) {
         setGameState('gameover');
     }
 }
 
-export function updateAI(timestamp: number) {
+export function updateAI(gameTime: number) {
     if (gameData.player2AILevel === 'Player') {
         return;
     }
 
-    if (timestamp - lastAITick < AI_TICK_RATE) {
+    // AI更新レートの制御（1秒に1回）
+    if (gameTime - lastAITick < AI_TICK_RATE) {
         return;
     }
 
-    lastAITick = timestamp;
+    lastAITick = gameTime;
 
     const aiLevel = AI_LEVELS[gameData.player2AILevel as keyof typeof AI_LEVELS];
     
@@ -182,6 +184,7 @@ export function updateAI(timestamp: number) {
         let travelY = gameData.ball.speedY * timeToReachPaddle;
         predictedY += travelY;
 
+        // ボールが画面外に出る場合の反射計算
         if (predictedY < 0 || predictedY > canvas.height) {
             let numBounces = Math.floor(Math.abs(predictedY) / canvas.height);
             if (numBounces % 2 !== 0) {
@@ -191,6 +194,7 @@ export function updateAI(timestamp: number) {
             }
         }
 
+        // AIレベルに応じた不正確さを追加
         const inaccuracy = (Math.random() - 0.5) * gameData.player2.height * aiLevel.accuracy;
         predictedY += inaccuracy;
     }

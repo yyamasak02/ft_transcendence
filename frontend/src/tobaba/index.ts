@@ -7,14 +7,14 @@ import {
   ctx,
   characters,
   COUNTDOWN_INTERVAL,
-  BASE_BALL_SPEED,
   setGameMode
 } from './data';
 import { update, updateAI } from './game';
+import { updateAbilities, activateAbility } from './abilities';
 import { drawRect, drawBall, drawScore, drawMenu, drawGameOver, drawPauseMenu, drawCountdown, drawCharacterSelect, drawModeSelect } from './draw';
 import {
     toggleUIElements, updateCharacterImages, applyCharacterStats,
-    resetBall, updateUI, preloadCharacterIcons
+    updateUI, preloadCharacterIcons
 } from './ui';
 import {
     setPlayer1CharIndex, setPlayer2CharIndex,
@@ -22,10 +22,16 @@ import {
     handleCharacterSelection, setPlayer2AILevel
 } from './state';
 
+const TARGET_FPS = 60;
+const FIXED_TIME_STEP = 1000 / TARGET_FPS;
+const MAX_DELTA_TIME = FIXED_TIME_STEP * 5;
+export let BASE_BALL_SPEED = 10;
+export let WINNING_SCORE = 10;
+
 let lastTime = 0;
 let countdownTimer = 0;
-let accumulator = 0; // 経過時間を蓄積する変数
-const fixedTimeStep = 1000 / 60; // 60 FPSを目標とする
+let accumulator = 0;
+let gameTime = 0;
 
 export function setGameState(newState: typeof gameData.gameState) {
     gameData.gameState = newState;
@@ -35,23 +41,42 @@ export function setCountdown(newCountdown: number) {
     gameData.countdown = newCountdown;
 }
 
-function updateTimers(timestamp: number) {
-    const deltaTime = (timestamp - lastTime) / 1000;
-    lastTime = timestamp;
-
+function updateGameLogic(deltaTime: number) {
+    gameTime += deltaTime;
+    
     if (gameData.gameState === 'game') {
+        updateAbilities(gameTime);
         
-        let isPlayer1Moving = gameData.keysPressed['w'] || gameData.keysPressed['s'];
-        let isPlayer2Moving = gameData.keysPressed['ArrowUp'] || gameData.keysPressed['ArrowDown'];
-		updateAI(timestamp);
-
-        gameData.player1.stamina = Math.min(gameData.player1.maxStamina, gameData.player1.stamina + gameData.player1.staminaRecoveryRate * deltaTime);
-        gameData.player2.stamina = Math.min(gameData.player2.maxStamina, gameData.player2.stamina + gameData.player2.staminaRecoveryRate * deltaTime);
+        handlePlayerMovement(deltaTime);
+        
+        updateAI(gameTime);
+        
+        update(deltaTime);
+        
+        gameData.player1.stamina = Math.min(
+            gameData.player1.maxStamina, 
+            gameData.player1.stamina + gameData.player1.staminaRecoveryRate * (deltaTime / 1000)
+        );
+        gameData.player2.stamina = Math.min(
+            gameData.player2.maxStamina, 
+            gameData.player2.stamina + gameData.player2.staminaRecoveryRate * (deltaTime / 1000)
+        );
     }
+    
     if (gameData.gameState === 'countingDown') {
-        gameData.player1.stamina = Math.min(gameData.player1.maxStamina, gameData.player1.stamina + gameData.player1.staminaRecoveryRate * deltaTime);
-        gameData.player2.stamina = Math.min(gameData.player2.maxStamina, gameData.player2.stamina + gameData.player2.staminaRecoveryRate * deltaTime);
-        countdownTimer += deltaTime * 1000;
+        updateAbilities(gameTime);
+		handlePlayerMovement(deltaTime);
+        
+        gameData.player1.stamina = Math.min(
+            gameData.player1.maxStamina, 
+            gameData.player1.stamina + gameData.player1.staminaRecoveryRate * (deltaTime / 1000)
+        );
+        gameData.player2.stamina = Math.min(
+            gameData.player2.maxStamina, 
+            gameData.player2.stamina + gameData.player2.staminaRecoveryRate * (deltaTime / 1000)
+        );
+        
+        countdownTimer += deltaTime;
         if (countdownTimer >= COUNTDOWN_INTERVAL) {
             gameData.countdown--;
             countdownTimer = 0;
@@ -60,6 +85,39 @@ function updateTimers(timestamp: number) {
                 gameData.ball.speedX = BASE_BALL_SPEED * startDirection;
                 gameData.ball.speedY = 0;
                 setGameState('game');
+            }
+        }
+    }
+}
+
+function handlePlayerMovement(deltaTime: number) {
+    const frameMultiplier = deltaTime / FIXED_TIME_STEP;
+    
+    if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
+        const speedMultiplier1 = (gameData.player1.stamina > 10) ? 1 : 0.5;
+        const speedMultiplier2 = (gameData.player2.stamina > 10) ? 1 : 0.5;
+
+        if (gameData.keysPressed['w'] && gameData.player1.y > 0) {
+            const moveDistance = gameData.player1.baseSpeed * gameData.player1.speedMultiplier * speedMultiplier1 * frameMultiplier;
+            gameData.player1.y -= moveDistance;
+            gameData.player1.stamina = Math.max(0, gameData.player1.stamina - (1 * frameMultiplier));
+        }
+        if (gameData.keysPressed['s'] && gameData.player1.y < canvas.height - gameData.player1.height) {
+            const moveDistance = gameData.player1.baseSpeed * gameData.player1.speedMultiplier * speedMultiplier1 * frameMultiplier;
+            gameData.player1.y += moveDistance;
+            gameData.player1.stamina = Math.max(0, gameData.player1.stamina - (1 * frameMultiplier));
+        }
+
+        if (gameData.player2AILevel === 'Player') {
+            if (gameData.keysPressed['ArrowUp'] && gameData.player2.y > 0) {
+                const moveDistance = gameData.player2.baseSpeed * gameData.player2.speedMultiplier * speedMultiplier2 * frameMultiplier;
+                gameData.player2.y -= moveDistance;
+                gameData.player2.stamina = Math.max(0, gameData.player2.stamina - (1 * frameMultiplier));
+            }
+            if (gameData.keysPressed['ArrowDown'] && gameData.player2.y < canvas.height - gameData.player2.height) {
+                const moveDistance = gameData.player2.baseSpeed * gameData.player2.speedMultiplier * speedMultiplier2 * frameMultiplier;
+                gameData.player2.y += moveDistance;
+                gameData.player2.stamina = Math.max(0, gameData.player2.stamina - (1 * frameMultiplier));
             }
         }
     }
@@ -104,8 +162,7 @@ document.addEventListener('keydown', (e) => {
         }
         return;
     }
-
-    if (gameData.gameState === 'characterSelect') {
+	else if (gameData.gameState === 'characterSelect') {
         switch (e.key) {
             case 'w':
                 if (!gameData.player1Ready) {
@@ -167,41 +224,79 @@ document.addEventListener('keydown', (e) => {
         handleCharacterSelection();
         return;
     }
-
-    if (gameData.gameState === 'game') {
+	else if (gameData.gameState === 'game') {
         if (e.key.toLowerCase() === 'f') {
             const char = characters[gameData.player1CharIndex];
-            const canUse = char.maxUsages === -1 || gameData.player1.abilityUsages < char.maxUsages;
+            let abilityType = '';
             
-            if (canUse) {
-                if (char.abilityName === "Shot") {
-                    gameData.ball.speedY = -gameData.ball.speedY;
-                    gameData.player1.abilityUsages++;
-                } else {
-                    char.ability(gameData.player1, gameData.player1CharIndex);
-                }
+            switch (char.name) {
+                case 'Gust':
+                    abilityType = 'gust';
+                    break;
+                case 'M':
+                    abilityType = 'mega';
+                    break;
+                case 'Suicider':
+                    abilityType = 'suicider';
+                    break;
+                case 'Sniper':
+                    abilityType = 'shot';
+                    break;
+            }
+            
+            if (abilityType) {
+                activateAbility(1, gameData.player1CharIndex, abilityType);
             }
         }
 
         if (e.key.toLowerCase() === 'j') {
             const char = characters[gameData.player2CharIndex];
-            const canUse = char.maxUsages === -1 || gameData.player2.abilityUsages < char.maxUsages;
+            let abilityType = '';
             
-            if (canUse) {
-                if (char.abilityName === "Shot") {
-                    gameData.ball.speedY = -gameData.ball.speedY;
-                    gameData.player2.abilityUsages++;
-                } else {
-                    char.ability(gameData.player2, gameData.player2CharIndex);
-                }
+            switch (char.name) {
+                case 'Gust':
+                    abilityType = 'gust';
+                    break;
+                case 'M':
+                    abilityType = 'mega';
+                    break;
+                case 'Suicider':
+                    abilityType = 'suicider';
+                    break;
+                case 'Sniper':
+                    abilityType = 'shot';
+                    break;
+            }
+            
+            if (abilityType) {
+                activateAbility(2, gameData.player2CharIndex, abilityType);
             }
         }
     }
-
+    else if (gameData.gameState === 'paused') {
+        if (e.key.toLowerCase() === 'a' && BASE_BALL_SPEED > 5) {
+            BASE_BALL_SPEED -= 1;
+        }
+        if (e.key.toLowerCase() === 'q' && BASE_BALL_SPEED < 20) {
+            BASE_BALL_SPEED += 1;
+        }
+        if (e.key.toLowerCase() === 's' && WINNING_SCORE > 1) {
+            WINNING_SCORE -= 1;
+        }
+        if (e.key.toLowerCase() === 'w' && WINNING_SCORE < 20) {
+            WINNING_SCORE += 1;
+        }
+    }
     if (e.key === 'Enter') {
         if (gameData.gameState === 'menu') {
             setGameState('modeSelect');
         } else if (gameData.gameState === 'gameover') {
+            setGameState('menu');
+            gameData.player1.score = 0;
+            gameData.player2.score = 0;
+            applyCharacterStats();
+            toggleUIElements();
+        } else if (gameData.gameState === 'paused') {
             setGameState('menu');
             gameData.player1.score = 0;
             gameData.player2.score = 0;
@@ -215,81 +310,70 @@ document.addEventListener('keyup', (e) => {
     gameData.keysPressed[e.key] = false;
 });
 
-function gameLoop(timestamp: number) {
-    updateTimers(timestamp);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function gameLoop(currentTime: number) {
+    const deltaTime = lastTime === 0 ? 0 : Math.min(currentTime - lastTime, MAX_DELTA_TIME);
+    lastTime = currentTime;
+    accumulator += deltaTime;
 
+    while (accumulator >= FIXED_TIME_STEP) {
+        updateGameLogic(FIXED_TIME_STEP);
+        accumulator -= FIXED_TIME_STEP;
+    }
+    render();
+
+    requestAnimationFrame(gameLoop);
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     toggleUIElements();
 
-    if (
-        gameData.gameState === 'game' ||
-        gameData.gameState === 'countingDown'
-    ) {
-        const speedMultiplier1 = (gameData.player1.stamina > 10) ? 1 : 0.5;
-        const speedMultiplier2 = (gameData.player2.stamina > 10) ? 1 : 0.5;
-
-        if (gameData.keysPressed['w'] && gameData.player1.y > 0) {
-            gameData.player1.y -= gameData.player1.baseSpeed * gameData.player1.speedMultiplier * speedMultiplier1;
-            gameData.player1.stamina = Math.max(0, gameData.player1.stamina - 1);
-        }
-        if (gameData.keysPressed['s'] && gameData.player1.y < canvas.height - gameData.player1.height) {
-            gameData.player1.y += gameData.player1.baseSpeed * gameData.player1.speedMultiplier * speedMultiplier1;
-            gameData.player1.stamina = Math.max(0, gameData.player1.stamina - 1);
-        }
-        if (
-            gameData.player2AILevel === 'Player' &&
-            gameData.keysPressed['ArrowUp'] &&
-            gameData.player2.y > 0
-        ) {
-            gameData.player2.y -= gameData.player2.baseSpeed * gameData.player2.speedMultiplier * speedMultiplier2;
-            gameData.player2.stamina = Math.max(0, gameData.player2.stamina - 1);
-        }
-        if (
-            gameData.player2AILevel === 'Player' &&
-            gameData.keysPressed['ArrowDown'] &&
-            gameData.player2.y < canvas.height - gameData.player2.height
-        ) {
-            gameData.player2.y += gameData.player2.baseSpeed * gameData.player2.speedMultiplier * speedMultiplier2;
-            gameData.player2.stamina = Math.max(0, gameData.player2.stamina - 1);
-        }
-
+    if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
         updateUI();
 
         let p1EffectColor = characters[gameData.player1CharIndex].effectColor;
         let p2EffectColor = characters[gameData.player2CharIndex].effectColor;
         let p1IsGlowing = gameData.player1.isAbilityActive;
         let p2IsGlowing = gameData.player2.isAbilityActive;
-        
-        if (gameData.player1.isAbilityActive && characters[gameData.player1CharIndex].abilityName !== "Shot") {
-            gameData.player1.isAbilityActive = false;
-        }
-        if (gameData.player2.isAbilityActive && characters[gameData.player2CharIndex].abilityName !== "Shot") {
-            gameData.player2.isAbilityActive = false;
-        }
 
         if (gameData.player1.isSuiciderActive) {
             gameData.player1.x = canvas.width / 2 - gameData.player1.width - 50;
         } else {
             gameData.player1.x = 0;
         }
-		if (!gameData.player2.isAI)
-		{
-			if (gameData.player2.isSuiciderActive)
-				gameData.player2.x = canvas.width / 2 + 50;
-			else
-				gameData.player2.x = canvas.width - gameData.player2.width;
-		}
+        
+        if (!gameData.player2.isAI) {
+            if (gameData.player2.isSuiciderActive) {
+                gameData.player2.x = canvas.width / 2 + 50;
+            } else {
+                gameData.player2.x = canvas.width - gameData.player2.width;
+            }
+        }
+        drawRect(
+            gameData.player1.x, 
+            gameData.player1.y, 
+            gameData.player1.width, 
+            gameData.player1.height, 
+            "#fff", 
+            p1IsGlowing, 
+            p1EffectColor, 
+            gameData.player1.stamina <= 10
+        );
+        drawRect(
+            gameData.player2.x, 
+            gameData.player2.y, 
+            gameData.player2.width, 
+            gameData.player2.height, 
+            "#fff", 
+            p2IsGlowing, 
+            p2EffectColor, 
+            gameData.player2.stamina <= 10
+        );
 
-        drawRect(gameData.player1.x, gameData.player1.y, gameData.player1.width, gameData.player1.height, "#fff", p1IsGlowing, p1EffectColor, gameData.player1.stamina <= 0);
-        drawRect(gameData.player2.x, gameData.player2.y, gameData.player2.width, gameData.player2.height, "#fff", p2IsGlowing, p2EffectColor, gameData.player2.stamina <= 0);
-
-        if (gameData.gameState === 'game') {
-            update();
-            drawScore();
-            drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, "#fff", gameData.ball.power);
-        } else if (gameData.gameState === 'countingDown') {
-            drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, "#fff", gameData.ball.power);
-            drawScore();
+        drawScore();
+        drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, "#fff", gameData.ball.power);
+        
+        if (gameData.gameState === 'countingDown') {
             drawCountdown();
         }
 
@@ -304,8 +388,6 @@ function gameLoop(timestamp: number) {
     } else if (gameData.gameState === 'paused') {
         drawPauseMenu();
     }
-
-    requestAnimationFrame(gameLoop);
 }
 
 export function startPingPongGame() {

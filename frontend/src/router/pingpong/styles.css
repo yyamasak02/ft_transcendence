@@ -38,7 +38,7 @@ canvas {
 }
 
 .stamina-gauge-container {
-    width: 4vw;
+    width: 6vw;
     height: 30vh;
     border: 0.5vw solid #fff;
     box-shadow: 0 0 0 1vw #000, 0 0 2vw #0cf;
@@ -56,9 +56,9 @@ canvas {
 
 .stamina-gauge-fill {
     width: 100%;
-    background: linear-gradient(180deg, #0ff 0%, #00f 100%);
-    box-shadow: 0 0 4% #0ff, 0 0 8% #00f;
-    border-top: 0.5% solid #fff;
+    background: linear-gradient(180deg, rgb(31, 251, 145) 0%, rgb(249, 92, 92) 100%);
+    box-shadow: 0 0 4% rgb(31, 251, 145), 0 0 8% rgb(249, 92, 92);
+    border-top: 0.5% solid #040404;
     transition: height 0.2s cubic-bezier(.4,2,.6,1);
     image-rendering: pixelated;
     animation: staminaPulse 1.2s infinite;
@@ -122,17 +122,37 @@ canvas {
 }
 
 .usage-bar.active {
-    background: rgb(247, 130, 19);
-    border-color: #fff;
-    box-shadow: 0 0 0 1% #000, 0 0 4% rgb(247, 130, 19);
-    animation: none;
+    background: linear-gradient(90deg, #0f0 0%, #0ff 100%);
+    border: 0.15em solid #fff;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.8em;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px #0ff;
+    animation: infBlink 1s steps(1) infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; 
+    max-width: 12em; 
+    min-width: 6em;
 }
 
 .usage-bar.inactive {
-    background: #444;
-    border: 2px solid #666;
-    box-shadow: 0 0 0 2px #000, 0 0 0 4px #333;
-    animation: none;
+    background: linear-gradient(90deg, rgb(111, 111, 111) 0%, rgb(0, 0, 0) 100%);
+    border: 0.15em solid #fff;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.8em;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgb(154, 156, 156);
+    animation: infBlink 1s steps(1) infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; 
+    max-width: 12em; 
+    min-width: 6em;
 }
 
 @keyframes blink {

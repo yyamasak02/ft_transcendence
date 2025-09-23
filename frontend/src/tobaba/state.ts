@@ -1,6 +1,6 @@
 // src/state.ts
 
-import { gameData, characters } from './data';
+import { gameData} from './data';
 import { setGameState } from './index';
 import { updateCharacterImages, resetBall, toggleUIElements, applyCharacterStats } from './ui';
 

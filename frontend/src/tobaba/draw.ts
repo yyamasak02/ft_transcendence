@@ -1,8 +1,12 @@
 // src/draw.ts
 
 import {
-    ctx, canvas, gameData, characters, WINNING_SCORE, BASE_BALL_SPEED 
+    ctx, canvas, gameData, characters 
 } from './data';
+
+import {
+	BASE_BALL_SPEED, WINNING_SCORE 
+} from './index'
 
 export function drawRect(x: number, y: number, w: number, h: number, color: string, isGlowing: boolean, effectColor: string = "#0f0", isStealth: boolean = false) {
     if (isStealth) {
@@ -136,10 +140,11 @@ export function drawPauseMenu() {
 
     ctx.font = "16px 'Press Start 2P'";
     ctx.fillText(`Ball Speed: ${BASE_BALL_SPEED}`, canvas.width / 2, canvas.height / 2 - 40);
-    ctx.fillText(`Paddle Speed: ${gameData.player1.baseSpeed}`, canvas.width / 2, canvas.height / 2 - 10);
-    ctx.fillText("Use 'Q'/'A' to adjust Ball Speed", canvas.width / 2, canvas.height / 2 + 30);
-    ctx.fillText("Use 'W'/'S' to adjust Paddle Speed", canvas.width / 2, canvas.height / 2 + 60);
-    ctx.fillText("Press 'P' to Resume", canvas.width / 2, canvas.height / 2 + 100);
+    ctx.fillText(`Winning Score: ${WINNING_SCORE}`, canvas.width / 2, canvas.height / 2 - 10);
+    ctx.fillText("Use Q/A to adjust Ball Speed", canvas.width / 2, canvas.height / 2 + 30);
+    ctx.fillText("Use W/S to adjust Winning Score", canvas.width / 2, canvas.height / 2 + 60);
+    ctx.fillText("Press P to Resume", canvas.width / 2, canvas.height / 2 + 100);
+    ctx.fillText("Press Enter to return to menu", canvas.width / 2, canvas.height / 2 + 130);
 }
 
 export function drawCountdown() {
