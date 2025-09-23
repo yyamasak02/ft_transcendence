@@ -29,8 +29,8 @@ export function applyCharacterStats() {
     gameData.player1.x = 0;
     gameData.player1.stamina = gameData.player1.maxStamina;
     gameData.player1.isSuiciderActive = false;
-    gameData.player1.abilityUsages = 0; 
-    gameData.player1.maxAbilityUsages = p1Char.maxUsages; 
+    gameData.player1.abilityUsages = 0; // 使用回数をリセット
+    gameData.player1.maxAbilityUsages = p1Char.maxUsages; // 最大使用回数を設定
 
     const p2Char = characters[gameData.player2CharIndex];
     gameData.player2.height = p2Char.paddleHeight;
@@ -44,8 +44,8 @@ export function applyCharacterStats() {
     gameData.player2.stamina = gameData.player2.maxStamina;
     gameData.player2.isSuiciderActive = false;
 	gameData.player2.isSniperActive = false;
-    gameData.player2.abilityUsages = 0;
-    gameData.player2.maxAbilityUsages = p2Char.maxUsages;
+    gameData.player2.abilityUsages = 0; // 使用回数をリセット
+    gameData.player2.maxAbilityUsages = p2Char.maxUsages; // 最大使用回数を設定
 }
 
 function renderUsageBars(container: HTMLElement, char: any, player: any) {
@@ -64,18 +64,16 @@ function renderUsageBars(container: HTMLElement, char: any, player: any) {
         bar.textContent = '∞ INF';
         bars.appendChild(bar);
     } else {
-        for (let i = 0; i < char.maxUsages; i++) {
+        for (let i = 0; i < char.maxUsages - player.abilityUsages; i++) {
             const bar = document.createElement('div');
-            if (i < char.maxUsages - player.abilityUsages) {
-                bar.className = 'usage-bar active';
-            } else {
-                bar.className = 'usage-bar inactive';
-            }
+            bar.className = 'usage-bar active';
             bars.appendChild(bar);
         }
-        bars.style.display = 'flex';
-        bars.style.flexDirection = 'column-reverse';
-        bars.style.gap = '0.4em';
+        for (let i = 0; i < player.abilityUsages; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'usage-bar inactive';
+            bars.appendChild(bar);
+        }
     }
     container.appendChild(bars);
 }
