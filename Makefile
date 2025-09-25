@@ -22,9 +22,15 @@ up:
 	@echo "Swagger http://127.0.0.1:8080/documentation/"
 	@echo "Backend http://127.0.0.1:8080"
 	@echo "Frontend http://127.0.0.1:5173"
+	@echo "CloudBeaver http://127.0.0.1:8000"
 
 buildup:
 	docker compose -f $(COMPOSE_FILE) up -d --build
+	@echo "Swagger http://127.0.0.1:8080/documentation/"
+	@echo "Backend http://127.0.0.1:8080"
+	@echo "Frontend http://127.0.0.1:5173"
+	@echo "CloudBeaver http://127.0.0.1:8000"
+
 
 # Stop all containers
 down:
