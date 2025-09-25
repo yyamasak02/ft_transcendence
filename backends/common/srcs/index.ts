@@ -1,3 +1,6 @@
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
+import jwt from "@fastify/jwt";
 import fastify from "fastify";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
@@ -14,27 +17,60 @@ async function main() {
   await runSeeders(db);
 
   // fastify instance init
-  const server = fastify({
+  const server = await fastify({
     logger: {
       level: "info",
     },
   });
+  await server.register(fastifySwagger, {
+    swagger: {
+      info: {
+        title: "My API",
+        description: "API docs",
+        version: "0.1.0",
+      },
+    },
+  });
 
-  server.get("/users", async (request, reply) => {
+  await server.register(fastifySwaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: false,
+    },
+  });
+  await server.register(jwt, { secret: "supersecret" });
+
+  server.get("/users", async (req, reply) => {
     return await db.all("SELECT * FROM users");
   });
 
-  // connect待機
-  server.listen({ port: 8080, host: "0.0.0.0" }, (err, address) => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    console.log(`Server listening at ${address}`);
+  server.post("/login", () => {
+    return server.jwt.sign({ name: "inoh" });
   });
 
+  server.get("/me", async (req) => {
+    return await req.jwtVerify();
+  });
+
+  // connect待機
+  server.listen(
+    {
+      port: 8080,
+      host: "0.0.0.0",
+    },
+    (err, address) => {
+      if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+      console.log(`Server listening at ${address}`);
+    },
+  );
+
+  await server.ready();
   // hot reload対応
-  if (import.meta.hot) {
+  if (import.meta?.hot) {
     import.meta.hot.on("vite:beforeFullReload", () => {
       return server.close();
     });
