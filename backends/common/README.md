@@ -45,3 +45,9 @@ npm run dev
 npm run build
 npm start
 ```
+
+### FAQ
+
+- 1. import文
+  - 拡張子：".js"を書くようにする
+  - ESMモジュールでは、トランスコンパイル後のjsファイルを想定して書く必要がある

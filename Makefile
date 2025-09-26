@@ -3,7 +3,7 @@
 # Variables
 COMPOSE_FILE = docker-compose.local.yml
 
-.PHONY: up down build clean test logs status help test-access mariadb-root python-shell
+.PHONY: up down build clean test logs status help
 
 # Default target
 help:
@@ -19,14 +19,14 @@ help:
 # Start all containers
 up:
 	docker compose -f $(COMPOSE_FILE) up -d
-	@echo "Swagger http://127.0.0.1:8080/documentation/"
+	@echo "Swagger http://127.0.0.1:8080/docs/"
 	@echo "Backend http://127.0.0.1:8080"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "CloudBeaver http://127.0.0.1:8000"
 
 buildup:
 	docker compose -f $(COMPOSE_FILE) up -d --build
-	@echo "Swagger http://127.0.0.1:8080/documentation/"
+	@echo "Swagger http://127.0.0.1:8080/docs/"
 	@echo "Backend http://127.0.0.1:8080"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "CloudBeaver http://127.0.0.1:8000"
