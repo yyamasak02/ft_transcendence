@@ -70,6 +70,7 @@ export function initDOMRefs() {
 
 export const gameData = {
     gameState: 'menu' as GameState,
+	previousGameState: 'menu' as GameState,
     gameMode: 'local' as GameMode,
     countdown: 3,
     player1CharIndex: 0,

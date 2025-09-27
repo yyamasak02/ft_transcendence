@@ -34,6 +34,7 @@ let accumulator = 0;
 let gameTime = 0;
 
 export function setGameState(newState: typeof gameData.gameState) {
+	gameData.previousGameState = gameData.gameState;
     gameData.gameState = newState;
 }
 
@@ -128,8 +129,15 @@ document.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'p') {
         if (gameData.gameState === 'game') {
             setGameState('paused');
+        } else if (gameData.gameState === 'characterSelect') {
+            setGameState('paused');
         } else if (gameData.gameState === 'paused') {
-            setGameState('game');
+            // 直前の状態に戻る
+            if (gameData.previousGameState === 'characterSelect') {
+                setGameState('characterSelect');
+            } else {
+                setGameState('game');
+            }
         }
         toggleUIElements();
         return;
