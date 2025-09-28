@@ -29,8 +29,8 @@ export function applyCharacterStats() {
     gameData.player1.x = 0;
     gameData.player1.stamina = gameData.player1.maxStamina;
     gameData.player1.isSuiciderActive = false;
-    gameData.player1.abilityUsages = 0; // 使用回数をリセット
-    gameData.player1.maxAbilityUsages = p1Char.maxUsages; // 最大使用回数を設定
+    gameData.player1.abilityUsages = 0;
+    gameData.player1.maxAbilityUsages = p1Char.maxUsages;
 
     const p2Char = characters[gameData.player2CharIndex];
     gameData.player2.height = p2Char.paddleHeight;
@@ -44,8 +44,8 @@ export function applyCharacterStats() {
     gameData.player2.stamina = gameData.player2.maxStamina;
     gameData.player2.isSuiciderActive = false;
 	gameData.player2.isSniperActive = false;
-    gameData.player2.abilityUsages = 0; // 使用回数をリセット
-    gameData.player2.maxAbilityUsages = p2Char.maxUsages; // 最大使用回数を設定
+    gameData.player2.abilityUsages = 0;
+    gameData.player2.maxAbilityUsages = p2Char.maxUsages;
 }
 
 function renderUsageBars(container: HTMLElement, char: any, player: any) {

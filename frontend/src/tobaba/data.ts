@@ -76,7 +76,7 @@ export const gameData = {
     countdown: 3,
     player1CharIndex: 0,
     player2CharIndex: 0,
-    selectedStageIndex: 0,  // 追加：選択されたステージのインデックス
+    selectedStageIndex: 0,
     player1Ready: false,
     player2Ready: false,
 	player2AILevel: 'Player',
@@ -136,7 +136,6 @@ export function setGameMode(mode: GameMode) {
     gameData.gameMode = mode;
 }
 
-// 新しいステージ定義（2つの新ステージを追加）
 export const stages = [
     {
         name: "Classic Court",
@@ -345,15 +344,15 @@ export const characters = [
 
 export const AI_LEVELS = {
     'AI: easy': {
-        trackingSpeed: 0.3, 
-        accuracy: 0.3 
+        trackingSpeed: 1, 
+        accuracy: 0
     },
     'AI: normal': {
-        trackingSpeed: 0.7,
-        accuracy: 0.1
+        trackingSpeed: 1,
+        accuracy: 0.7
     },
     'AI: hard': {
         trackingSpeed: 1,
-        accuracy: 0
+        accuracy: 1
     }
 };

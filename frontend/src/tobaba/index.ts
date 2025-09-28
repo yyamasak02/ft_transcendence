@@ -12,6 +12,7 @@ import {
 } from './data';
 import { update, updateAI } from './game';
 import { updateAbilities, activateAbility } from './abilities';
+import { updateEffects, renderEffects, applyScreenShake } from './effects';
 import { drawRect, drawBall, drawScore, drawMenu, drawGameOver, drawPauseMenu, drawCountdown, drawCharacterSelect, drawModeSelect, drawStageSelect } from './draw';
 import {
     toggleUIElements, updateCharacterImages, applyCharacterStats,
@@ -49,6 +50,7 @@ function updateGameLogic(deltaTime: number) {
     
     if (gameData.gameState === 'game') {
         updateAbilities(gameTime);
+        updateEffects(gameTime);
         
         handlePlayerMovement(deltaTime);
         
@@ -68,6 +70,7 @@ function updateGameLogic(deltaTime: number) {
     
     if (gameData.gameState === 'countingDown') {
         updateAbilities(gameTime);
+        updateEffects(gameTime);
 		handlePlayerMovement(deltaTime);
         
         gameData.player1.stamina = Math.min(
@@ -359,13 +362,18 @@ function gameLoop(currentTime: number) {
 }
 
 function render() {
+    // 画面シェイクの適用
+    const shake = applyScreenShake();
+    ctx.save();
+    ctx.translate(shake.x, shake.y);
+    
     // ステージに応じた背景色を設定
     if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
         const currentStage = stages[gameData.selectedStageIndex];
         ctx.fillStyle = currentStage.backgroundColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(-shake.x, -shake.y, canvas.width, canvas.height);
     } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(-shake.x, -shake.y, canvas.width, canvas.height);
     }
     
     toggleUIElements();
@@ -418,6 +426,9 @@ function render() {
         drawScore();
         drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, currentStage.ballColor, gameData.ball.power);
         
+        // エフェクトをレンダリング
+        renderEffects();
+        
         if (gameData.gameState === 'countingDown') {
             drawCountdown();
         }
@@ -435,6 +446,8 @@ function render() {
     } else if (gameData.gameState === 'paused') {
         drawPauseMenu();
     }
+    
+    ctx.restore();
 }
 
 export function startPingPongGame() {

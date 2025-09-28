@@ -1,6 +1,7 @@
 // src/abilities.ts
 
 import { gameData, characters } from './data';
+import { createShotEffect, createScreenShake} from './effects';
 
 interface ActiveAbility {
     playerId: number;
@@ -116,6 +117,9 @@ export function activateAbility(playerId: number, charIndex: number, abilityType
             break;
             
         case 'shot':
+            createShotEffect(gameData.ball.x, gameData.ball.y);
+            createScreenShake(8, 300);
+            
             gameData.ball.speedY = -gameData.ball.speedY;
             player.abilityUsages++;
             console.log(`Player ${playerId} Shot ability used!`);
