@@ -1,6 +1,6 @@
 // src/state.ts
 
-import { gameData} from './data';
+import { gameData, stages } from './data';
 import { setGameState } from './index';
 import { updateCharacterImages, resetBall, toggleUIElements, applyCharacterStats } from './ui';
 
@@ -26,15 +26,28 @@ export function setPlayer2AILevel(level: 'Player' | 'AI: easy' | 'AI: normal' | 
     gameData.player2AILevel = level;
 }
 
+// 新しいステージ選択関数
+export function setSelectedStage(index: number) {
+    if (index >= 0 && index < stages.length) {
+        gameData.selectedStageIndex = index;
+    }
+}
+
 export function handleCharacterSelection() {
     if (gameData.player1Ready && gameData.player2Ready) {
-        applyCharacterStats();
-        gameData.player1.stamina = gameData.player1.maxStamina;
-        gameData.player2.stamina = gameData.player2.maxStamina;
-        setGameState('countingDown');
-        resetBall();
-        toggleUIElements();
+        // キャラクター選択完了後、ステージ選択に移行
+        setGameState('stageSelect');
         setPlayer1Ready(false);
         setPlayer2Ready(false);
     }
+}
+
+// ステージ選択完了後の処理
+export function handleStageSelection() {
+    applyCharacterStats();
+    gameData.player1.stamina = gameData.player1.maxStamina;
+    gameData.player2.stamina = gameData.player2.maxStamina;
+    setGameState('countingDown');
+    resetBall();
+    toggleUIElements();
 }

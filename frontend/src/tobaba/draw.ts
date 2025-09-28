@@ -1,7 +1,7 @@
 // src/draw.ts
 
 import {
-    ctx, canvas, gameData, characters 
+    ctx, canvas, gameData, characters, stages
 } from './data';
 
 import {
@@ -23,10 +23,70 @@ export function drawRect(x: number, y: number, w: number, h: number, color: stri
 }
 
 export function drawBall(x: number, y: number, size: number, color: string, power: number) {
+    const currentStage = stages[gameData.selectedStageIndex];
+    
+    // Shadow Court (Dark Zone) でボールの可視性を調整
+    if (currentStage.effects.darkZone) {
+        const centerX = canvas.width / 2;
+        const darkZoneWidth = canvas.width * 0.4; // 中央40%をダークゾーンに
+        const distanceFromCenter = Math.abs(x - centerX);
+        
+        if (distanceFromCenter < darkZoneWidth / 2) {
+            
+            // ★ 完全に消える中心範囲を調整するパラメーター ★
+            const fullStealthZoneRatio = 0.50; // ダークゾーンの幅の 25% までは完全に透明 (0.0)
+            const fadingZoneStart = darkZoneWidth / 2 * fullStealthZoneRatio; // フェードインが始まる距離
+            const fadingZoneWidth = darkZoneWidth / 2 - fadingZoneStart;      // フェードインが発生するエリアの幅
+            
+            let opacity = 0;
+
+            if (distanceFromCenter <= fadingZoneStart) {
+                // 中心から fullStealthZoneRatio の範囲内は完全に透明
+                opacity = 0.0;
+            } else {
+                // fullStealthZoneRatio の外側から不透明度を線形に増加させる
+                const distanceInFadingZone = distanceFromCenter - fadingZoneStart;
+                
+                // 距離に応じて 0.0 から 1.0 (ただし 0.8 に制限) まで上昇する不透明度を計算
+                const baseOpacity = distanceInFadingZone / fadingZoneWidth;
+                
+                // 最大不透明度を 0.8 に制限 (完全に外に出るまで完全に不透明にならないように)
+                opacity = Math.min(baseOpacity, 0.8);
+            }
+            
+            ctx.globalAlpha = opacity;
+        }
+    }
+    
     ctx.fillStyle = power > 1 ? "#ff4500" : color;
     ctx.beginPath();
     ctx.arc(x, y, size / 2, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Warp Zone では粒子エフェクトを追加
+    if (currentStage.effects.warpWalls) {
+        drawWarpParticles(x, y, size);
+    }
+    
+    ctx.globalAlpha = 1; // 透明度をリセット
+}
+
+function drawWarpParticles(x: number, y: number, size: number) {
+    const particleCount = 3;
+    const time = Date.now() * 0.005;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2 + time;
+        const radius = size + Math.sin(time + i) * 5;
+        const particleX = x + Math.cos(angle) * radius;
+        const particleY = y + Math.sin(angle) * radius;
+        
+        ctx.globalAlpha = 0.5 + Math.sin(time + i) * 0.3;
+        ctx.fillStyle = "#ff00ff";
+        ctx.beginPath();
+        ctx.arc(particleX, particleY, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 export function drawScore() {
@@ -154,6 +214,45 @@ export function drawCountdown() {
     ctx.fillText(gameData.countdown.toString(), canvas.width / 2, canvas.height / 2);
 }
 
+// ダークゾーン（Shadow Court）の描画
+export function drawDarkZone() {
+    const centerX = canvas.width / 2;
+    const darkZoneWidth = canvas.width * 0.4;
+    
+    // グラデーションを作成（中央が最も暗い）
+    const gradient = ctx.createLinearGradient(
+        centerX - darkZoneWidth / 2, 0,
+        centerX + darkZoneWidth / 2, 0
+    );
+    gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+    gradient.addColorStop(0.5, "rgba(0, 0, 0, 1)");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(centerX - darkZoneWidth / 2, 0, darkZoneWidth, canvas.height);
+}
+
+// ワープゾーンエフェクト（画面端のワープポータル）
+export function drawWarpEffects() {
+    const time = Date.now() * 0.003;
+    
+    // 左の壁のワープエフェクト
+    for (let i = 0; i < 20; i++) {
+        const y = (canvas.height / 20) * i;
+        const intensity = Math.sin(time + i * 0.3) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(255, 0, 255, ${intensity * 0.3})`;
+        ctx.fillRect(0, y, 5, canvas.height / 20);
+    }
+    
+    // 右の壁のワープエフェクト
+    for (let i = 0; i < 20; i++) {
+        const y = (canvas.height / 20) * i;
+        const intensity = Math.sin(time + i * 0.3 + Math.PI) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(255, 0, 255, ${intensity * 0.3})`;
+        ctx.fillRect(canvas.width - 5, y, 5, canvas.height / 20);
+    }
+}
+
 export function drawStatsBar(x: number, y: number, rank: number, label: string, color: string, totalBlocks: number = 5) {
     const BAR_BLOCK_WIDTH = 30;
     const BAR_HEIGHT = 12;
@@ -266,4 +365,162 @@ export function drawCharacterSelect() {
     ctx.fillRect(450, 450, 300, 35);
 	ctx.fillStyle = "#fff";
     ctx.fillText(`2P ${gameData.player2AILevel.toUpperCase()}`, canvas.width * 3 / 4, canvas.height - 120);
+}
+
+export function drawStageSelect() {
+    // 背景を現在選択されたステージの色で描画
+    const currentStage = stages[gameData.selectedStageIndex];
+    ctx.fillStyle = currentStage.backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // ワープゾーンエフェクトを描画
+    if (currentStage.effects.warpWalls) {
+        drawWarpEffects();
+    }
+
+    // ダークゾーンエフェクトを描画
+    if (currentStage.effects.darkZone) {
+        drawDarkZone();
+    }
+
+    // タイトル
+    ctx.fillStyle = "#fff";
+    ctx.font = "28px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.fillText("SELECT STAGE", canvas.width / 2, 60);
+
+    // ステージプレビューエリア
+    const previewX = canvas.width / 2 - 200;
+    const previewY = 120;
+    const previewW = 400;
+    const previewH = 200;
+
+    // プレビュー背景
+    ctx.fillStyle = currentStage.backgroundColor;
+    ctx.fillRect(previewX, previewY, previewW, previewH);
+    
+    // プレビューの枠
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(previewX, previewY, previewW, previewH);
+
+    // プレビュー内にミニゲーム画面を描画
+    const miniPaddleH = 40;
+    const miniPaddleW = 8;
+    const miniBallSize = 8;
+    
+    // 左パドル
+    ctx.fillStyle = currentStage.paddleColor;
+    ctx.fillRect(previewX + 20, previewY + previewH/2 - miniPaddleH/2, miniPaddleW, miniPaddleH);
+    
+    // 右パドル
+    ctx.fillRect(previewX + previewW - 20 - miniPaddleW, previewY + previewH/2 - miniPaddleH/2, miniPaddleW, miniPaddleH);
+    
+    // 中央線
+    ctx.strokeStyle = "#666";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(previewX + previewW/2, previewY);
+    ctx.lineTo(previewX + previewW/2, previewY + previewH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // ボール
+    ctx.fillStyle = currentStage.ballColor;
+    ctx.beginPath();
+    ctx.arc(previewX + previewW/2, previewY + previewH/2, miniBallSize/2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // プレビューエリア内で特殊エフェクトを描画
+    if (currentStage.effects.darkZone) {
+        const miniCenterX = previewX + previewW / 2;
+        const miniDarkZoneWidth = previewW * 0.4;
+        
+        const miniGradient = ctx.createLinearGradient(
+            miniCenterX - miniDarkZoneWidth / 2, previewY,
+            miniCenterX + miniDarkZoneWidth / 2, previewY
+        );
+        miniGradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+        miniGradient.addColorStop(0.5, "rgba(0, 0, 0, 0.6)");
+        miniGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+        
+        ctx.fillStyle = miniGradient;
+        ctx.fillRect(miniCenterX - miniDarkZoneWidth / 2, previewY, miniDarkZoneWidth, previewH);
+    }
+
+    if (currentStage.effects.warpWalls) {
+        const time = Date.now() * 0.005;
+        
+        // 左側のワープエフェクト
+        for (let i = 0; i < 8; i++) {
+            const y = previewY + (previewH / 8) * i;
+            const intensity = Math.sin(time + i * 0.5) * 0.5 + 0.5;
+            ctx.fillStyle = `rgba(255, 0, 255, ${intensity * 0.5})`;
+            ctx.fillRect(previewX, y, 3, previewH / 8);
+        }
+        
+        // 右側のワープエフェクト
+        for (let i = 0; i < 8; i++) {
+            const y = previewY + (previewH / 8) * i;
+            const intensity = Math.sin(time + i * 0.5 + Math.PI) * 0.5 + 0.5;
+            ctx.fillStyle = `rgba(255, 0, 255, ${intensity * 0.5})`;
+            ctx.fillRect(previewX + previewW - 3, y, 3, previewH / 8);
+        }
+    }
+
+    // ステージ名
+    ctx.fillStyle = "#fff";
+    ctx.font = "24px 'Press Start 2P'";
+    ctx.fillText(currentStage.name, canvas.width / 2, previewY + previewH + 50);
+
+    // ステージ説明
+    ctx.font = "14px 'Press Start 2P'";
+    wrapText(currentStage.description, canvas.width / 2, previewY + previewH + 80, 600, 20);
+
+    // ステージ効果の表示
+    ctx.font = "12px 'Press Start 2P'";
+    // ctx.fillText("Effects:", canvas.width / 2, previewY + previewH + 140);
+    
+    // let effectsText = `Ball Speed: x${currentStage.effects.ballSpeedMultiplier}  |  Bounce Power: x${currentStage.effects.bounceMultiplier}`;
+    
+    // if (currentStage.effects.darkZone) {
+    //     effectsText += "  |  Dark Zone: ON";
+    // }
+    
+    // if (currentStage.effects.warpWalls) {
+    //     effectsText += "  |  Warp Walls: ON";
+    // }
+    
+    // ctx.fillText(effectsText, canvas.width / 2, previewY + previewH + 165);
+
+    // ナビゲーション表示
+    const navY = canvas.height - 100;
+    ctx.font = "16px 'Press Start 2P'";
+    
+    // 左矢印
+    if (gameData.selectedStageIndex > 0) {
+        ctx.fillStyle = "#fff";
+        ctx.fillText("< A", canvas.width / 4, navY);
+    } else {
+        ctx.fillStyle = "#666";
+        ctx.fillText("< A", canvas.width / 4, navY);
+    }
+    
+    // 右矢印
+    if (gameData.selectedStageIndex < stages.length - 1) {
+        ctx.fillStyle = "#fff";
+        ctx.fillText("D >", canvas.width * 3 / 4, navY);
+    } else {
+        ctx.fillStyle = "#666";
+        ctx.fillText("D >", canvas.width * 3 / 4, navY);
+    }
+
+    // ステージカウンター
+    ctx.fillStyle = "#fff";
+    ctx.fillText(`${gameData.selectedStageIndex + 1} / ${stages.length}`, canvas.width / 2, navY);
+
+    // 確定ボタン
+    ctx.font = "18px 'Press Start 2P'";
+    ctx.fillText("Press Enter to Confirm", canvas.width / 2, navY + 40);
 }

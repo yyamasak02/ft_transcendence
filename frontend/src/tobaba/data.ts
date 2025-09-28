@@ -4,6 +4,7 @@ export type GameState =
   | "menu"
   | 'modeSelect'
   | "characterSelect"
+  | "stageSelect"
   | "game"
   | "paused"
   | "gameover"
@@ -75,6 +76,7 @@ export const gameData = {
     countdown: 3,
     player1CharIndex: 0,
     player2CharIndex: 0,
+    selectedStageIndex: 0,  // 追加：選択されたステージのインデックス
     player1Ready: false,
     player2Ready: false,
 	player2AILevel: 'Player',
@@ -133,6 +135,52 @@ export const gameData = {
 export function setGameMode(mode: GameMode) {
     gameData.gameMode = mode;
 }
+
+// 新しいステージ定義（2つの新ステージを追加）
+export const stages = [
+    {
+        name: "Classic Court",
+        description: "The standard Pong arena. Nothing fancy, just pure skill.",
+        backgroundColor: "#000",
+        ballColor: "#fff",
+        paddleColor: "#fff",
+        effects: {
+            ballSpeedMultiplier: 1.0,
+            bounceMultiplier: 1.0,
+            darkZone: false,
+            warpWalls: false
+        },
+        imagePath: "@/../assets/stages/classic.png"
+    },
+    {
+        name: "Shadow Court",
+        description: "The center zone is shrouded in darkness. Track the ball carefully!",
+        backgroundColor: "#000",
+        ballColor: "#525252ff",
+        paddleColor: "#fff",
+        effects: {
+            ballSpeedMultiplier: 1.0,
+            bounceMultiplier: 1.0,
+            darkZone: true,
+            warpWalls: false
+        },
+        imagePath: "@/../assets/stages/shadow.png"
+    },
+    {
+        name: "Trick Court",
+        description: "Walls don't bounce - they teleport the ball to the opposite side!",
+        backgroundColor: "#220044",
+        ballColor: "#ff00ff",
+        paddleColor: "#ff00ff",
+        effects: {
+            ballSpeedMultiplier: 1.0,
+            bounceMultiplier: 1.0,
+            darkZone: false,
+            warpWalls: true
+        },
+        imagePath: "@/../assets/stages/warp.png"
+    }
+];
 
 export const characters = [
     {

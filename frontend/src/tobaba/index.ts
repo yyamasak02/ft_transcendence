@@ -6,12 +6,13 @@ import {
   canvas,
   ctx,
   characters,
+  stages,
   COUNTDOWN_INTERVAL,
   setGameMode
 } from './data';
 import { update, updateAI } from './game';
 import { updateAbilities, activateAbility } from './abilities';
-import { drawRect, drawBall, drawScore, drawMenu, drawGameOver, drawPauseMenu, drawCountdown, drawCharacterSelect, drawModeSelect } from './draw';
+import { drawRect, drawBall, drawScore, drawMenu, drawGameOver, drawPauseMenu, drawCountdown, drawCharacterSelect, drawModeSelect, drawStageSelect } from './draw';
 import {
     toggleUIElements, updateCharacterImages, applyCharacterStats,
     updateUI, preloadCharacterIcons
@@ -19,7 +20,8 @@ import {
 import {
     setPlayer1CharIndex, setPlayer2CharIndex,
     setPlayer1Ready, setPlayer2Ready,
-    handleCharacterSelection, setPlayer2AILevel
+    handleCharacterSelection, setPlayer2AILevel,
+    setSelectedStage, handleStageSelection
 } from './state';
 
 const TARGET_FPS = 60;
@@ -82,8 +84,10 @@ function updateGameLogic(deltaTime: number) {
             gameData.countdown--;
             countdownTimer = 0;
             if (gameData.countdown <= 0) {
+                const currentStage = stages[gameData.selectedStageIndex];
+                const adjustedBallSpeed = BASE_BALL_SPEED * currentStage.effects.ballSpeedMultiplier;
                 const startDirection = (gameData.player1.score > gameData.player2.score) ? -1 : 1;
-                gameData.ball.speedX = BASE_BALL_SPEED * startDirection;
+                gameData.ball.speedX = adjustedBallSpeed * startDirection;
                 gameData.ball.speedY = 0;
                 setGameState('game');
             }
@@ -170,7 +174,7 @@ document.addEventListener('keydown', (e) => {
         }
         return;
     }
-	else if (gameData.gameState === 'characterSelect') {
+    else if (gameData.gameState === 'characterSelect') {
         switch (e.key) {
             case 'w':
                 if (!gameData.player1Ready) {
@@ -230,6 +234,28 @@ document.addEventListener('keydown', (e) => {
                 break;
         }
         handleCharacterSelection();
+        return;
+    }
+    else if (gameData.gameState === 'stageSelect') {
+        // ステージ選択の処理
+        switch (e.key) {
+            case 'a':
+            case 'ArrowLeft':
+                if (gameData.selectedStageIndex > 0) {
+                    setSelectedStage(gameData.selectedStageIndex - 1);
+                }
+                break;
+            case 'd':
+            case 'ArrowRight':
+                if (gameData.selectedStageIndex < stages.length - 1) {
+                    setSelectedStage(gameData.selectedStageIndex + 1);
+                }
+                break;
+        }
+        
+        if (e.key === 'Enter') {
+            handleStageSelection();
+        }
         return;
     }
 	else if (gameData.gameState === 'game') {
@@ -333,7 +359,15 @@ function gameLoop(currentTime: number) {
 }
 
 function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // ステージに応じた背景色を設定
+    if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
+        const currentStage = stages[gameData.selectedStageIndex];
+        ctx.fillStyle = currentStage.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    
     toggleUIElements();
 
     if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
@@ -343,6 +377,8 @@ function render() {
         let p2EffectColor = characters[gameData.player2CharIndex].effectColor;
         let p1IsGlowing = gameData.player1.isAbilityActive;
         let p2IsGlowing = gameData.player2.isAbilityActive;
+
+        const currentStage = stages[gameData.selectedStageIndex];
 
         if (gameData.player1.isSuiciderActive) {
             gameData.player1.x = canvas.width / 2 - gameData.player1.width - 50;
@@ -357,12 +393,13 @@ function render() {
                 gameData.player2.x = canvas.width - gameData.player2.width;
             }
         }
+        
         drawRect(
             gameData.player1.x, 
             gameData.player1.y, 
             gameData.player1.width, 
             gameData.player1.height, 
-            "#fff", 
+            currentStage.paddleColor, 
             p1IsGlowing, 
             p1EffectColor, 
             gameData.player1.stamina <= 10
@@ -372,14 +409,14 @@ function render() {
             gameData.player2.y, 
             gameData.player2.width, 
             gameData.player2.height, 
-            "#fff", 
+            currentStage.paddleColor, 
             p2IsGlowing, 
             p2EffectColor, 
             gameData.player2.stamina <= 10
         );
 
         drawScore();
-        drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, "#fff", gameData.ball.power);
+        drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, currentStage.ballColor, gameData.ball.power);
         
         if (gameData.gameState === 'countingDown') {
             drawCountdown();
@@ -391,6 +428,8 @@ function render() {
         drawModeSelect();
     } else if (gameData.gameState === 'characterSelect') {
         drawCharacterSelect();
+    } else if (gameData.gameState === 'stageSelect') {
+        drawStageSelect();
     } else if (gameData.gameState === 'gameover') {
         drawGameOver();
     } else if (gameData.gameState === 'paused') {

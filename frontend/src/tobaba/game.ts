@@ -1,7 +1,7 @@
 // src/game.ts
 
 import {
-    gameData, canvas, characters, AI_LEVELS
+    gameData, canvas, characters, AI_LEVELS, stages
 } from './data';
 import { setGameState, WINNING_SCORE, BASE_BALL_SPEED } from './index';
 import { resetBall } from './ui';
@@ -35,6 +35,9 @@ function checkCollision(ball: any, player: any) {
         let charIndex = player.isPlayer1 ? gameData.player1CharIndex : gameData.player2CharIndex;
         let char = characters[charIndex];
         
+        // ステージエフェクトを取得
+        const currentStage = stages[gameData.selectedStageIndex];
+        
         if (Math.abs(collidePoint) <= CORE_HIT_RANGE) {
             gameData.ball.power = char.power;
         } else {
@@ -44,11 +47,32 @@ function checkCollision(ball: any, player: any) {
         let opponent = player.isPlayer1 ? gameData.player2 : gameData.player1;
         opponent.stamina = Math.max(0, opponent.stamina - (gameData.ball.power * 5));
 
-        let newSpeedX = BASE_BALL_SPEED * Math.cos(angleRad) * gameData.ball.power;
-        let newSpeedY = BASE_BALL_SPEED * Math.sin(angleRad) * gameData.ball.power;
+        // ステージの跳ね返り倍率を適用
+        let newSpeedX = BASE_BALL_SPEED * Math.cos(angleRad) * gameData.ball.power * currentStage.effects.bounceMultiplier;
+        let newSpeedY = BASE_BALL_SPEED * Math.sin(angleRad) * gameData.ball.power * currentStage.effects.bounceMultiplier;
 
         ball.speedX = direction * newSpeedX;
         ball.speedY = newSpeedY;
+    }
+}
+
+function handleWallCollision() {
+    const currentStage = stages[gameData.selectedStageIndex];
+    
+    // 上下の壁との衝突処理
+    if (gameData.ball.y + gameData.ball.size / 2 > canvas.height || gameData.ball.y - gameData.ball.size / 2 < 0) {
+        if (currentStage.effects.warpWalls) {
+            // ワープエフェクト: 反対側の壁にワープ
+            if (gameData.ball.y - gameData.ball.size / 2 < 0) {
+                gameData.ball.y = canvas.height - gameData.ball.size / 2;
+            } else {
+                gameData.ball.y = gameData.ball.size / 2;
+            }
+            // 速度はそのまま維持（反転しない）
+        } else {
+            // 通常の反射
+            gameData.ball.speedY = -gameData.ball.speedY;
+        }
     }
 }
 
@@ -111,10 +135,8 @@ export function update(deltaTime: number = BASE_FRAME_TIME) {
     gameData.ball.x += gameData.ball.speedX * frameMultiplier;
     gameData.ball.y += gameData.ball.speedY * frameMultiplier;
 
-    // 上下の壁との衝突判定
-    if (gameData.ball.y + gameData.ball.size / 2 > canvas.height || gameData.ball.y - gameData.ball.size / 2 < 0) {
-        gameData.ball.speedY = -gameData.ball.speedY;
-    }
+    // 上下の壁との衝突判定（ワープ機能を含む）
+    handleWallCollision();
     
     // プレイヤーとの衝突判定
     if (gameData.ball.speedX < 0)
@@ -174,6 +196,7 @@ export function updateAI(gameTime: number) {
     lastAITick = gameTime;
 
     const aiLevel = AI_LEVELS[gameData.player2AILevel as keyof typeof AI_LEVELS];
+    const currentStage = stages[gameData.selectedStageIndex];
     
     let predictedY = gameData.ball.y;
     const distanceX = canvas.width - gameData.ball.x;
@@ -184,13 +207,25 @@ export function updateAI(gameTime: number) {
         let travelY = gameData.ball.speedY * timeToReachPaddle;
         predictedY += travelY;
 
-        // ボールが画面外に出る場合の反射計算
-        if (predictedY < 0 || predictedY > canvas.height) {
-            let numBounces = Math.floor(Math.abs(predictedY) / canvas.height);
-            if (numBounces % 2 !== 0) {
-                predictedY = canvas.height - Math.abs(predictedY % canvas.height);
-            } else {
-                predictedY = Math.abs(predictedY % canvas.height);
+        // ワープゾーンの場合は予測計算を調整
+        if (currentStage.effects.warpWalls) {
+            // ワープの場合、反射ではなくワープを考慮
+            while (predictedY < 0 || predictedY > canvas.height) {
+                if (predictedY < 0) {
+                    predictedY = canvas.height + predictedY;
+                } else if (predictedY > canvas.height) {
+                    predictedY = predictedY - canvas.height;
+                }
+            }
+        } else {
+            // 通常の反射計算
+            if (predictedY < 0 || predictedY > canvas.height) {
+                let numBounces = Math.floor(Math.abs(predictedY) / canvas.height);
+                if (numBounces % 2 !== 0) {
+                    predictedY = canvas.height - Math.abs(predictedY % canvas.height);
+                } else {
+                    predictedY = Math.abs(predictedY % canvas.height);
+                }
             }
         }
 
