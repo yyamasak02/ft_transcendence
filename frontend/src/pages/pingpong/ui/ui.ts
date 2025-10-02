@@ -1,4 +1,4 @@
-// src/ui.ts
+// src/ui/ui.ts
 
 import {
   gameData,
@@ -11,21 +11,10 @@ import {
   p2CharImg,
   p1StaminaFill,
   p2StaminaFill,
-  p1CooldownGaugeContainer,
-  p2CooldownGaugeContainer,
+  p1UsingGaugeContainer,
+  p2UsingGaugeContainer,
   canvas,
-} from "./data";
-
-export function resetBall() {
-  gameData.ball.x = canvas.width / 2;
-  gameData.ball.y = canvas.height / 2;
-  gameData.ball.speedX = 0;
-  gameData.ball.speedY = 0;
-  gameData.ball.power = 1;
-  gameData.ball.isInverted = false;
-  gameData.gameState = "countingDown";
-  gameData.countdown = 3;
-}
+} from "../core/data";
 
 export function applyCharacterStats() {
   const p1Char = characters[gameData.player1CharIndex];
@@ -38,8 +27,9 @@ export function applyCharacterStats() {
   gameData.player1.y = canvas.height / 2 - p1Char.paddleHeight / 2;
   gameData.player1.x = 0;
   gameData.player1.stamina = gameData.player1.maxStamina;
-  gameData.player1.cooldownTimer = p1Char.cooldown;
   gameData.player1.isSuiciderActive = false;
+  gameData.player1.abilityUsages = 0;
+  gameData.player1.maxAbilityUsages = p1Char.maxUsages;
 
   const p2Char = characters[gameData.player2CharIndex];
   gameData.player2.height = p2Char.paddleHeight;
@@ -51,50 +41,71 @@ export function applyCharacterStats() {
   gameData.player2.y = canvas.height / 2 - p2Char.paddleHeight / 2;
   gameData.player2.x = canvas.width - gameData.player2.width;
   gameData.player2.stamina = gameData.player2.maxStamina;
-  gameData.player2.cooldownTimer = p2Char.cooldown;
   gameData.player2.isSuiciderActive = false;
+  gameData.player2.isSniperActive = false;
+  gameData.player2.abilityUsages = 0;
+  gameData.player2.maxAbilityUsages = p2Char.maxUsages;
 }
 
-export function updateUI() {
-  if (p1CooldownGaugeContainer) {
-    const p1MaxCooldown = characters[gameData.player1CharIndex].cooldown;
-    const p1CooldownProgress =
-      p1MaxCooldown > 0 ? gameData.player1.cooldownTimer / p1MaxCooldown : 1;
-    const p1CooldownAngle = p1CooldownProgress * 360;
-    p1CooldownGaugeContainer.style.background = `conic-gradient(#f00 ${p1CooldownAngle}deg, rgba(255, 255, 255, 0.1) ${p1CooldownAngle}deg)`;
+function renderUsageBars(container: HTMLElement, char: any, player: any) {
+  container.innerHTML = "";
+  const bars = document.createElement("div");
+  bars.className = "usage-bars";
 
-    if (gameData.player1.cooldownTimer >= p1MaxCooldown) {
-      p1CooldownGaugeContainer.style.boxShadow = "0 0 10px 5px #f00";
-    } else {
-      p1CooldownGaugeContainer.style.boxShadow = "none";
+  if (char.maxUsages === 0) {
+    const bar = document.createElement("div");
+    bar.className = "usage-bar none";
+    bar.textContent = "NONE";
+    bars.appendChild(bar);
+  } else if (char.maxUsages === -1) {
+    const bar = document.createElement("div");
+    bar.className = "usage-bar infinite";
+    bar.textContent = "∞ INF";
+    bars.appendChild(bar);
+  } else {
+    for (let i = 0; i < char.maxUsages - player.abilityUsages; i++) {
+      const bar = document.createElement("div");
+      bar.className = "usage-bar active";
+      bars.appendChild(bar);
+    }
+    for (let i = 0; i < player.abilityUsages; i++) {
+      const bar = document.createElement("div");
+      bar.className = "usage-bar inactive";
+      bars.appendChild(bar);
     }
   }
+  container.appendChild(bars);
+}
 
-  if (p2CooldownGaugeContainer) {
-    const p2MaxCooldown = characters[gameData.player2CharIndex].cooldown;
-    const p2CooldownProgress =
-      p2MaxCooldown > 0 ? gameData.player2.cooldownTimer / p2MaxCooldown : 1;
-    const p2CooldownAngle = p2CooldownProgress * 360;
-    p2CooldownGaugeContainer.style.background = `conic-gradient(#f00 ${p2CooldownAngle}deg, rgba(255, 255, 255, 0.1) ${p2CooldownAngle}deg)`;
-
-    if (gameData.player2.cooldownTimer >= p2MaxCooldown) {
-      p2CooldownGaugeContainer.style.boxShadow = "0 0 10px 5px #f00";
-    } else {
-      p2CooldownGaugeContainer.style.boxShadow = "none";
-    }
-  }
-
+function renderStaminaBars() {
   if (p1StaminaFill) {
     const p1StaminaPercentage =
       (gameData.player1.stamina / gameData.player1.maxStamina) * 100;
     p1StaminaFill.style.height = `${Math.max(0, p1StaminaPercentage)}%`;
   }
-
   if (p2StaminaFill) {
     const p2StaminaPercentage =
       (gameData.player2.stamina / gameData.player2.maxStamina) * 100;
     p2StaminaFill.style.height = `${Math.max(0, p2StaminaPercentage)}%`;
   }
+}
+
+export function updateUI() {
+  if (p1UsingGaugeContainer) {
+    renderUsageBars(
+      p1UsingGaugeContainer,
+      characters[gameData.player1CharIndex],
+      gameData.player1,
+    );
+  }
+  if (p2UsingGaugeContainer) {
+    renderUsageBars(
+      p2UsingGaugeContainer,
+      characters[gameData.player2CharIndex],
+      gameData.player2,
+    );
+  }
+  renderStaminaBars();
 }
 
 export function toggleUIElements() {

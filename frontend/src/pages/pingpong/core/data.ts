@@ -1,17 +1,18 @@
-// src/data.ts
+// src/core/data.ts
+
+import { BALL_SIZE } from "./constants";
 
 export type GameState =
   | "menu"
+  | "modeSelect"
   | "characterSelect"
+  | "stageSelect"
   | "game"
   | "paused"
   | "gameover"
   | "countingDown";
 
-export const WINNING_SCORE = 10;
-export const BALL_SIZE = 10;
-export const COUNTDOWN_INTERVAL = 1000;
-export const BASE_BALL_SPEED = 5;
+export type GameMode = "local" | "online";
 
 export let canvas: HTMLCanvasElement;
 export let ctx: CanvasRenderingContext2D;
@@ -25,6 +26,8 @@ export let p1UIPanel: HTMLDivElement;
 export let p2UIPanel: HTMLDivElement;
 export let p1CooldownGaugeContainer: HTMLDivElement;
 export let p2CooldownGaugeContainer: HTMLDivElement;
+export let p1UsingGaugeContainer: HTMLDivElement;
+export let p2UsingGaugeContainer: HTMLDivElement;
 
 /**
  * ページにDOMが描画された後に呼んで初期化する
@@ -49,39 +52,51 @@ export function initDOMRefs() {
   ) as HTMLDivElement;
   p1UIPanel = document.querySelector(".left-panel") as HTMLDivElement;
   p2UIPanel = document.querySelector(".right-panel") as HTMLDivElement;
-  p1CooldownGaugeContainer = document.getElementById(
-    "p1-cooldown-gauge-container",
+  p1UsingGaugeContainer = document.getElementById(
+    "p1-using-gauge-container",
   ) as HTMLDivElement;
-  p2CooldownGaugeContainer = document.getElementById(
-    "p2-cooldown-gauge-container",
+  p2UsingGaugeContainer = document.getElementById(
+    "p2-using-gauge-container",
   ) as HTMLDivElement;
+
+  console.log("DOM elements check:");
+  console.log("p1UsingGaugeContainer:", p1UsingGaugeContainer);
+  console.log("p2UsingGaugeContainer:", p2UsingGaugeContainer);
+  console.log("p1StaminaFill:", p1StaminaFill);
+  console.log("p2StaminaFill:", p2StaminaFill);
+
+  if (!p1UsingGaugeContainer || !p2UsingGaugeContainer) {
+    console.error("Using gauge containers not found!");
+  }
 }
 
 // ----------------- gameData とキャラ定義 -----------------
 
 export const gameData = {
   gameState: "menu" as GameState,
+  previousGameState: "menu" as GameState,
+  gameMode: "local" as GameMode,
   countdown: 3,
   player1CharIndex: 0,
   player2CharIndex: 0,
+  selectedStageIndex: 0,
   player1Ready: false,
   player2Ready: false,
+  player2AILevel: "Player",
   ball: {
-    x: 0, // ← initDOMRefs後にリセットしてもOK
+    x: 0,
     y: 0,
     size: BALL_SIZE,
     speedX: 0,
     speedY: 0,
     power: 1,
-    isInverted: false,
   },
   player1: {
     x: 0,
     y: 0,
-    width: 10,
+    width: 20,
     height: 100,
     score: 0,
-    cooldownTimer: 0,
     isAbilityActive: false,
     speedMultiplier: 1,
     baseSpeed: 5,
@@ -93,14 +108,15 @@ export const gameData = {
     isSuiciderActive: false,
     isPlayer1: true,
     isAI: false,
+    abilityUsages: 0,
+    maxAbilityUsages: 0,
   },
   player2: {
     x: 0,
     y: 0,
-    width: 10,
+    width: 20,
     height: 100,
     score: 0,
-    cooldownTimer: 0,
     isAbilityActive: false,
     speedMultiplier: 1,
     baseSpeed: 5,
@@ -110,11 +126,65 @@ export const gameData = {
     staminaRecoveryRate: 10,
     power: 1.1,
     isSuiciderActive: false,
+    isSniperActive: false,
     isPlayer1: false,
     isAI: false,
+    abilityUsages: 0,
+    maxAbilityUsages: 0,
   },
   keysPressed: {} as { [key: string]: boolean },
 };
+
+export function setGameMode(mode: GameMode) {
+  gameData.gameMode = mode;
+}
+
+export const stages = [
+  {
+    name: "Classic Court",
+    description: "The standard Pong arena. Nothing fancy, just pure skill.",
+    backgroundColor: "#000",
+    ballColor: "#fff",
+    paddleColor: "#fff",
+    effects: {
+      ballSpeedMultiplier: 1.0,
+      bounceMultiplier: 1.0,
+      darkZone: false,
+      warpWalls: false,
+    },
+    imagePath: "@/../assets/stages/classic.png",
+  },
+  {
+    name: "Shadow Court",
+    description:
+      "The center zone is shrouded in darkness. Track the ball carefully!",
+    backgroundColor: "#000",
+    ballColor: "#525252ff",
+    paddleColor: "#fff",
+    effects: {
+      ballSpeedMultiplier: 1.0,
+      bounceMultiplier: 1.0,
+      darkZone: true,
+      warpWalls: false,
+    },
+    imagePath: "@/../assets/stages/shadow.png",
+  },
+  {
+    name: "Trick Court",
+    description:
+      "Walls don't bounce - they teleport the ball to the opposite side!",
+    backgroundColor: "#220044",
+    ballColor: "#ff00ff",
+    paddleColor: "#ff00ff",
+    effects: {
+      ballSpeedMultiplier: 1.0,
+      bounceMultiplier: 1.0,
+      darkZone: false,
+      warpWalls: true,
+    },
+    imagePath: "@/../assets/stages/warp.png",
+  },
+];
 
 export const characters = [
   {
@@ -131,10 +201,10 @@ export const characters = [
     sizeRank: 3,
     abilityName: "none",
     abilityDescription: "There are no special abilities.",
-    ability: (player: any, charIndex: number) => {
-      /* 何もしません */
+    ability: () => {
+      console.log("Defaulko ability called - no effect");
     },
-    cooldown: 0,
+    maxUsages: 0,
     effectColor: "",
     imagePath: "/characters/defaulko/default.png",
     winIconPath: "/characters/defaulko/defaultWin.png",
@@ -153,20 +223,30 @@ export const characters = [
     staminaRank: 1,
     sizeRank: 3,
     abilityName: "Lisbon Wind",
-    abilityDescription: "Paddle speed doubles for 3 seconds.",
+    abilityDescription: "Paddle speed doubles for 3 seconds. (3 uses)",
     ability: (player: any, charIndex: number) => {
-      if (player.cooldownTimer >= characters[charIndex].cooldown) {
+      console.log(
+        "Gust ability called, usages:",
+        player.abilityUsages,
+        "max:",
+        characters[charIndex].maxUsages,
+      );
+      if (player.abilityUsages < characters[charIndex].maxUsages) {
+        console.log("Gust ability activated!");
         player.isAbilityActive = true;
         player.speedMultiplier = 2;
-        player.cooldownTimer = 0;
+        player.abilityUsages++;
 
         setTimeout(() => {
           player.speedMultiplier = 1;
           player.isAbilityActive = false;
+          console.log("Gust ability ended");
         }, 3000);
+      } else {
+        console.log("Gust ability: no uses remaining");
       }
     },
-    cooldown: 5,
+    maxUsages: 3,
     effectColor: "#0f0",
     imagePath: "/characters/gust/normal.png",
     winIconPath: "/characters/defaulko/defaultWin.png",
@@ -185,21 +265,32 @@ export const characters = [
     staminaRank: 5,
     sizeRank: 5,
     abilityName: "M★E★G★A",
-    abilityDescription: "For 5 seconds, the paddle will grow 1.5 times larger.",
+    abilityDescription:
+      "For 20 seconds, the paddle will grow 2.5 times larger. (1 uses)",
     ability: (player: any, charIndex: number) => {
-      if (player.cooldownTimer >= characters[charIndex].cooldown) {
+      console.log(
+        "M ability called, usages:",
+        player.abilityUsages,
+        "max:",
+        characters[charIndex].maxUsages,
+      );
+      if (player.abilityUsages < characters[charIndex].maxUsages) {
+        console.log("M ability activated!");
         const originalHeight = player.height;
         player.isAbilityActive = true;
-        player.height = originalHeight * 1.5;
-        player.cooldownTimer = 0;
+        player.height = originalHeight * 2.5;
+        player.abilityUsages++;
 
         setTimeout(() => {
           player.height = originalHeight;
           player.isAbilityActive = false;
-        }, 5000);
+          console.log("M ability ended");
+        }, 20000);
+      } else {
+        console.log("M ability: no uses remaining");
       }
     },
-    cooldown: 8,
+    maxUsages: 1,
     effectColor: "#0f0",
     imagePath: "/characters/M/normal.png",
     winIconPath: "/characters/defaulko/defaultWin.png",
@@ -210,7 +301,7 @@ export const characters = [
     description: "Launch a quick front-court attack.",
     paddleHeight: 100,
     paddleSpeed: 5,
-    power: 1.3,
+    power: 1.1,
     maxStamina: 90,
     staminaRecoveryRate: 12,
     speedRank: 4,
@@ -218,11 +309,13 @@ export const characters = [
     staminaRank: 2,
     sizeRank: 3,
     abilityName: "Sacrifice",
-    abilityDescription: "Switch the paddle back and forth.",
-    ability: (player: any, charIndex: number) => {
+    abilityDescription: "Switch the paddle back and forth. (Unlimited)",
+    ability: (player: any) => {
+      console.log("Suicider ability called - switching position");
       player.isSuiciderActive = !player.isSuiciderActive;
+      console.log("Suicider active:", player.isSuiciderActive);
     },
-    cooldown: 0,
+    maxUsages: -1,
     effectColor: "#0f0",
     imagePath: "/characters/Suicider/normal.png",
     winIconPath: "/characters/defaulko/defaultWin.png",
@@ -241,21 +334,47 @@ export const characters = [
     staminaRank: 3,
     sizeRank: 3,
     abilityName: "Shot",
-    abilityDescription: "Reverse the up and down movement of the ball.",
+    abilityDescription:
+      "Reverse the up and down movement of the ball. (10 uses)",
     ability: (player: any, charIndex: number) => {
-      if (player.cooldownTimer >= characters[charIndex].cooldown) {
+      console.log(
+        "Sniper ability called, usages:",
+        player.abilityUsages,
+        "max:",
+        characters[charIndex].maxUsages,
+      );
+      if (player.abilityUsages < characters[charIndex].maxUsages) {
+        console.log("Sniper ability activated!");
         player.isAbilityActive = true;
-        player.cooldownTimer = 0;
+        player.abilityUsages++;
 
         setTimeout(() => {
           player.isAbilityActive = false;
+          console.log("Sniper ability ended");
         }, 1000);
+      } else {
+        console.log("Sniper ability: no uses remaining");
       }
     },
-    cooldown: 8,
+    maxUsages: 10,
     effectColor: "#0f0",
     imagePath: "/characters/Sniper/normal.png",
     winIconPath: "/characters/defaulko/defaultWin.png",
     loseIconPath: "/characters/defaulko/defaultLose.png",
   },
 ];
+
+export const AI_LEVELS = {
+  "AI: easy": {
+    trackingSpeed: 1,
+    accuracy: 0,
+  },
+  "AI: normal": {
+    trackingSpeed: 1,
+    accuracy: 0.7,
+  },
+  "AI: hard": {
+    trackingSpeed: 1,
+    accuracy: 1,
+  },
+};
