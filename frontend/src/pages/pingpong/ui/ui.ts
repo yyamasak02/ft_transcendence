@@ -109,62 +109,36 @@ export function updateUI() {
 }
 
 export function toggleUIElements() {
-  // 体力バー: ゲーム中のみ表示
-  const shouldShowUI =
-    gameData.gameState === "game" ||
-    gameData.gameState === "paused" ||
-    gameData.gameState === "countingDown";
-
-  // キャラクター画像: キャラクター選択画面以降で表示
-  const shouldShowCharImages =
-    gameData.gameState === "characterSelect" ||
-    gameData.gameState === "stageSelect" ||
-    gameData.gameState === "game" ||
-    gameData.gameState === "paused" ||
-    gameData.gameState === "countingDown";
-
-  console.log("toggleUIElements called:", {
-    gameState: gameData.gameState,
-    shouldShowUI,
-    shouldShowCharImages,
-  });
-
-  if (p1UIPanel) {
-    if (shouldShowUI) {
-      p1UIPanel.classList.remove("hidden");
-      p1UIPanel.classList.add("flex");
-    } else {
-      p1UIPanel.classList.add("hidden");
-      p1UIPanel.classList.remove("flex");
-    }
-  }
-  if (p2UIPanel) {
-    if (shouldShowUI) {
-      p2UIPanel.classList.remove("hidden");
-      p2UIPanel.classList.add("flex");
-    } else {
-      p2UIPanel.classList.add("hidden");
-      p2UIPanel.classList.remove("flex");
-    }
-  }
-  if (p1CharImageContainer) {
-    if (shouldShowCharImages) {
-      p1CharImageContainer.classList.remove("hidden");
-      p1CharImageContainer.classList.add("flex");
-    } else {
-      p1CharImageContainer.classList.add("hidden");
-      p1CharImageContainer.classList.remove("flex");
-    }
-  }
-  if (p2CharImageContainer) {
-    if (shouldShowCharImages) {
-      p2CharImageContainer.classList.remove("hidden");
-      p2CharImageContainer.classList.add("flex");
-    } else {
-      p2CharImageContainer.classList.add("hidden");
-      p2CharImageContainer.classList.remove("flex");
-    }
-  }
+  if (p1UIPanel)
+    p1UIPanel.style.display =
+      gameData.gameState === "game" ||
+      gameData.gameState === "paused" ||
+      gameData.gameState === "countingDown"
+        ? "flex"
+        : "none";
+  if (p2UIPanel)
+    p2UIPanel.style.display =
+      gameData.gameState === "game" ||
+      gameData.gameState === "paused" ||
+      gameData.gameState === "countingDown"
+        ? "flex"
+        : "none";
+  if (p1CharImageContainer)
+    p1CharImageContainer.style.display =
+      gameData.gameState === "characterSelect" ||
+      gameData.gameState === "game" ||
+      gameData.gameState === "paused" ||
+      gameData.gameState === "countingDown"
+        ? "block"
+        : "none";
+  if (p2CharImageContainer)
+    p2CharImageContainer.style.display =
+      gameData.gameState === "characterSelect" ||
+      gameData.gameState === "game" ||
+      gameData.gameState === "paused" ||
+      gameData.gameState === "countingDown"
+        ? "block"
+        : "none";
 }
 
 export function updateCharacterImages() {

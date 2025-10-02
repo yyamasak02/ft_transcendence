@@ -1,7 +1,6 @@
 import type { Component } from "@/models/component";
-import type { Route } from "@/models/routes";
+import type { Routes } from "@/models/routes";
 import { startPingPongGame } from "./game-main";
-import "./styles.css";
 
 class PingPongComponent implements Component {
   render = (): string => {
@@ -40,8 +39,6 @@ class PingPongComponent implements Component {
     `;
   };
 }
-
-import type { Routes } from "@/models/routes";
 
 const pingPongComponent = new PingPongComponent();
 
