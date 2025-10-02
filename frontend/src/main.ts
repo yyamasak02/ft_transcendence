@@ -8,21 +8,24 @@ import "./style.css";
 const navContainer = document.querySelector("#nav")!;
 navContainer.classList.add(
   "flex",
+  "items-center",
   "gap-4",
-  "fixed",
-  "top-0",
-  "left-0",
   "w-full",
-  "bg-gray-800",
+  "bg-gray-900",
   "text-white",
-  "p-2",
-  "box-border",
-  "mb-4",
+  "p-4",
+  "shadow-lg",
 );
 
 // 中にリンクを追加
 navContainer.appendChild(
-  renderNavbar(["nav-link", "hover:text-yellow-300", "px-4"]),
+  renderNavbar([
+    "nav-link",
+    "hover:text-yellow-300",
+    "px-4",
+    "py-2",
+    "transition-colors",
+  ]),
 );
 
 registerBrowserBackAndForth();
