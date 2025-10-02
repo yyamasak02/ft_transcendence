@@ -12,7 +12,7 @@ import {
 } from './data';
 import { update, updateAI } from './game';
 import { updateAbilities, activateAbility } from './abilities';
-import { updateEffects, renderEffects, applyScreenShake } from './effects';
+import { updateEffects, renderEffects, applyScreenShake, createFireworkEffect } from './effects';
 import { drawRect, drawBall, drawScore, drawMenu, drawGameOver, drawPauseMenu, drawCountdown, drawCharacterSelect, drawModeSelect, drawStageSelect } from './draw';
 import {
     toggleUIElements, updateCharacterImages, applyCharacterStats,
@@ -35,6 +35,8 @@ let lastTime = 0;
 let countdownTimer = 0;
 let accumulator = 0;
 let gameTime = 0;
+let lastFireworkTime = 0;
+const FIREWORK_INTERVAL = 400;
 
 export function setGameState(newState: typeof gameData.gameState) {
 	gameData.previousGameState = gameData.gameState;
@@ -51,13 +53,9 @@ function updateGameLogic(deltaTime: number) {
     if (gameData.gameState === 'game') {
         updateAbilities(gameTime);
         updateEffects(gameTime);
-        
         handlePlayerMovement(deltaTime);
-        
         updateAI(gameTime);
-        
         update(deltaTime);
-        
         gameData.player1.stamina = Math.min(
             gameData.player1.maxStamina, 
             gameData.player1.stamina + gameData.player1.staminaRecoveryRate * (deltaTime / 1000)
@@ -67,12 +65,10 @@ function updateGameLogic(deltaTime: number) {
             gameData.player2.stamina + gameData.player2.staminaRecoveryRate * (deltaTime / 1000)
         );
     }
-    
     if (gameData.gameState === 'countingDown') {
         updateAbilities(gameTime);
         updateEffects(gameTime);
-		handlePlayerMovement(deltaTime);
-        
+        handlePlayerMovement(deltaTime);
         gameData.player1.stamina = Math.min(
             gameData.player1.maxStamina, 
             gameData.player1.stamina + gameData.player1.staminaRecoveryRate * (deltaTime / 1000)
@@ -81,7 +77,6 @@ function updateGameLogic(deltaTime: number) {
             gameData.player2.maxStamina, 
             gameData.player2.stamina + gameData.player2.staminaRecoveryRate * (deltaTime / 1000)
         );
-        
         countdownTimer += deltaTime;
         if (countdownTimer >= COUNTDOWN_INTERVAL) {
             gameData.countdown--;
@@ -94,6 +89,21 @@ function updateGameLogic(deltaTime: number) {
                 gameData.ball.speedY = 0;
                 setGameState('game');
             }
+        }
+    }
+    if (gameData.gameState === 'gameover') {
+        updateEffects(gameTime);
+        
+        if (gameTime - lastFireworkTime >= FIREWORK_INTERVAL) {
+            lastFireworkTime = gameTime;
+            
+            const winner = gameData.player1.score > gameData.player2.score ? 1 : 2;
+            const xPosition = winner === 1 
+                ? canvas.width / 4 + (Math.random() - 0.5) * 100
+                : canvas.width * 3 / 4 + (Math.random() - 0.5) * 100;
+            const yPosition = 100 + Math.random() * 200;
+            
+            createFireworkEffect(xPosition, yPosition);
         }
     }
 }
@@ -139,7 +149,6 @@ document.addEventListener('keydown', (e) => {
         } else if (gameData.gameState === 'characterSelect') {
             setGameState('paused');
         } else if (gameData.gameState === 'paused') {
-            // 直前の状態に戻る
             if (gameData.previousGameState === 'characterSelect') {
                 setGameState('characterSelect');
             } else {
@@ -203,11 +212,15 @@ document.addEventListener('keydown', (e) => {
                 if (!gameData.player1Ready) {
                     setPlayer1Ready(true);
                 }
+				else
+					setPlayer1Ready(false);
                 break;
             case 'Enter':
                 if (!gameData.player2Ready) {
                     setPlayer2Ready(true);
                 }
+				else
+					setPlayer2Ready(false);
                 break;
             case 'ArrowLeft':
                 if (!gameData.player2Ready) {
@@ -240,7 +253,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     else if (gameData.gameState === 'stageSelect') {
-        // ステージ選択の処理
         switch (e.key) {
             case 'a':
             case 'ArrowLeft':
@@ -362,12 +374,10 @@ function gameLoop(currentTime: number) {
 }
 
 function render() {
-    // 画面シェイクの適用
     const shake = applyScreenShake();
     ctx.save();
     ctx.translate(shake.x, shake.y);
     
-    // ステージに応じた背景色を設定
     if (gameData.gameState === 'game' || gameData.gameState === 'countingDown') {
         const currentStage = stages[gameData.selectedStageIndex];
         ctx.fillStyle = currentStage.backgroundColor;
@@ -426,7 +436,6 @@ function render() {
         drawScore();
         drawBall(gameData.ball.x, gameData.ball.y, gameData.ball.size, currentStage.ballColor, gameData.ball.power);
         
-        // エフェクトをレンダリング
         renderEffects();
         
         if (gameData.gameState === 'countingDown') {
@@ -443,6 +452,7 @@ function render() {
         drawStageSelect();
     } else if (gameData.gameState === 'gameover') {
         drawGameOver();
+        renderEffects();
     } else if (gameData.gameState === 'paused') {
         drawPauseMenu();
     }

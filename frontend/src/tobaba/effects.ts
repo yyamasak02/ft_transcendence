@@ -36,29 +36,24 @@ export function updateEffects(gameTime: number) {
             return false;
         }
         
-        // パーティクルの更新
         effect.particles = effect.particles.filter(particle => {
-            particle.life -= 16; // 約60FPSでの減少
+            particle.life -= 16;
             
             if (particle.life <= 0) {
                 return false;
             }
             
-            // 位置更新
             particle.x += particle.vx;
             particle.y += particle.vy;
             
-            // 重力適用
             if (particle.gravity) {
                 particle.vy += particle.gravity;
             }
             
-            // アルファ値更新
             if (particle.alpha !== undefined) {
                 particle.alpha = particle.life / particle.maxLife;
             }
             
-            // 画面外チェック
             if (particle.x < -50 || particle.x > canvas.width + 50 || 
                 particle.y < -50 || particle.y > canvas.height + 50) {
                 return false;
@@ -200,7 +195,6 @@ export function createShotEffect(ballX: number, ballY: number) {
         });
     }
     
-    // 追加で中央から放射される雷エフェクト
     for (let i = 0; i < 8; i++) {
         const angle = (Math.PI * 2 * i) / 8;
         const speed = 8 + Math.random() * 4;
@@ -248,7 +242,6 @@ export function createFastReturnEffect(x: number, y: number, power: number) {
         });
     }
     
-    // 追加のスパークエフェクト
     const sparkCount = Math.floor(power * 10);
     for (let i = 0; i < sparkCount; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -345,4 +338,43 @@ export function applyScreenShake() {
         x: (Math.random() - 0.5) * currentIntensity,
         y: (Math.random() - 0.5) * currentIntensity
     };
+}
+
+export function createFireworkEffect(x: number, y: number) {
+    const particles: Particle[] = [];
+    const particleCount = 40;
+    const colors = [
+        '#FFD700', '#FFA500', '#FF4500', '#FF6347', 
+        '#00BFFF', '#1E90FF', '#4169E1', '#0000FF',
+        '#FF69B4', '#32CD32', '#9370DB', '#FF1493',
+        '#00FF7F', '#FF8C00', '#DC143C', '#00CED1'
+    ];
+    
+    for (let i = 0; i < particleCount; i++) {
+        const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.3;
+        const speed = 4 + Math.random() * 6;
+        const size = 2 + Math.random() * 4;
+        
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 2,
+            life: 1200 + Math.random() * 600,
+            maxLife: 1200 + Math.random() * 600,
+            size: size,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            gravity: 0.15,
+            alpha: 1
+        });
+    }
+    
+    effects.push({
+        id: `firework_${effectIdCounter++}`,
+        particles: particles,
+        startTime: currentTime,
+        duration: 2500,
+        type: 'goal',
+        isActive: true
+    });
 }

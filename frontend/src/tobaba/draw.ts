@@ -24,33 +24,23 @@ export function drawRect(x: number, y: number, w: number, h: number, color: stri
 
 export function drawBall(x: number, y: number, size: number, color: string, power: number) {
     const currentStage = stages[gameData.selectedStageIndex];
-    
-    // Shadow Court (Dark Zone) でボールの可視性を調整
     if (currentStage.effects.darkZone) {
         const centerX = canvas.width / 2;
-        const darkZoneWidth = canvas.width * 0.4; // 中央40%をダークゾーンに
+        const darkZoneWidth = canvas.width * 0.4;
         const distanceFromCenter = Math.abs(x - centerX);
         
         if (distanceFromCenter < darkZoneWidth / 2) {
-            
-            // ★ 完全に消える中心範囲を調整するパラメーター ★
-            const fullStealthZoneRatio = 0.50; // ダークゾーンの幅の 25% までは完全に透明 (0.0)
-            const fadingZoneStart = darkZoneWidth / 2 * fullStealthZoneRatio; // フェードインが始まる距離
-            const fadingZoneWidth = darkZoneWidth / 2 - fadingZoneStart;      // フェードインが発生するエリアの幅
+            const fullStealthZoneRatio = 0.50;
+            const fadingZoneStart = darkZoneWidth / 2 * fullStealthZoneRatio;
+            const fadingZoneWidth = darkZoneWidth / 2 - fadingZoneStart;
             
             let opacity = 0;
 
             if (distanceFromCenter <= fadingZoneStart) {
-                // 中心から fullStealthZoneRatio の範囲内は完全に透明
                 opacity = 0.0;
             } else {
-                // fullStealthZoneRatio の外側から不透明度を線形に増加させる
                 const distanceInFadingZone = distanceFromCenter - fadingZoneStart;
-                
-                // 距離に応じて 0.0 から 1.0 (ただし 0.8 に制限) まで上昇する不透明度を計算
                 const baseOpacity = distanceInFadingZone / fadingZoneWidth;
-                
-                // 最大不透明度を 0.8 に制限 (完全に外に出るまで完全に不透明にならないように)
                 opacity = Math.min(baseOpacity, 0.8);
             }
             
@@ -63,12 +53,11 @@ export function drawBall(x: number, y: number, size: number, color: string, powe
     ctx.arc(x, y, size / 2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Warp Zone では粒子エフェクトを追加
     if (currentStage.effects.warpWalls) {
         drawWarpParticles(x, y, size);
     }
     
-    ctx.globalAlpha = 1; // 透明度をリセット
+    ctx.globalAlpha = 1;
 }
 
 function drawWarpParticles(x: number, y: number, size: number) {
@@ -149,22 +138,25 @@ export function drawGameOver() {
     let winner: "Player 1" | "Player 2";
     let winnerCharIndex: number;
     let loserCharIndex: number;
+    let winnerIsPlayer1: boolean;
 
     if (gameData.player1.score > gameData.player2.score) {
         winner = "Player 1";
         winnerCharIndex = gameData.player1CharIndex;
         loserCharIndex = gameData.player2CharIndex;
+        winnerIsPlayer1 = true;
     } else {
         winner = "Player 2";
         winnerCharIndex = gameData.player2CharIndex;
         loserCharIndex = gameData.player1CharIndex;
+        winnerIsPlayer1 = false;
     }
 
     ctx.fillText(`${winner} Wins!`, canvas.width / 2, canvas.height / 2 - 100);
 
     const iconSize = 150;
-    const winnerIconX = canvas.width / 4 - iconSize / 2;
-    const loserIconX = canvas.width * 3 / 4 - iconSize / 2;
+    const leftIconX = canvas.width / 4 - iconSize / 2;
+    const rightIconX = canvas.width * 3 / 4 - iconSize / 2;
     const iconY = canvas.height / 2 - iconSize / 2;
 
     const winnerChar = characters[winnerCharIndex];
@@ -176,10 +168,17 @@ export function drawGameOver() {
     loserIcon.src = loserChar.loseIconPath;
 
     if (winnerIcon && winnerIcon.complete && loserIcon && loserIcon.complete) {
-        ctx.drawImage(winnerIcon, winnerIconX, iconY, iconSize, iconSize);
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(loserIcon, loserIconX, iconY, iconSize, iconSize);
-        ctx.globalAlpha = 1.0;
+        if (winnerIsPlayer1) {
+            ctx.drawImage(winnerIcon, leftIconX, iconY, iconSize, iconSize);
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(loserIcon, rightIconX, iconY, iconSize, iconSize);
+            ctx.globalAlpha = 1.0;
+        } else {
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(loserIcon, leftIconX, iconY, iconSize, iconSize);
+            ctx.globalAlpha = 1.0;
+            ctx.drawImage(winnerIcon, rightIconX, iconY, iconSize, iconSize);
+        }
     } else {
         ctx.fillStyle = "#fff";
         ctx.fillText("Loading icons...", canvas.width / 2, iconY + iconSize / 2);
@@ -214,12 +213,10 @@ export function drawCountdown() {
     ctx.fillText(gameData.countdown.toString(), canvas.width / 2, canvas.height / 2);
 }
 
-// ダークゾーン（Shadow Court）の描画
 export function drawDarkZone() {
     const centerX = canvas.width / 2;
     const darkZoneWidth = canvas.width * 0.4;
     
-    // グラデーションを作成（中央が最も暗い）
     const gradient = ctx.createLinearGradient(
         centerX - darkZoneWidth / 2, 0,
         centerX + darkZoneWidth / 2, 0
@@ -232,11 +229,9 @@ export function drawDarkZone() {
     ctx.fillRect(centerX - darkZoneWidth / 2, 0, darkZoneWidth, canvas.height);
 }
 
-// ワープゾーンエフェクト（画面端のワープポータル）
 export function drawWarpEffects() {
     const time = Date.now() * 0.003;
     
-    // 左の壁のワープエフェクト
     for (let i = 0; i < 20; i++) {
         const y = (canvas.height / 20) * i;
         const intensity = Math.sin(time + i * 0.3) * 0.5 + 0.5;
@@ -244,7 +239,6 @@ export function drawWarpEffects() {
         ctx.fillRect(0, y, 5, canvas.height / 20);
     }
     
-    // 右の壁のワープエフェクト
     for (let i = 0; i < 20; i++) {
         const y = (canvas.height / 20) * i;
         const intensity = Math.sin(time + i * 0.3 + Math.PI) * 0.5 + 0.5;

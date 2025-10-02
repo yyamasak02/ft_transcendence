@@ -137,6 +137,7 @@ function handleAIAbility() {
 
 export function update(deltaTime: number = BASE_FRAME_TIME) {
     const frameMultiplier = deltaTime / BASE_FRAME_TIME;
+	const speedMultiplier2 = (gameData.player2.stamina > 10) ? 1 : 0.5;
     
     gameData.ball.x += gameData.ball.speedX * frameMultiplier;
     gameData.ball.y += gameData.ball.speedY * frameMultiplier;
@@ -151,8 +152,7 @@ export function update(deltaTime: number = BASE_FRAME_TIME) {
         const aiLevel = AI_LEVELS[gameData.player2AILevel as keyof typeof AI_LEVELS];
         const moveDirection = aiTargetY - gameData.player2.y;
         const distance = Math.abs(moveDirection);
-        const maxSpeed = gameData.player2.baseSpeed * aiLevel.trackingSpeed * frameMultiplier;
-
+        const maxSpeed = gameData.player2.baseSpeed * gameData.player2.speedMultiplier * speedMultiplier2 *aiLevel.trackingSpeed * frameMultiplier;
         const moveStep = Math.min(distance, maxSpeed);
 
         if (moveDirection > 0) {
@@ -220,7 +220,6 @@ export function updateAI(gameTime: number) {
                 }
             }
         }
-
         const inaccuracy = (Math.random() - 0.5) * gameData.player2.height * aiLevel.accuracy;
         predictedY += inaccuracy;
     }
