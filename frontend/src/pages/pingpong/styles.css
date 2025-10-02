@@ -1,123 +1,157 @@
-.pingpong-page .game-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Pingpong Page - Minimal Custom Styles */
+
+/* Stamina Gauge Background Pattern */
+.stamina-gauge-container {
+  box-shadow:
+    0 0 0 1vw #000,
+    0 0 2vw #0cf;
+  background: repeating-linear-gradient(0deg, #222 0 1vw, #333 1vw 2vw);
+  image-rendering: pixelated;
 }
 
-.pingpong-page #gameCanvas {
-  border: 2px solid #fff;
-  cursor: none;
-  max-width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  background-color: #000;
-  display: block;
+/* Stamina Gauge Fill Gradient & Animation */
+.stamina-gauge-fill {
+  background: linear-gradient(
+    180deg,
+    rgb(31, 251, 145) 0%,
+    rgb(249, 92, 92) 100%
+  );
+  box-shadow:
+    0 0 4% rgb(31, 251, 145),
+    0 0 8% rgb(249, 92, 92);
+  border-top: 0.5% solid #040404;
+  transition: height 0.2s cubic-bezier(0.4, 2, 0.6, 1);
+  image-rendering: pixelated;
+  animation: staminaPulse 1.2s infinite;
 }
 
-/* UIパネル */
-.pingpong-page .ui-panel {
-  position: absolute;
-  top: 170px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 50px;
-}
-
-.pingpong-page .left-panel {
-  left: 40px;
-}
-
-.pingpong-page .right-panel {
-  right: 40px;
-}
-
-/* クールダウンゲージ */
-.pingpong-page .cooldown-gauge-container {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(100px);
-}
-
-.pingpong-page .cooldown-gauge-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(red 0%, transparent 0%);
-}
-
-.pingpong-page .cooldown-gauge-container::after {
-  content: "";
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background-color: black;
-  border-radius: 50%;
-}
-
-/* スタミナゲージ */
-.pingpong-page .stamina-gauge-container {
-  width: 80px;
-  height: 320px;
-  border: 2px solid #fff;
-  display: flex;
-  flex-direction: column-reverse;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.pingpong-page .stamina-gauge-fill {
-  width: 100%;
-  background-color: #00f;
-  transition: height 0.1s linear;
-}
-
-/* キャラ画像 */
-.pingpong-page .char-image-container {
-  position: absolute;
-  bottom: 40px;
-  width: 350px;
-  height: 350px;
-  border: 2px solid #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.pingpong-page .left-char-image {
-  left: 40px;
-}
-
-.pingpong-page .right-char-image {
-  right: 40px;
-}
-
-.pingpong-page .char-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-/* レスポンシブ: 横幅800px以上ならキャラ画像を表示 */
-@media (min-width: 800px) {
-  .pingpong-page .game-container {
-    flex-direction: row;
+@keyframes staminaPulse {
+  0%,
+  100% {
+    filter: brightness(1);
   }
-  .pingpong-page .char-image-container {
-    display: block;
+  50% {
+    filter: brightness(1.4);
+  }
+}
+
+/* Usage Bar Base */
+.usage-bar {
+  width: 100%;
+  height: 0.75rem;
+  border-radius: 0.125rem;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6em;
+  margin: 0.5rem 0;
+  background: #222;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 0 4px #fff;
+  image-rendering: pixelated;
+  font-family: "Press Start 2P", monospace;
+}
+
+/* Usage Bar Active State */
+.usage-bar.active {
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.8em;
+  letter-spacing: 0.1em;
+  max-width: 12em;
+  min-width: 6em;
+  background: linear-gradient(90deg, #0f0 0%, #0ff 100%);
+  border: 0.15em solid #fff;
+  text-shadow: 0 0 8px #0ff;
+  animation: infBlink 1s steps(1) infinite;
+}
+
+/* Usage Bar Inactive State */
+.usage-bar.inactive {
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.8em;
+  letter-spacing: 0.1em;
+  max-width: 12em;
+  min-width: 6em;
+  background: linear-gradient(90deg, rgb(111, 111, 111) 0%, rgb(0, 0, 0) 100%);
+  border: 0.15em solid #fff;
+  text-shadow: 0 0 8px rgb(154, 156, 156);
+}
+
+/* Usage Bar None State */
+.usage-bar.none {
+  color: #fff;
+  font-weight: bold;
+  font-size: 1em;
+  letter-spacing: 0.1em;
+  max-width: 12em;
+  min-width: 6em;
+  background: linear-gradient(90deg, #400 0%, #a00 100%);
+  border: 0.15em dashed #fff;
+  text-shadow: 0 0 8px #f00;
+  animation: noneBlink 1s steps(1) infinite;
+}
+
+@keyframes noneBlink {
+  0%,
+  100% {
+    background: linear-gradient(90deg, #400 0%, #a00 100%);
+  }
+  50% {
+    background: linear-gradient(90deg, #a00 0%, #400 100%);
+  }
+}
+
+/* Usage Bar Infinite State */
+.usage-bar.infinite {
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.8em;
+  letter-spacing: 0.1em;
+  max-width: 12em;
+  min-width: 6em;
+  background: linear-gradient(90deg, #0f0 0%, #0ff 100%);
+  border: 0.15em solid #fff;
+  text-shadow: 0 0 8px #0ff;
+  animation: infBlink 1s steps(1) infinite;
+}
+
+@keyframes infBlink {
+  0%,
+  100% {
+    color: #fff;
+  }
+  50% {
+    color: #0f0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 800px) {
+  .ui-panel {
+    gap: 10%;
+  }
+
+  .left-panel {
+    left: 2% !important;
+  }
+
+  .right-panel {
+    right: 2% !important;
+  }
+
+  .stamina-gauge-container {
+    width: 8vw;
+    min-width: 50px;
+    height: 25vh;
+    margin: 0 1vw;
+  }
+
+  .usage-bar {
+    font-size: 0.5em;
+    margin: 0.25rem 0;
   }
 }
