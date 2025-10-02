@@ -1,0 +1,11 @@
+{
+  "name": "ft_transcendence",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "lint": "cd frontend && npm run lint"
+  }
+}
