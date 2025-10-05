@@ -1,0 +1,44 @@
+{
+  "name": "common",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "vite-node --watch ./srcs/index.ts",
+    "start": "node dist/srcs/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:migrate": "vite-node scripts/migrate.ts",
+    "db:seed": "vite-node scripts/seed.ts",
+    "db:setup": "npm run db:migrate && npm run db:seed"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/autoload": "^6.3.1",
+    "@fastify/env": "^5.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/type-provider-typebox": "^6.0.0",
+    "@sinclair/typebox": "^0.34.41",
+    "csv-parse": "^6.1.0",
+    "fastify": "^5.6.0",
+    "fastify-cli": "^7.4.0",
+    "fastify-env": "^2.1.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/csv-parse": "^1.2.5",
+    "@types/node": "^24.3.3",
+    "@types/sqlite3": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vite-node": "^3.2.4"
+  }
+}

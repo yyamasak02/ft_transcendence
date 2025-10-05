@@ -7,21 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
     <script type="module" src="/src/main.ts"></script>
-    <style>
-      #nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #333;
-        color: white;
-        padding: 10px;
-        box-sizing: border-box;
-      }
-    </style>
   </head>
   <body>
-    <nav id="nav"></nav>
-    <div id="app"></div>
+    <div class="flex flex-col h-screen">
+      <nav id="nav"></nav>
+      <main id="app" class="flex-1 overflow-auto"></main>
+    </div>
   </body>
 </html>

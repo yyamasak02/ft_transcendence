@@ -1,64 +1,32 @@
 import { routes } from "./routes";
+import { NotFoundPage } from "@/pages/404";
 
 const app = document.querySelector<HTMLElement>("#app")!;
-const nav = document.querySelector<HTMLElement>("#nav")!;
 
 let currentRoute: string | null = null;
 
 const renderPage = (route: string) => {
-  // Call onUnmount for the previous route
+  // 前のページの onUnmount を呼ぶ
   if (currentRoute && routes[currentRoute]?.onUnmount) {
     routes[currentRoute].onUnmount();
   }
 
   const r = routes[route];
   if (!r) {
-    app.innerHTML = "<h1>404</h1>";
-    currentRoute = null;
+    app.innerHTML = new NotFoundPage().render();
     return;
   }
 
   app.innerHTML = r.content;
   currentRoute = route;
 
-  if (r.onMount) r.onMount();
-
-  if (r.head?.title) {
-    document.title = r.head.title;
-  }
+  r.onMount?.();
+  if (r.head?.title) document.title = r.head.title;
 };
 
-export const navigate = (target: HTMLAnchorElement) => {
-  const route = target.pathname;
-  history.pushState({}, "", route);
-  renderPage(route);
-};
-
-export const renderNavLinks = (className = "nav-link"): void => {
-  const navFragment: DocumentFragment = document.createDocumentFragment();
-
-  Object.keys(routes).forEach((route) => {
-    const { linkLabel } = routes[route];
-    const linkElement = document.createElement("a");
-
-    linkElement.href = route;
-    linkElement.textContent = linkLabel;
-    linkElement.classList.add(className);
-
-    navFragment.appendChild(linkElement);
-  });
-
-  nav.append(navFragment);
-};
-
-export const registerNavLinks = (): void => {
-  nav.addEventListener("click", (e) => {
-    const target = e.target as HTMLAnchorElement;
-    if (target.tagName.toLowerCase() === "a") {
-      e.preventDefault();
-      navigate(target);
-    }
-  });
+export const navigate = (path: string) => {
+  history.pushState({}, "", path);
+  renderPage(path);
 };
 
 export const registerBrowserBackAndForth = () => {
