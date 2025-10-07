@@ -2,5 +2,6 @@
 convertPDFtoHTML.py
 .env*
 !.env.local
+!.env.development
 node_modules
 .claude
