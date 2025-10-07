@@ -56,6 +56,8 @@ import {
   WINNING_SCORE,
   COUNTDOWN_INTERVAL,
   FIREWORK_INTERVAL,
+  setBallSpeed,
+  setWinningScore,
 } from "./core/constants";
 
 let lastTime = 0;
@@ -201,6 +203,24 @@ function handlePlayerMovement(deltaTime: number) {
 
 document.addEventListener("keydown", (e) => {
   gameData.keysPressed[e.key] = true;
+
+  if (gameData.gameState === "paused") {
+    switch (e.key.toLowerCase()) {
+      case "q":
+        setBallSpeed(BASE_BALL_SPEED + 1);
+        return;
+      case "a":
+        setBallSpeed(BASE_BALL_SPEED - 1);
+        return;
+      case "w":
+        setWinningScore(WINNING_SCORE + 1);
+        return;
+      case "s":
+        setWinningScore(WINNING_SCORE - 1);
+        return;
+    }
+  }
+  
   if (e.key.toLowerCase() === "p") {
     if (gameData.gameState === "game") {
       setGameState("paused");
