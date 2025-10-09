@@ -1,6 +1,8 @@
 import fp from "fastify-plugin";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastifySwagger from "@fastify/swagger";
+import fs from "fs";
+import path from "path";
 
 export default fp(async function (fastify) {
   /**
@@ -30,5 +32,14 @@ export default fp(async function (fastify) {
       docExpansion: "list",
       deepLinking: false,
     },
+  });
+
+  fastify.addHook("onReady", async () => {
+    const yaml = fastify.swagger({ yaml: true });
+    const outputPath = path.join(process.cwd(), "swagger", "swagger.yml");
+
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, yaml);
+    fastify.log.info(`✅ Swagger YAML exported to ${outputPath}`);
   });
 });

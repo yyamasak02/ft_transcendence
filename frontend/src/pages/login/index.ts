@@ -1,5 +1,6 @@
 import type { Route } from "@/types/routes";
 
+// TODO ログイン機能を実装する
 class LoginComponent {
   render = () => {
     return `
