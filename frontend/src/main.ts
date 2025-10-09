@@ -9,7 +9,7 @@ const navContainer = document.querySelector("#nav")!;
 navContainer.classList.add(
   "flex",
   "items-center",
-  "gap-4",
+  "gap-10",
   "w-full",
   "bg-gray-900",
   "text-white",
