@@ -5,3 +5,4 @@ convertPDFtoHTML.py
 !.env.development
 node_modules
 .claude
+.db
