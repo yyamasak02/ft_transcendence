@@ -27,8 +27,6 @@ services:
       NODE_ENV: development
     env_file:
       - ./frontend/.env.local
-    ports:
-      - 5173:5173
     networks:
       - ft_transcendence_network
     command: npm run dev
@@ -40,23 +38,14 @@ services:
     container_name: be_common
     volumes:
       - ./backends/common:/app
-      - ./backends/common/swagger:/app/swagger
       - /app/node_modules
       - /app/dist
-      - db_common_data:/app/db
     environment:
       NODE_ENV: development
     env_file:
       - ./backends/common/.env.development
-    ports:
-      - 8080:8080
-    # command: npm run dev
     networks:
       - ft_transcendence_network
 networks:
   ft_transcendence_network:
     driver: bridge
-
-volumes:
-  db_common_data:
-    driver: local
