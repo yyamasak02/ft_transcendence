@@ -40,16 +40,14 @@ services:
       - ./backends/common:/app
       - /app/node_modules
       - /app/dist
-      - db_common_data:/app/db
+      - ./backends/common/db:/app/db
     environment:
       NODE_ENV: development
+    env_file:
+      - ./backends/common/.env.development
     # command: npm run dev
     networks:
       - ft_transcendence_network
 networks:
   ft_transcendence_network:
     driver: bridge
-
-volumes:
-  db_common_data:
-    driver: local
