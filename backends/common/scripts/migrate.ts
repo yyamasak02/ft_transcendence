@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function runMigrations(): Promise<void> {
   const db: Database = await open({
-    filename: process.env.DB_PATH || "./db.sqlite",
+    filename: String(process.env.SQLITE_PATH),
     driver: sqlite3.Database,
   });
 
@@ -26,9 +26,7 @@ export async function runMigrations(): Promise<void> {
   console.log("All migrations completed successfully.");
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runMigrations().catch((err) => {
-    console.error("Migration failed:", err);
-    process.exit(1);
-  });
-}
+runMigrations().catch((err) => {
+  console.error("Migration failed:", err);
+  process.exit(1);
+});

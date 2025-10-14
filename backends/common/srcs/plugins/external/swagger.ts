@@ -1,6 +1,10 @@
 import fp from "fastify-plugin";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastifySwagger from "@fastify/swagger";
+import { JSONObject } from "@fastify/swagger";
+import type { URIComponents } from "uri-js";
+import fs from "fs";
+import path from "path";
 
 export default fp(async function (fastify) {
   /**
@@ -17,6 +21,16 @@ export default fp(async function (fastify) {
         version: "0.1.0",
       },
     },
+    refResolver: {
+      buildLocalReference(
+        json: JSONObject,
+        _baseUri: URIComponents,
+        _fragment: string,
+        i: number,
+      ): string {
+        return String((json as any).$id ?? `def-${i}`);
+      },
+    },
   });
 
   /**
@@ -30,5 +44,14 @@ export default fp(async function (fastify) {
       docExpansion: "list",
       deepLinking: false,
     },
+  });
+
+  fastify.addHook("onReady", async () => {
+    const yaml = fastify.swagger({ yaml: true });
+    const outputPath = path.join(process.cwd(), "swagger", "swagger.yml");
+
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, yaml);
+    fastify.log.info(`✅ Swagger YAML exported to ${outputPath}`);
   });
 });
