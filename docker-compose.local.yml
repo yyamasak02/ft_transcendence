@@ -1,16 +1,19 @@
 services:
-  reverse_proxy:
+  nginx:
     build:
-      context: ./reverse_proxy
+      context: ./nginx
       dockerfile: ./docker/Dockerfile
-    image: reverse_proxy
-    container_name: reverse_proxy
+    image: ft_transcendence_nginx
+    container_name: ft_transcendence_nginx
     ports:
       - 443:443
     networks:
       - ft_transcendence_network
     env_file:
-      - ./reverse_proxy/.env.local
+      - ./nginx/.env.local
+    depends_on:
+      - frontend
+      - be_common
   frontend:
     build:
       context: ./frontend
@@ -24,8 +27,6 @@ services:
       NODE_ENV: development
     env_file:
       - ./frontend/.env.local
-    ports:
-      - 5173:5173
     networks:
       - ft_transcendence_network
     command: npm run dev
@@ -39,20 +40,14 @@ services:
       - ./backends/common:/app
       - /app/node_modules
       - /app/dist
-      - db_common_data:/app/db
     environment:
       NODE_ENV: development
     env_file:
       - ./backends/common/.env.development
     ports:
       - 8080:8080
-    # command: npm run dev
     networks:
       - ft_transcendence_network
 networks:
   ft_transcendence_network:
     driver: bridge
-
-volumes:
-  db_common_data:
-    driver: local
