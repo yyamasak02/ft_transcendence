@@ -48,6 +48,26 @@ services:
       - 8080:8080
     networks:
       - ft_network
+    command: npm run dev
+  be_game:
+    build:
+      context: ./backends/game
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_game
+    container_name: ft_be_game
+    volumes:
+      - ./backends/game:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/game/.env.development
+    ports:
+      - 8081:8080
+    networks:
+      - ft_network
+    command: npm run dev
 networks:
   ft_network:
     driver: bridge

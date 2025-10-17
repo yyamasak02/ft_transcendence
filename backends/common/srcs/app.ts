@@ -11,6 +11,7 @@ export default async function serviceApp(
   await fastify.register(fastifyAutoload, {
     dir: path.join(import.meta.dirname, "plugins/external"),
     options: {},
+    forceESM: true,
   });
 
   // This loads all your application plugins defined in plugins/app
@@ -19,6 +20,7 @@ export default async function serviceApp(
   await fastify.register(fastifyAutoload, {
     dir: path.join(import.meta.dirname, "plugins/app"),
     options: { ...opts },
+    forceESM: true,
   });
 
   await fastify.register(fastifyAutoload, {
@@ -26,5 +28,6 @@ export default async function serviceApp(
     autoHooks: true,
     cascadeHooks: true,
     options: { ...opts },
+    forceESM: true,
   });
 }

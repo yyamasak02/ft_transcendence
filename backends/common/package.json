@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "vite-node --watch ./srcs/index.ts",
+    "dev": "nodemon --exec node --loader ts-node/esm ./srcs/index.ts",
     "start": "node dist/srcs/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:migrate": "vite-node scripts/migrate.ts",
