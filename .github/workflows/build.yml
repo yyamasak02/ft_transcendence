@@ -1,6 +1,6 @@
 name: build_check
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:
@@ -25,8 +25,10 @@ jobs:
       - name: Run ESLint manually
         run: yarn lint
 
-      - name: Build and Run services
-        run: docker compose -f docker-compose.local.yml up -d --build
+      - name: Setup Docker Compose
+        uses: yu-ichiro/spin-up-docker-compose-action@v1
+        with:
+          file: docker-compose.local.yml
 
       - name: Check Container Health Status
         run: |
