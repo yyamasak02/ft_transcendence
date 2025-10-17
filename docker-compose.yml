@@ -44,6 +44,8 @@ services:
       NODE_ENV: development
     env_file:
       - ./backends/common/.env.development
+    ports:
+      - 8080:8080
     networks:
       - ft_transcendence_network
 networks:
