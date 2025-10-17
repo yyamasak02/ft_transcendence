@@ -59,7 +59,7 @@ status:
 	@docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 	@echo ""
 	@echo "🌐 Networks:"
-	@docker network ls | grep inception
+	@docker network ls | grep ft_transcendence
 
 #rebuild
 re:
