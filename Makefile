@@ -60,3 +60,8 @@ status:
 	@echo ""
 	@echo "🌐 Networks:"
 	@docker network ls | grep inception
+
+#rebuild
+re:
+	make clean
+	make up

@@ -1,5 +1,2 @@
-name
-"yyamasak"
-"admin"
-"testUser"
-"abc"
+name,password,salt
+"admin","68346f91c38997469560c23d21959a96235efae4401b0d3a082e53b96ac9bc90","5ac5542ab8660b90e1c839c4c9ea95a6"
