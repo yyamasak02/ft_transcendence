@@ -34,10 +34,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Docker Compose
-        uses: yu-ichiro/spin-up-docker-compose-action@v1
-        with:
-          file: docker-compose.local.yml
+      - uses: actions/checkout@v3
+      - name: Checkout And Build
+        run: docker compose -f docker-compose.local.yaml -d
 
       - name: Check Container Health Status
         run: |
