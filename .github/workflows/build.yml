@@ -1,0 +1,50 @@
+name: build_check
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose-plugin
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: ESLint review
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GH_PROJECT_TOKEN }}
+          reporter: github-pr-review
+          eslint_flags: "./**/*.{vue,ts,js}"
+
+      - name: Run ESLint manually
+        run: yarn lint
+
+      - name: Build and Run services
+        run: docker compose -f docker-compose.local.yml up -d --build
+
+      - name: Check Container Health Status
+        run: |
+          echo "Waiting for containers to stabilize..."
+          for i in {1..10}; do
+            STATUS=$(docker compose -f docker-compose.local.yml ps | grep -E 'Exit|restarting')
+            if [ -z "$STATUS" ]; then
+              echo "✅ All required services are running smoothly."
+              docker compose -f docker-compose.local.yml ps
+              exit 0
+            fi
+            echo "Retrying... ($i/10)"
+            sleep 5
+          done
+          echo "--- ERROR: Some containers failed to start ---"
+          docker compose -f docker-compose.local.yml ps
+          exit 1
+
+      - name: Cleanup containers
+        if: always()
+        run: docker compose -f docker-compose.local.yml down
