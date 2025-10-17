@@ -6,3 +6,8 @@ convertPDFtoHTML.py
 node_modules
 .claude
 .db
+.DS_Store
+*.sqlite
+backends/common/db/
+docker-compose.local.yml
+backends/common/swagger/swagger.yml
