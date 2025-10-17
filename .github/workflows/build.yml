@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/checkout@v3
       - name: Checkout And Build
-        run: docker compose -f docker-compose.local.yaml -d
+        run: docker compose -f docker-compose.local.yaml up -d
 
       - name: Check Container Health Status
         run: |
