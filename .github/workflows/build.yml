@@ -54,7 +54,14 @@ jobs:
           echo "--- ERROR: Some containers failed to start ---"
           docker compose -f docker-compose.local.yml ps
           exit 1
-
+      - name: Debug containers
+        if: failure()
+        run: |
+          echo "=== Container status ==="
+          docker compose -f docker-compose.local.yml ps -a
+          echo
+          echo "=== Logs from containers ==="
+          docker compose -f docker-compose.local.yml logs --tail=100
       - name: Cleanup containers
         if: always()
         run: docker compose -f docker-compose.local.yml down
