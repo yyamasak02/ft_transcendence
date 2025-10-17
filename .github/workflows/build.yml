@@ -41,19 +41,24 @@ jobs:
       - name: Check Container Health Status
         run: |
           echo "Waiting for containers to stabilize..."
+          success=false
           for i in {1..10}; do
-            STATUS=$(docker compose -f docker-compose.local.yml ps | grep -E 'Exit|restarting')
+            STATUS=$(docker compose -f docker-compose.local.yml ps | grep -E 'Exit|restarting' || true)
             if [ -z "$STATUS" ]; then
               echo "✅ All required services are running smoothly."
               docker compose -f docker-compose.local.yml ps
-              exit 0
+              success=true
+              break
             fi
             echo "Retrying... ($i/10)"
             sleep 5
           done
-          echo "--- ERROR: Some containers failed to start ---"
-          docker compose -f docker-compose.local.yml ps
-          exit 1
+
+          if [ "$success" = false ]; then
+            echo "--- ERROR: Some containers failed to start ---"
+            docker compose -f docker-compose.local.yml ps
+            exit 1
+          fi
       - name: Debug containers
         if: failure()
         run: |
