@@ -1,0 +1,57 @@
+openapi: 3.0.3
+info:
+  title: Fastify demo API
+  description: The official Fastify demo API
+  version: 0.1.0
+components:
+  schemas: {}
+paths:
+  /api/game/users:
+    get:
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                    name:
+                      type: string
+                    password:
+                      type: string
+                    salt:
+                      type: string
+                  required:
+                    - id
+                    - name
+                    - password
+                    - salt
+  /api/game/login:
+    post:
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/game/me:
+    post:
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: string

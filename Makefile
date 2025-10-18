@@ -22,12 +22,14 @@ up:
 	@echo "Swagger http://127.0.0.1:8080/docs/"
 	@echo "Backend http://127.0.0.1:8080"
 	@echo "Frontend http://127.0.0.1:5173"
+	@echo "Nginx https://localhost"
 
 buildup:
 	docker compose -f $(COMPOSE_FILE) up -d --build
 	@echo "Swagger http://127.0.0.1:8080/docs/"
 	@echo "Backend http://127.0.0.1:8080"
 	@echo "Frontend http://127.0.0.1:5173"
+	@echo "Nginx https://localhost"
 
 
 # Stop all containers
@@ -57,4 +59,9 @@ status:
 	@docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 	@echo ""
 	@echo "🌐 Networks:"
-	@docker network ls | grep inception
+	@docker network ls | grep ft_transcendence
+
+#rebuild
+re:
+	make clean
+	make up

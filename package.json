@@ -6,6 +6,11 @@
     "frontend"
   ],
   "scripts": {
-    "lint": "cd frontend && npm run lint"
+    "lint": "cd frontend && npm run lint",
+    "dev": "vite --host 0.0.0.0 --port 5173"
+  },
+  "dependencies": {
+    "@fastify/mysql": "^5.0.2",
+    "mysql2": "^3.15.2"
   }
 }

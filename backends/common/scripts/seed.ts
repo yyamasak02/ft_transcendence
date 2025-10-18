@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function runSeeders(): Promise<void> {
   const db: Database = await open({
-    filename: process.env.DB_PATH || "./db.sqlite",
+    filename: String(process.env.SQLITE_PATH),
     driver: sqlite3.Database,
   });
 
@@ -44,9 +44,7 @@ export async function runSeeders(): Promise<void> {
   console.log("All seeders completed successfully.");
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runSeeders().catch((err) => {
-    console.error("Seeding failed:", err);
-    process.exit(1);
-  });
-}
+runSeeders().catch((err) => {
+  console.error("Seeding failed:", err);
+  process.exit(1);
+});
