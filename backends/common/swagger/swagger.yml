@@ -98,6 +98,226 @@ paths:
                     type: string
                 required:
                   - message
+  /api/common/user/information:
+    get:
+      tags:
+        - User
+      parameters:
+        - schema:
+            minimum: 1
+            type: number
+          in: query
+          name: userId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  status:
+                    type: string
+                required:
+                  - id
+                  - name
+                  - status
+  /api/common/user/ban:
+    post:
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minimum: 1
+                  type: number
+                reason:
+                  type: string
+              required:
+                - userId
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+  /api/common/user/block:
+    post:
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minimum: 1
+                  type: number
+                targetUserId:
+                  minimum: 1
+                  type: number
+              required:
+                - userId
+                - targetUserId
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+  /api/common/user/destroy_token:
+    post:
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minimum: 1
+                  type: number
+                token:
+                  minLength: 1
+                  type: string
+              required:
+                - userId
+                - token
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+  /api/common/user/refresh_token:
+    post:
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  minLength: 1
+                  type: string
+              required:
+                - refreshToken
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                required:
+                  - accessToken
+                  - refreshToken
+  /api/common/user/password:
+    patch:
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minimum: 1
+                  type: number
+                currentPassword:
+                  minLength: 1
+                  type: string
+                newPassword:
+                  minLength: 8
+                  type: string
+              required:
+                - userId
+                - currentPassword
+                - newPassword
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+  /api/common/user/delete:
+    delete:
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minimum: 1
+                  type: number
+                reason:
+                  type: string
+              required:
+                - userId
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
   /api/common/auth/users:
     get:
       tags:
