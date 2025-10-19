@@ -6,6 +6,18 @@ export default defineConfig({
   server: {
     host: process.env.VITE_HOST,
     port: Number(process.env.VITE_PORT),
+    proxy: {
+      "/api/common": {
+        target: "http://ft_be_common",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/api/game": {
+        target: "http://ft_be_game",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   plugins: [tsconfigPaths(), tailwindcss()],
 });

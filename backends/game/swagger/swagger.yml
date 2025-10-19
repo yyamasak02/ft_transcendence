@@ -16,23 +16,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: number
-                    name:
-                      type: string
-                    password:
-                      type: string
-                    salt:
-                      type: string
-                  required:
-                    - id
-                    - name
-                    - password
-                    - salt
+                type: string
   /api/game/login:
     post:
       tags:

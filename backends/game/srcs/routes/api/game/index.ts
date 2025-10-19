@@ -12,12 +12,12 @@ const plugin: FastifyPluginAsync = async (fastify) => {
       schema: {
         tags: ["Auth"],
         response: {
-          200: UsersSchema,
+          200: Type.String(),
         },
       },
     },
     async () => {
-      return fastify.db.all("SELECT * FROM users");
+      return "Hello users!";
     },
   );
 
