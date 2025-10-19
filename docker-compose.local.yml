@@ -68,6 +68,25 @@ services:
     networks:
       - ft_network
     command: npm run dev
+  be_text_chat:
+    build:
+      context: ./backends/text_chat
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_text_chat
+    container_name: ft_be_text_chat
+    volumes:
+      - ./backends/text_chat:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/text_chat/.env.development
+    ports:
+      - 8082:8080
+    networks:
+      - ft_network
+    command: npm run dev
 networks:
   ft_network:
     driver: bridge
