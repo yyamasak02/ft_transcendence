@@ -21,6 +21,40 @@ const plugin: FastifyPluginAsync = async (fastify) => {
     },
   );
 
+  f.get(
+    "/ws",
+    {
+      websocket: true,
+      schema: {
+        tags: ["Auth"],
+        response: {
+          200: Type.String(),
+        },
+      },
+    },
+    async (socket, req) => {
+      socket.on("message", (message) => {
+        console.log("Received message:", message.toString());
+        const msg = JSON.parse(message.toString());
+        switch (msg.key) {
+          case "ArrowLeft":
+            msg.dx = -4;
+            break;
+          case "ArrowRight":
+            msg.dx = 4;
+            break;
+          case "ArrowUp":
+            msg.dy = -4;
+            break;
+          case "ArrowDown":
+            msg.dy = 4;
+            break;
+        }
+        socket.send(JSON.stringify(msg));
+      });
+    },
+  );
+
   f.post(
     "/login",
     {

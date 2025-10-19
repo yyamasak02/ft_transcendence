@@ -17,6 +17,7 @@ export default defineConfig({
         target: "http://ft_be_game",
         changeOrigin: true,
         secure: false,
+        ws: true,
       },
     },
   },
