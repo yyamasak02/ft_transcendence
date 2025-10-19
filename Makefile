@@ -20,14 +20,18 @@ help:
 up:
 	docker compose -f $(COMPOSE_FILE) up -d
 	@echo "Swagger http://127.0.0.1:8080/docs/"
-	@echo "Backend http://127.0.0.1:8080"
+	@echo "Common Backend http://127.0.0.1:8080"
+	@echo "Game Backend http://127.0.0.1:8081"
+	@echo "TextChat Backend http://127.0.0.1:8082"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "Nginx https://localhost"
 
 buildup:
 	docker compose -f $(COMPOSE_FILE) up -d --build
 	@echo "Swagger http://127.0.0.1:8080/docs/"
-	@echo "Backend http://127.0.0.1:8080"
+	@echo "Common Backend http://127.0.0.1:8080"
+	@echo "Game Backend http://127.0.0.1:8081"
+	@echo "TextChat Backend http://127.0.0.1:8082"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "Nginx https://localhost"
 
