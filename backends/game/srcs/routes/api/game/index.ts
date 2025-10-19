@@ -32,7 +32,7 @@ const plugin: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (socket, req) => {
+    async (socket, _) => {
       socket.on("message", (message) => {
         console.log("Received message:", message.toString());
         const msg = JSON.parse(message.toString());
