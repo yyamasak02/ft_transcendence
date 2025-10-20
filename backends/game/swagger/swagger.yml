@@ -4,7 +4,41 @@ info:
   description: The official Fastify demo API
   version: 0.1.0
 components:
-  schemas: {}
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        password:
+          type: string
+        salt:
+          type: string
+      required:
+        - id
+        - name
+        - password
+        - salt
+    Users:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          name:
+            type: string
+          password:
+            type: string
+          salt:
+            type: string
+        required:
+          - id
+          - name
+          - password
+          - salt
 paths:
   /api/game/users:
     get:
@@ -16,7 +50,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: "#/components/schemas/User"
   /api/game/login:
     post:
       tags:

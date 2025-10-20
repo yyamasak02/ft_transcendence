@@ -1,57 +1,27 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
-import { UsersSchema } from "../../../schemas/auth.js";
+import { User, UserType } from "../../../schemas/auth.js";
 
 const plugin: FastifyPluginAsync = async (fastify) => {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
-  f.get(
+  f.get<{ Reply: UserType }>(
     "/users",
     {
       schema: {
         tags: ["Auth"],
         response: {
-          200: Type.String(),
+          200: Type.Ref("User"),
         },
       },
     },
-    async () => {
-      return "Hello users!";
-    },
-  );
-
-  f.get(
-    "/ws",
-    {
-      websocket: true,
-      schema: {
-        tags: ["Auth"],
-        response: {
-          200: Type.String(),
-        },
-      },
-    },
-    async (socket, _) => {
-      socket.on("message", (message) => {
-        console.log("Received message:", message.toString());
-        const msg = JSON.parse(message.toString());
-        switch (msg.key) {
-          case "ArrowLeft":
-            msg.dx = -4;
-            break;
-          case "ArrowRight":
-            msg.dx = 4;
-            break;
-          case "ArrowUp":
-            msg.dy = -4;
-            break;
-          case "ArrowDown":
-            msg.dy = 4;
-            break;
-        }
-        socket.send(JSON.stringify(msg));
-      });
+    async (_, rep) => {
+      const name = "inoh";
+      const id = 1;
+      const password = "securepassword";
+      const salt = "randomsalt";
+      rep.status(200).send({ id, name, password, salt });
     },
   );
 
