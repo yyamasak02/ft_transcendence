@@ -1,10 +1,14 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
-export const UserSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-  password: Type.String(),
-  salt: Type.String(),
-});
+export const User = Type.Object(
+  {
+    id: Type.Number(),
+    name: Type.String(),
+    password: Type.String(),
+    salt: Type.String(),
+  },
+  { $id: "User" },
+);
 
-export const UsersSchema = Type.Array(UserSchema);
+export type UserType = Static<typeof User>;
+export const Users = Type.Array(User, { $id: "Users" });

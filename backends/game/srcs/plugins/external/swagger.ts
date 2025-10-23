@@ -5,6 +5,7 @@ import { JSONObject } from "@fastify/swagger";
 import type { URIComponents } from "uri-js";
 import fs from "fs";
 import path from "path";
+import { User } from "../../schemas/auth.js";
 
 export default fp(async function (fastify) {
   /**
@@ -28,7 +29,7 @@ export default fp(async function (fastify) {
         _fragment: string,
         i: number,
       ): string {
-        return String((json as any).$id ?? `def-${i}`);
+        return String((json as any).$id ?? `my-fragment-${i}`);
       },
     },
   });

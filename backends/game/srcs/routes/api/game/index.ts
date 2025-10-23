@@ -1,23 +1,27 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
-import { UsersSchema } from "../../../schemas/auth.js";
+import { User, UserType } from "../../../schemas/auth.js";
 
 const plugin: FastifyPluginAsync = async (fastify) => {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
-  f.get(
+  f.get<{ Reply: UserType }>(
     "/users",
     {
       schema: {
         tags: ["Auth"],
         response: {
-          200: UsersSchema,
+          200: Type.Ref("User"),
         },
       },
     },
-    async () => {
-      return fastify.db.all("SELECT * FROM users");
+    async (_, rep) => {
+      const name = "inoh";
+      const id = 1;
+      const password = "securepassword";
+      const salt = "randomsalt";
+      rep.status(200).send({ id, name, password, salt });
     },
   );
 
