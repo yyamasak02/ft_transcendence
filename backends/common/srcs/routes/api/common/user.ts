@@ -41,6 +41,95 @@ const loginSuccessSchema = Type.Object({
   name: Type.String(),
 });
 
+const userIdentifierSchema = Type.Object({
+  userId: Type.Number({ minimum: 1 }),
+});
+
+const userActionResponseSchema = Type.Object({
+  message: Type.String(),
+});
+
+const userInformationQuerySchema = userIdentifierSchema;
+
+const userInformationResponseSchema = Type.Object({
+  id: Type.Number(),
+  name: Type.String(),
+  status: Type.String(),
+});
+
+const userBanBodySchema = Type.Composite([
+  userIdentifierSchema,
+  Type.Object({
+    reason: Type.Optional(Type.String()),
+  }),
+]);
+
+const userBlockBodySchema = Type.Composite([
+  userIdentifierSchema,
+  Type.Object({
+    targetUserId: Type.Number({ minimum: 1 }),
+  }),
+]);
+
+const destroyTokenBodySchema = Type.Object({
+  userId: Type.Number({ minimum: 1 }),
+  token: Type.String({ minLength: 1 }),
+});
+
+const refreshTokenBodySchema = Type.Object({
+  refreshToken: Type.String({ minLength: 1 }),
+});
+
+const refreshTokenResponseSchema = Type.Object({
+  accessToken: Type.String(),
+  refreshToken: Type.String(),
+});
+
+const updatePasswordBodySchema = Type.Composite([
+  userIdentifierSchema,
+  Type.Object({
+    currentPassword: Type.String({ minLength: 1 }),
+    newPassword: Type.String({ minLength: 8 }),
+  }),
+]);
+
+const deleteUserBodySchema = Type.Composite([
+  userIdentifierSchema,
+  Type.Object({
+    reason: Type.Optional(Type.String()),
+  }),
+]);
+
+type UserIdentifier = {
+  userId: number;
+};
+
+type UserBanBody = UserIdentifier & {
+  reason?: string;
+};
+
+type UserBlockBody = UserIdentifier & {
+  targetUserId: number;
+};
+
+type DestroyTokenBody = {
+  userId: number;
+  token: string;
+};
+
+type RefreshTokenBody = {
+  refreshToken: string;
+};
+
+type UpdatePasswordBody = UserIdentifier & {
+  currentPassword: string;
+  newPassword: string;
+};
+
+type DeleteUserBody = UserIdentifier & {
+  reason?: string;
+};
+
 function hashPassword(password: string, salt: string) {
   return createHash("sha256").update(password + salt).digest("hex");
 }
@@ -122,6 +211,149 @@ export default async function (fastify: FastifyInstance) {
       }
 
       return { id: row.id, name: row.name };
+    },
+  );
+
+  f.get(
+    "/user/information",
+    {
+      schema: {
+        tags: ["User"],
+        querystring: userInformationQuerySchema,
+        response: {
+          200: userInformationResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { userId } = request.query as UserIdentifier;
+
+      return {
+        id: userId,
+        name: "placeholder",
+        status: "active",
+      };
+    },
+  );
+
+  f.post(
+    "/user/ban",
+    {
+      schema: {
+        tags: ["User"],
+        body: userBanBodySchema,
+        response: {
+          200: userActionResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { userId, reason } = request.body as UserBanBody;
+
+      return {
+        message: `User ${userId} banned${reason ? ` for ${reason}` : ""}.`,
+      };
+    },
+  );
+
+  f.post(
+    "/user/block",
+    {
+      schema: {
+        tags: ["User"],
+        body: userBlockBodySchema,
+        response: {
+          200: userActionResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { userId, targetUserId } = request.body as UserBlockBody;
+
+      return {
+        message: `User ${userId} blocked user ${targetUserId}.`,
+      };
+    },
+  );
+
+  f.post(
+    "/user/destroy_token",
+    {
+      schema: {
+        tags: ["User"],
+        body: destroyTokenBodySchema,
+        response: {
+          200: userActionResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { userId, token } = request.body as DestroyTokenBody;
+
+      return {
+        message: `Token ${token} destroyed for user ${userId}.`,
+      };
+    },
+  );
+
+  f.post(
+    "/user/refresh_token",
+    {
+      schema: {
+        tags: ["User"],
+        body: refreshTokenBodySchema,
+        response: {
+          200: refreshTokenResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { refreshToken } = request.body as RefreshTokenBody;
+
+      return {
+        accessToken: `new-access-token-for-${refreshToken}`,
+        refreshToken: `new-refresh-token-for-${refreshToken}`,
+      };
+    },
+  );
+
+  f.patch(
+    "/user/password",
+    {
+      schema: {
+        tags: ["User"],
+        body: updatePasswordBodySchema,
+        response: {
+          200: userActionResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { userId } = request.body as UpdatePasswordBody;
+
+      return {
+        message: `Password updated for user ${userId}.`,
+      };
+    },
+  );
+
+  f.delete(
+    "/user/delete",
+    {
+      schema: {
+        tags: ["User"],
+        body: deleteUserBodySchema,
+        response: {
+          200: userActionResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { userId, reason } = request.body as DeleteUserBody;
+
+      return {
+        message: `User ${userId} deleted${reason ? ` for ${reason}` : ""}.`,
+      };
     },
   );
 }
