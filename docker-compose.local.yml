@@ -20,6 +20,8 @@ services:
       dockerfile: ./docker/Dockerfile
     image: ft_frontend
     container_name: ft_frontend
+    ports:
+      - 5173:5173
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
@@ -45,7 +47,7 @@ services:
     env_file:
       - ./backends/common/.env.development
     ports:
-      - 8080:8080
+      - 8080:80
     networks:
       - ft_network
     command: npm run dev
@@ -64,7 +66,26 @@ services:
     env_file:
       - ./backends/game/.env.development
     ports:
-      - 8081:8080
+      - 8081:80
+    networks:
+      - ft_network
+    command: npm run dev
+  be_text_chat:
+    build:
+      context: ./backends/text_chat
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_text_chat
+    container_name: ft_be_text_chat
+    volumes:
+      - ./backends/text_chat:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/text_chat/.env.development
+    ports:
+      - 8082:80
     networks:
       - ft_network
     command: npm run dev
