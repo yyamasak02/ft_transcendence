@@ -3,12 +3,12 @@ services:
     build:
       context: ./nginx
       dockerfile: ./docker/Dockerfile
-    image: ft_transcendence_nginx
-    container_name: ft_transcendence_nginx
+    image: ft_nginx
+    container_name: ft_nginx
     ports:
       - 443:443
     networks:
-      - ft_transcendence_network
+      - ft_network
     env_file:
       - ./nginx/.env.local
     depends_on:
@@ -18,8 +18,8 @@ services:
     build:
       context: ./frontend
       dockerfile: ./docker/Dockerfile
-    image: frontend
-    container_name: frontend
+    image: ft_frontend
+    container_name: ft_frontend
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
@@ -28,14 +28,14 @@ services:
     env_file:
       - ./frontend/.env.local
     networks:
-      - ft_transcendence_network
+      - ft_network
     command: npm run dev
   be_common:
     build:
       context: ./backends/common
       dockerfile: ./docker/Dockerfile
-    image: be_common
-    container_name: be_common
+    image: ft_be_common
+    container_name: ft_be_common
     volumes:
       - ./backends/common:/app
       - /app/node_modules
@@ -47,7 +47,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      - ft_transcendence_network
+      - ft_network
 networks:
-  ft_transcendence_network:
+  ft_network:
     driver: bridge

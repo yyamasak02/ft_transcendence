@@ -46,10 +46,8 @@ import {
   setSelectedStage,
   handleStageSelection,
   setGameState,
-  setCountdown,
 } from "./core/state";
 import {
-  TARGET_FPS,
   FIXED_TIME_STEP,
   MAX_DELTA_TIME,
   BASE_BALL_SPEED,
@@ -220,7 +218,7 @@ document.addEventListener("keydown", (e) => {
         return;
     }
   }
-  
+
   if (e.key.toLowerCase() === "p") {
     if (gameData.gameState === "game") {
       setGameState("paused");

@@ -6,7 +6,7 @@ repos:
         files: \.(js|jsx|ts|tsx|json|css|scss|md|yaml|yml)$
         language_version: system
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.9.1
+    rev: v9.38.0
     hooks:
       - id: eslint
         files: \.(js|jsx|ts|tsx)$

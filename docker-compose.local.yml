@@ -3,12 +3,12 @@ services:
     build:
       context: ./nginx
       dockerfile: ./docker/Dockerfile
-    image: ft_transcendence_nginx
-    container_name: ft_transcendence_nginx
+    image: ft_nginx
+    container_name: ft_nginx
     ports:
       - 443:443
     networks:
-      - ft_transcendence_network
+      - ft_network
     env_file:
       - ./nginx/.env.local
     depends_on:
@@ -18,8 +18,10 @@ services:
     build:
       context: ./frontend
       dockerfile: ./docker/Dockerfile
-    image: frontend
-    container_name: frontend
+    image: ft_frontend
+    container_name: ft_frontend
+    ports:
+      - 5173:5173
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
@@ -28,14 +30,14 @@ services:
     env_file:
       - ./frontend/.env.local
     networks:
-      - ft_transcendence_network
+      - ft_network
     command: npm run dev
   be_common:
     build:
       context: ./backends/common
       dockerfile: ./docker/Dockerfile
-    image: be_common
-    container_name: be_common
+    image: ft_be_common
+    container_name: ft_be_common
     volumes:
       - ./backends/common:/app
       - /app/node_modules
@@ -45,9 +47,48 @@ services:
     env_file:
       - ./backends/common/.env.development
     ports:
-      - 8080:8080
+      - 8080:80
     networks:
-      - ft_transcendence_network
+      - ft_network
+    command: npm run dev
+  be_game:
+    build:
+      context: ./backends/game
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_game
+    container_name: ft_be_game
+    volumes:
+      - ./backends/game:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/game/.env.development
+    ports:
+      - 8081:80
+    networks:
+      - ft_network
+    command: npm run dev
+  be_text_chat:
+    build:
+      context: ./backends/text_chat
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_text_chat
+    container_name: ft_be_text_chat
+    volumes:
+      - ./backends/text_chat:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/text_chat/.env.development
+    ports:
+      - 8082:80
+    networks:
+      - ft_network
+    command: npm run dev
 networks:
-  ft_transcendence_network:
+  ft_network:
     driver: bridge

@@ -1,0 +1,72 @@
+name: build_check
+
+on: [pull_request]
+
+jobs:
+  lint:
+    name: ESLint check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: ESLint review (reviewdog)
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GH_PROJECT_TOKEN }}
+          reporter: github-pr-review
+          eslint_flags: "./**/*.{vue,ts,js}"
+
+      - name: Run ESLint manually
+        run: yarn lint
+
+  docker:
+    name: Docker Compose Build & Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v3
+      - name: Checkout And Build
+        run: docker compose -f docker-compose.local.yml up -d
+
+      - name: Check Container Health Status
+        run: |
+          echo "Waiting for containers to stabilize..."
+          success=false
+          for i in {1..10}; do
+            STATUS=$(docker compose -f docker-compose.local.yml ps | grep -E 'Exit|restarting' || true)
+            if [ -z "$STATUS" ]; then
+              echo "✅ All required services are running smoothly."
+              docker compose -f docker-compose.local.yml ps
+              success=true
+              break
+            fi
+            echo "Retrying... ($i/10)"
+            sleep 5
+          done
+
+          if [ "$success" = false ]; then
+            echo "--- ERROR: Some containers failed to start ---"
+            docker compose -f docker-compose.local.yml ps
+            exit 1
+          fi
+      - name: Debug containers
+        if: failure()
+        run: |
+          echo "=== Container status ==="
+          docker compose -f docker-compose.local.yml ps -a
+          echo
+          echo "=== Logs from containers ==="
+          docker compose -f docker-compose.local.yml logs --tail=100
+      - name: Cleanup containers
+        if: always()
+        run: docker compose -f docker-compose.local.yml down
