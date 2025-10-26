@@ -1,0 +1,27 @@
+name: Add Issue to Project
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Assign issue to user
+        run: |
+          gh issue edit "${{ github.event.issue.number }}" \
+            --add-assignee "${{ secrets.GH_OWNER }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+
+      - name: Add issue to GitHub Project (Beta)
+        run: |
+          gh project item-add "${{ secrets.GH_PROJECT_ID }}" \
+            --owner "${{ secrets.GH_OWNER }}" \
+            --url "${{ github.event.issue.html_url }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
