@@ -1,14 +1,14 @@
 import type { Routes } from "@/types/routes";
+import { Ball } from "./components/Ball";
 import "./style.css";
+
+// ボールをコンポーネント化する.
 
 class WebSocketComponent {
   private animationId: number | null = null;
   private ws: WebSocket | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
-  private x = 0;
-  private y = 0;
-  private dx = 0;
-  private dy = 0;
+  private ball: Ball = new Ball(0, 0, 0, 0);
 
   render() {
     return `<canvas id="myCanvas" width="480" height="320"></canvas>`;
@@ -24,8 +24,7 @@ class WebSocketComponent {
     });
 
     this.ws.addEventListener("message", (event) => {
-      const msg = JSON.parse(event.data);
-      Object.assign(this, msg); // x, y, dx, dyをまとめて更新
+      this.ball.assign(JSON.parse(event.data));
     });
 
     this.ws.addEventListener("close", () => {
@@ -37,18 +36,20 @@ class WebSocketComponent {
     const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
     if (!canvas) return;
     this.ctx = canvas.getContext("2d");
-    this.x = canvas.width / 2;
-    this.y = canvas.height - 30;
-    this.dx = 0;
-    this.dy = 0;
+    this.ball.assign({
+      x: canvas.width / 2,
+      y: canvas.height - 30,
+      dx: 0,
+      dy: 0,
+    });
 
-    // 🔹 ここを「部分更新可能」にした
+    // 「部分更新可能」にした
     this.setupSocket();
 
     const drawBall = () => {
       const ctx = this.ctx!;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+      ctx.arc(...this.ball.ballSpec());
       ctx.fillStyle = "#00ffcc";
       ctx.fill();
       ctx.closePath();
@@ -58,10 +59,15 @@ class WebSocketComponent {
       const ctx = this.ctx!;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawBall();
-      this.x += this.dx;
-      this.y += this.dy;
-      this.x = Math.min(Math.max(this.x, 10), canvas.width - 10);
-      this.y = Math.min(Math.max(this.y, 10), canvas.height - 10);
+
+      this.ball.x = Math.min(
+        Math.max(this.ball.x + this.ball.dx, 10),
+        canvas.width - 10,
+      );
+      this.ball.y = Math.min(
+        Math.max(this.ball.y + this.ball.dy, 10),
+        canvas.height - 10,
+      );
       this.animationId = requestAnimationFrame(draw);
     };
 
@@ -73,10 +79,7 @@ class WebSocketComponent {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
       this.ws.send(
         JSON.stringify({
-          x: this.x,
-          y: this.y,
-          dx: this.dx,
-          dy: this.dy,
+          ...this.ball.profile(),
           key,
         }),
       );
@@ -87,8 +90,7 @@ class WebSocketComponent {
       if (e.key == lastKey) {
         lastKey = null;
       }
-      this.dx = 0;
-      this.dy = 0;
+      this.ball.assign({ x: 0, y: 0, dx: this.ball.dx, dy: this.ball.dy });
     };
 
     window.addEventListener("keydown", keyHandler);

@@ -9,7 +9,7 @@ const plugin: FastifyPluginAsync = async (fastify) => {
     {
       websocket: true,
       schema: {
-        tags: ["Auth"],
+        tags: ["WebSocket"],
         response: {
           200: Type.String(),
         },
