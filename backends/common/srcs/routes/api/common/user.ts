@@ -5,7 +5,11 @@
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
-import { randomBytes, createHash } from "node:crypto";
+import { randomBytes, createHash, randomUUID } from "node:crypto";
+import type {
+  AccessTokenPayload,
+  RefreshTokenPayload,
+} from "../../../types/jwt.js";
 
 const registerBodySchema = Type.Object({
   name: Type.String({ minLength: 1 }),
@@ -39,6 +43,8 @@ const loginBodySchema = Type.Object({
 const loginSuccessSchema = Type.Object({
   id: Type.Number(),
   name: Type.String(),
+  accessToken: Type.String(),
+  refreshToken: Type.String(),
 });
 
 const userIdentifierSchema = Type.Object({
@@ -130,8 +136,64 @@ type DeleteUserBody = UserIdentifier & {
   reason?: string;
 };
 
+const ACCESS_TOKEN_EXPIRES_IN = "15m";
+const REFRESH_TOKEN_EXPIRES_IN = "7d";
+const REFRESH_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+
 function hashPassword(password: string, salt: string) {
   return createHash("sha256").update(password + salt).digest("hex");
+}
+
+async function persistRefreshToken(
+  fastify: FastifyInstance,
+  {
+    tokenId,
+    userId,
+    expiresAt,
+  }: { tokenId: string; userId: number; expiresAt: Date },
+) {
+  await fastify.db.run(
+    "INSERT INTO refresh_tokens (token_id, user_id, expires_at) VALUES (?, ?, ?)",
+    tokenId,
+    userId,
+    expiresAt.toISOString(),
+  );
+}
+
+async function removeRefreshToken(fastify: FastifyInstance, tokenId: string) {
+  await fastify.db.run("DELETE FROM refresh_tokens WHERE token_id = ?", tokenId);
+}
+
+async function issueTokens(
+  fastify: FastifyInstance,
+  user: { id: number; name: string },
+) {
+  const tokenId = randomUUID();
+  const accessToken = fastify.jwt.sign(
+    {
+      userId: user.id,
+      name: user.name,
+      type: "access",
+    } satisfies AccessTokenPayload,
+    { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+  );
+  const refreshToken = fastify.jwt.sign(
+    {
+      userId: user.id,
+      name: user.name,
+      type: "refresh",
+      tokenId,
+    } satisfies RefreshTokenPayload,
+    { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
+  );
+
+  await persistRefreshToken(fastify, {
+    tokenId,
+    userId: user.id,
+    expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+  });
+
+  return { accessToken, refreshToken };
 }
 
 export default async function (fastify: FastifyInstance) {
@@ -150,7 +212,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body as LoginBody;
+      const { name, password } = request.body as RegisterBody;
       const salt = randomBytes(16).toString("hex");
       const hashedPassword = hashPassword(password, salt);
 
@@ -191,7 +253,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body as RegisterBody;
+      const { name, password } = request.body as LoginBody;
       const row = await fastify.db.get<{
         id: number;
         name: string;
@@ -210,18 +272,25 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Invalid credentials." };
       }
 
-      return { id: row.id, name: row.name };
+      const tokens = await issueTokens(fastify, {
+        id: row.id,
+        name: row.name,
+      });
+
+      return { id: row.id, name: row.name, ...tokens };
     },
   );
 
   f.get(
     "/user/information",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         querystring: userInformationQuerySchema,
         response: {
           200: userInformationResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
@@ -239,11 +308,13 @@ export default async function (fastify: FastifyInstance) {
   f.post(
     "/user/ban",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: userBanBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
@@ -259,11 +330,13 @@ export default async function (fastify: FastifyInstance) {
   f.post(
     "/user/block",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: userBlockBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
@@ -284,15 +357,27 @@ export default async function (fastify: FastifyInstance) {
         body: destroyTokenBodySchema,
         response: {
           200: userActionResponseSchema,
+          400: errorResponseSchema,
         },
       },
     },
-    async (request) => {
+    async (request, reply) => {
       const { userId, token } = request.body as DestroyTokenBody;
 
-      return {
-        message: `Token ${token} destroyed for user ${userId}.`,
-      };
+      try {
+        const payload = fastify.jwt.verify<RefreshTokenPayload>(token);
+        if (payload.type !== "refresh" || payload.userId !== userId) {
+          throw new Error("Token/user mismatch");
+        }
+
+        await removeRefreshToken(fastify, payload.tokenId);
+        return {
+          message: `Token revoked for user ${userId}.`,
+        };
+      } catch {
+        reply.code(400);
+        return { message: "Invalid token." };
+      }
     },
   );
 
@@ -304,27 +389,71 @@ export default async function (fastify: FastifyInstance) {
         body: refreshTokenBodySchema,
         response: {
           200: refreshTokenResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
-    async (request) => {
+    async (request, reply) => {
       const { refreshToken } = request.body as RefreshTokenBody;
 
-      return {
-        accessToken: `new-access-token-for-${refreshToken}`,
-        refreshToken: `new-refresh-token-for-${refreshToken}`,
-      };
+      let payload: RefreshTokenPayload;
+      try {
+        payload = fastify.jwt.verify<RefreshTokenPayload>(refreshToken);
+      } catch {
+        reply.code(401);
+        return { message: "Invalid refresh token." };
+      }
+
+      if (payload.type !== "refresh") {
+        reply.code(401);
+        return { message: "Invalid refresh token." };
+      }
+
+      const storedToken = await fastify.db.get<{
+        token_id: string;
+        expires_at: string;
+      }>(
+        "SELECT token_id, expires_at FROM refresh_tokens WHERE token_id = ?",
+        payload.tokenId,
+      );
+
+      if (!storedToken) {
+        reply.code(401);
+        return { message: "Refresh token has been revoked." };
+      }
+
+      if (Date.parse(storedToken.expires_at) <= Date.now()) {
+        await removeRefreshToken(fastify, payload.tokenId);
+        reply.code(401);
+        return { message: "Refresh token expired." };
+      }
+
+      const user = await fastify.db.get<{ id: number; name: string }>(
+        "SELECT id, name FROM users WHERE id = ?",
+        payload.userId,
+      );
+
+      if (!user) {
+        await removeRefreshToken(fastify, payload.tokenId);
+        reply.code(401);
+        return { message: "User no longer exists." };
+      }
+
+      await removeRefreshToken(fastify, payload.tokenId);
+      return issueTokens(fastify, user);
     },
   );
 
   f.patch(
     "/user/password",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: updatePasswordBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
@@ -340,11 +469,13 @@ export default async function (fastify: FastifyInstance) {
   f.delete(
     "/user/delete",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: deleteUserBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
