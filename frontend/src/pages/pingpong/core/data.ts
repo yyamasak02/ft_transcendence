@@ -40,6 +40,16 @@ export function initDOMRefs() {
     throw new Error("Canvas element or 2D context not found");
   }
 
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  window.addEventListener("resize", () => {
+	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	ctx.putImageData(imageData, 0, 0);
+  });
+
   p1StaminaFill = document.getElementById("p1-stamina-fill") as HTMLDivElement;
   p2StaminaFill = document.getElementById("p2-stamina-fill") as HTMLDivElement;
   p1CharImg = document.getElementById("p1-char-img") as HTMLImageElement;
@@ -144,8 +154,8 @@ export const stages = [
     name: "Classic Court",
     description: "The standard Pong arena. Nothing fancy, just pure skill.",
     backgroundColor: "#000",
-    ballColor: "#fff",
-    paddleColor: "#fff",
+    ballColor: "#0ff",
+    paddleColor: "#00f",
     effects: {
       ballSpeedMultiplier: 1.0,
       bounceMultiplier: 1.0,
@@ -188,7 +198,7 @@ export const stages = [
 
 export const characters = [
   {
-    name: "Defaulko",
+    name: "Snowman",
     description: "It's a balanced standard ability.",
     paddleHeight: 100,
     paddleSpeed: 5,
@@ -206,12 +216,12 @@ export const characters = [
     },
     maxUsages: 0,
     effectColor: "",
-    imagePath: "/characters/defaulko/default.png",
-    winIconPath: "/characters/defaulko/defaultWin.png",
-    loseIconPath: "/characters/defaulko/defaultLose.png",
+    imagePath: "/characters/Snowman/default.png",
+    winIconPath: "/characters/Snowman/win.png",
+    loseIconPath: "/characters/Snowman/lose.png",
   },
   {
-    name: "Gust",
+    name: "Robot",
     description: "Paddle movement is fast.",
     paddleHeight: 100,
     paddleSpeed: 7,
@@ -248,12 +258,12 @@ export const characters = [
     },
     maxUsages: 3,
     effectColor: "#0f0",
-    imagePath: "/characters/gust/normal.png",
-    winIconPath: "/characters/defaulko/defaultWin.png",
-    loseIconPath: "/characters/defaulko/defaultLose.png",
+    imagePath: "/characters/Robot/default.png",
+    winIconPath: "/characters/Robot/win.png",
+    loseIconPath: "/characters/Robot/lose.png",
   },
   {
-    name: "M",
+    name: "Queen",
     description: "His paddle is big.",
     paddleHeight: 150,
     paddleSpeed: 4,
@@ -292,9 +302,9 @@ export const characters = [
     },
     maxUsages: 1,
     effectColor: "#0f0",
-    imagePath: "/characters/M/normal.png",
-    winIconPath: "/characters/defaulko/defaultWin.png",
-    loseIconPath: "/characters/defaulko/defaultLose.png",
+    imagePath: "/characters/Queen/default.png",
+    winIconPath: "/characters/Queen/win.png",
+    loseIconPath: "/characters/Queen/lose.png",
   },
   {
     name: "Suicider",
@@ -317,9 +327,9 @@ export const characters = [
     },
     maxUsages: -1,
     effectColor: "#0f0",
-    imagePath: "/characters/Suicider/normal.png",
-    winIconPath: "/characters/defaulko/defaultWin.png",
-    loseIconPath: "/characters/defaulko/defaultLose.png",
+    imagePath: "/characters/Suicider/default.png",
+    winIconPath: "/characters/Suicider/win.png",
+    loseIconPath: "/characters/Suicider/lose.png",
   },
   {
     name: "Sniper",
@@ -358,9 +368,9 @@ export const characters = [
     },
     maxUsages: 10,
     effectColor: "#0f0",
-    imagePath: "/characters/Sniper/normal.png",
-    winIconPath: "/characters/defaulko/defaultWin.png",
-    loseIconPath: "/characters/defaulko/defaultLose.png",
+    imagePath: "/characters/Sniper/default.png",
+    winIconPath: "/characters/Sniper/win.png",
+    loseIconPath: "/characters/Sniper/lose.png",
   },
 ];
 
