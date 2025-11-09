@@ -6,7 +6,7 @@ services:
     image: ft_nginx
     container_name: ft_nginx
     ports:
-      - 443:443
+      - 8443:443
     networks:
       - ft_network
     env_file:
