@@ -5,11 +5,14 @@
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
-import { randomBytes, createHash, randomUUID } from "node:crypto";
-import type {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-} from "../../../types/jwt.js";
+import { randomBytes } from "node:crypto";
+import type { RefreshTokenPayload } from "../../../types/jwt.js";
+import {
+  issueTokens,
+  hashPassword,
+  removeRefreshToken,
+  verifyUserCredentials,
+} from "../../../utils/auth.js";
 
 const registerBodySchema = Type.Object({
   name: Type.String({ minLength: 1 }),
@@ -136,66 +139,6 @@ type DeleteUserBody = UserIdentifier & {
   reason?: string;
 };
 
-const ACCESS_TOKEN_EXPIRES_IN = "15m";
-const REFRESH_TOKEN_EXPIRES_IN = "7d";
-const REFRESH_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-
-function hashPassword(password: string, salt: string) {
-  return createHash("sha256").update(password + salt).digest("hex");
-}
-
-async function persistRefreshToken(
-  fastify: FastifyInstance,
-  {
-    tokenId,
-    userId,
-    expiresAt,
-  }: { tokenId: string; userId: number; expiresAt: Date },
-) {
-  await fastify.db.run(
-    "INSERT INTO refresh_tokens (token_id, user_id, expires_at) VALUES (?, ?, ?)",
-    tokenId,
-    userId,
-    expiresAt.toISOString(),
-  );
-}
-
-async function removeRefreshToken(fastify: FastifyInstance, tokenId: string) {
-  await fastify.db.run("DELETE FROM refresh_tokens WHERE token_id = ?", tokenId);
-}
-
-async function issueTokens(
-  fastify: FastifyInstance,
-  user: { id: number; name: string },
-) {
-  const tokenId = randomUUID();
-  const accessToken = fastify.jwt.sign(
-    {
-      userId: user.id,
-      name: user.name,
-      type: "access",
-    } satisfies AccessTokenPayload,
-    { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
-  );
-  const refreshToken = fastify.jwt.sign(
-    {
-      userId: user.id,
-      name: user.name,
-      type: "refresh",
-      tokenId,
-    } satisfies RefreshTokenPayload,
-    { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
-  );
-
-  await persistRefreshToken(fastify, {
-    tokenId,
-    userId: user.id,
-    expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-  });
-
-  return { accessToken, refreshToken };
-}
-
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
@@ -254,30 +197,18 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { name, password } = request.body as LoginBody;
-      const row = await fastify.db.get<{
-        id: number;
-        name: string;
-        password: string;
-        salt: string;
-      }>("SELECT id, name, password, salt FROM users WHERE name = ?", name);
-
-      if (!row) {
-        reply.code(401);
-        return { message: "Invalid credentials." };
-      }
-
-      const hashed = hashPassword(password, row.salt);
-      if (hashed !== row.password) {
+      const user = await verifyUserCredentials(fastify, name, password);
+      if (!user) {
         reply.code(401);
         return { message: "Invalid credentials." };
       }
 
       const tokens = await issueTokens(fastify, {
-        id: row.id,
-        name: row.name,
+        id: user.id,
+        name: user.name,
       });
 
-      return { id: row.id, name: row.name, ...tokens };
+      return { id: user.id, name: user.name, ...tokens };
     },
   );
 

@@ -4,6 +4,7 @@ import type {
   FastifyReply,
   FastifyRequest,
 } from "fastify";
+import type { AccessTokenPayload } from "../../types/jwt.js";
 
 export default fp(
   async (fastify: FastifyInstance) => {
@@ -11,7 +12,11 @@ export default fp(
       "authenticate",
       async function (request: FastifyRequest, reply: FastifyReply) {
         try {
-          await request.jwtVerify();
+          const payload = await request.jwtVerify<AccessTokenPayload>();
+          if (payload.type !== "access") {
+            reply.code(401);
+            return reply.send({ message: "Access token is required." });
+          }
         } catch (error) {
           reply.send(error);
         }
