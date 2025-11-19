@@ -1,3 +1,5 @@
+// pingpong/index.ts
+
 import type { Component } from "@/models/component";
 import type { Routes } from "@/models/routes";
 import { startPingPongGame } from "./game-main";

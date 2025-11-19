@@ -1,21 +1,6 @@
 // src/ui/draw.ts
 
-// import { ctx, canvas, gameData, characters, stages } from "../core/data";
-
-// import { BASE_BALL_SPEED, WINNING_SCORE } from "../core/constants";
-
-import { engine, scene, canvas, gameData, characters, stages } from "../core/data";
-
-import { 
-  Engine,
-  Scene,
-  Vector3,
-  MeshBuilder,
-  ArcRotateCamera,
-  HemisphericLight
-} from "@babylonjs/core";
-
-import * as GUI from "@babylonjs/gui";
+import { ctx, canvas, gameData, characters, stages } from "../core/data";
 
 import { BASE_BALL_SPEED, WINNING_SCORE } from "../core/constants";
 

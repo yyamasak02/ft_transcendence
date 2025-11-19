@@ -4,10 +4,11 @@ import {
   initDOMRefs,
   gameData,
   canvas,
-  ctx,
   characters,
   stages,
   setGameMode,
+  engine,
+  scene,
 } from "./core/data";
 import { update, updateAI } from "./systems/game";
 import { updateAbilities, activateAbility } from "./systems/abilities";
@@ -538,10 +539,15 @@ function render() {
 }
 
 export function startPingPongGame() {
+  // DOM と Babylon の初期化
   initDOMRefs();
   preloadCharacterIcons();
   updateCharacterImages();
   // 初期状態でUIを非表示に
   toggleUIElements();
-  requestAnimationFrame(gameLoop);
+  // requestAnimationFrame(gameLoop);
+  engine.runRenderLoop(() => { 
+    scene.render();
+  });
+  console.log("Babylon render loop started");
 }
