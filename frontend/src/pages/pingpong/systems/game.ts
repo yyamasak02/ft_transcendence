@@ -9,13 +9,13 @@ import {
   AI_TICK_RATE,
   FIXED_TIME_STEP,
 } from "../core/constants";
-import {
-  createGoalEffect,
-  createFastReturnEffect,
-  createScreenShake,
-  createShotEffect,
-  createReturnEffect,
-} from "./effects";
+// import {
+//   createGoalEffect,
+//   createFastReturnEffect,
+//   createScreenShake,
+//   createShotEffect,
+//   createReturnEffect,
+// } from "./effects";
 
 let lastAITick = 0;
 let aiTargetY = gameData.player2.y;
@@ -72,12 +72,12 @@ function checkCollision(ball: any, player: any) {
 
     const totalSpeed = Math.sqrt(newSpeedX * newSpeedX + newSpeedY * newSpeedY);
     if (totalSpeed > BASE_BALL_SPEED) {
-      createFastReturnEffect(ballX, ballY, gameData.ball.power);
-      createScreenShake(5, 200);
+      // createFastReturnEffect(ballX, ballY, gameData.ball.power);
+      // createScreenShake(5, 200);
       console.log(
         `Fast return effect! Speed: ${totalSpeed}, Power: ${gameData.ball.power}`,
       );
-    } else createReturnEffect(ballX, ballY);
+    } // else createReturnEffect(ballX, ballY);
   }
 }
 
@@ -136,8 +136,8 @@ function handleAIAbility() {
         gameData.ball.x > 150 &&
         Math.abs(gameData.ball.speedY) > 0.7
       ) {
-        createShotEffect(gameData.ball.x, gameData.ball.y);
-        createScreenShake(8, 300);
+        // createShotEffect(gameData.ball.x, gameData.ball.y);
+        // createScreenShake(8, 300);
 
         gameData.ball.speedY = -gameData.ball.speedY;
         aiPlayer.abilityUsages++;
@@ -213,11 +213,11 @@ export function update(deltaTime: number = FIXED_TIME_STEP) {
   handleAIAbility();
   if (gameData.ball.x - gameData.ball.size / 2 < 0) {
     gameData.player2.score++;
-    createGoalEffect(50, canvas.height / 2);
+    // createGoalEffect(50, canvas.height / 2);
     resetBall();
   } else if (gameData.ball.x + gameData.ball.size / 2 > canvas.width) {
     gameData.player1.score++;
-    createGoalEffect(canvas.width - 50, canvas.height / 2);
+    // createGoalEffect(canvas.width - 50, canvas.height / 2);
     resetBall();
   }
   if (

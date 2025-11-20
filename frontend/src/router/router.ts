@@ -8,7 +8,8 @@ let currentRoute: string | null = null;
 const renderPage = (route: string) => {
   // 前のページの onUnmount を呼ぶ
   if (currentRoute && routes[currentRoute]?.onUnmount) {
-    routes[currentRoute].onUnmount();
+    routes[currentRoute].onUnmount?.();
+    // routes[currentRoute].onUnmount();
   }
 
   const r = routes[route];

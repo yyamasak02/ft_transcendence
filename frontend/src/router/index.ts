@@ -1,13 +1,18 @@
 import {
   registerBrowserBackAndForth,
-  registerNavLinks,
+  // registerNavLinks,
   renderInitialPage,
-  renderNavLinks,
+  // renderNavLinks,
 } from "./router";
 
-export const initializeRoutes = (className = "nav-link") => {
-  renderNavLinks(className);
-  registerNavLinks();
+// export const initializeRoutes = (className = "nav-link") => {
+//   // renderNavLinks(className);
+//   // registerNavLinks();
+//   registerBrowserBackAndForth();
+//   renderInitialPage();
+// };
+
+export const initializeRoutes = () => {
   registerBrowserBackAndForth();
   renderInitialPage();
 };

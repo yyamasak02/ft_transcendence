@@ -1,7 +1,7 @@
 // src/systems/abilities.ts
 
 import { gameData, characters } from "../core/data";
-import { createShotEffect, createScreenShake } from "./effects";
+// import { createShotEffect, createScreenShake } from "./effects";
 
 interface ActiveAbility {
   playerId: number;
@@ -124,8 +124,8 @@ export function activateAbility(
       break;
 
     case "shot":
-      createShotEffect(gameData.ball.x, gameData.ball.y);
-      createScreenShake(8, 300);
+      // createShotEffect(gameData.ball.x, gameData.ball.y);
+      // createScreenShake(8, 300);
 
       gameData.ball.speedY = -gameData.ball.speedY;
       player.abilityUsages++;
