@@ -807,15 +807,6 @@ function updateBall(deltaTime: number) {
     ballMesh.position.z = -halfHeight + margin;
     ballVelocity.z *= -1;
   }
-
-  // if (ballMesh.position.x > halfWidth - margin) {
-  //   ballMesh.position.x = halfWidth - margin;
-  //   ballVelocity.x *= -1;
-  // }
-  // if (ballMesh.position.x < -halfWidth + margin) {
-  //   ballMesh.position.x = -halfWidth + margin;
-  //   ballVelocity.x *= -1;
-  // }
 }
 
 function updatePaddles(deltaTime: number, paddle1: any, paddle2: any) {
@@ -835,5 +826,23 @@ function updatePaddles(deltaTime: number, paddle1: any, paddle2: any) {
   }
   if (gameData.keysPressed["s"]) {
     paddle2.position.z += speed;
+  }
+
+  const halfHeight = COURT_HEIGHT / 2;
+  const margin = 2;
+
+  // player1
+  if (paddle1.position.z < -halfHeight + margin) {
+    paddle1.position.z = -halfHeight + margin;
+  }
+  if (paddle1.position.z > halfHeight - margin) {
+    paddle1.position.z = halfHeight - margin;
+  }
+  // player2
+  if (paddle2.position.z < -halfHeight + margin) {
+    paddle2.position.z = -halfHeight + margin;
+  }
+  if (paddle2.position.z > halfHeight - margin) {
+    paddle2.position.z = halfHeight - margin;
   }
 }
