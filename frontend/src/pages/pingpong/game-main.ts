@@ -17,9 +17,11 @@ import {
   Vector3,
   StandardMaterial,
   Color3,
+  Color4,
   GlowLayer,
   DirectionalLight,     
-  ShadowGenerator,      
+  ShadowGenerator,
+  Mesh,      
   // TrailMesh,
 } from "@babylonjs/core";
 // import { update, updateAI } from "./systems/game";
@@ -568,6 +570,20 @@ document.addEventListener("keyup", (e) => {
 //   console.log("Babylon render loop started");
 // }
 
+const COURT_WIDTH = 60;  // 横（2D の canvas.width に相当）
+const COURT_HEIGHT = 40; // 縦（2D の canvas.height に相当）
+
+const PADDLE_LENGTH = 8;
+const PADDLE_THICKNESS = 1;
+const BALL_RADIUS = 1;
+
+let paddle1: Mesh | null = null;
+let paddle2: Mesh | null = null;
+
+let ballMesh: Mesh | null = null;
+let ballVelocity = new Vector3(0.15, 0, 0.25);
+// let ballDirection = 1;
+
 export function startPingPongGame() {
   // DOM 初期化（Canvas 取得）
   initDOMRefs();
@@ -577,6 +593,8 @@ export function startPingPongGame() {
   updateCharacterImages();
   toggleUIElements();
 
+  scene.clearColor = new Color4(0.02, 0.02, 0.06, 1.0);
+
   //-----------------------------------------------------
   // Babylon 3D シーン構築
   //-----------------------------------------------------
@@ -585,9 +603,9 @@ export function startPingPongGame() {
   const camera = new ArcRotateCamera(
     "camera",
     Math.PI / 2,
-    1.2,
+    Math.PI / 5,
     80,
-    new Vector3(0, 10, 0),
+    new Vector3(0, 0, 0),
     scene
   );
   camera.attachControl(canvas, true);
@@ -602,114 +620,89 @@ export function startPingPongGame() {
   // ===== コート（床） =====
   const court = MeshBuilder.CreateGround(
     "court",
-    { width: 40, height: 60 },
+    { width: COURT_WIDTH, height: COURT_HEIGHT },
     scene
   );
   const courtMat = new StandardMaterial("courtMat", scene);
-
-  // 暗めの青っぽい色
-  courtMat.diffuseColor = new Color3(0.02, 0.05, 0.18); // 好きな値に調整してOK
-  // ちょっとだけ自発光させたいなら
-  courtMat.emissiveColor = new Color3(0.0, 0.25, 0.7);
-
+  courtMat.diffuseColor = new Color3(0.0, 0.05, 0.2);  // 濃い青
+  courtMat.emissiveColor = new Color3(0.0, 0.2, 0.7); // 軽い自発光
   court.material = courtMat;
+  court.position = new Vector3(0, 0, 0);
 
-  // ===== 壁（左右の Box） =====
-  // const leftWall = MeshBuilder.CreateBox(
-  //   "leftWall",
-  //   { width: 0.1, height: 100, depth: 60 },
-  //   scene
-  // );
-  // leftWall.position.x = -20;
-  // leftWall.position.y = 3;
+  const paddleY = 0.7;
 
-  // const wallMat = new StandardMaterial("wallMat", scene);
-
-  // // 壁の色（薄いグレー）
-  // wallMat.diffuseColor = new Color3(0.8, 0.8, 0.8);
-
-  // // 透明度 0.0 = 完全透明, 1.0 = 不透明
-  // wallMat.alpha = 0.15;   // 15% 不透明（85% 透明）
-
-  // // 見た目を綺麗にしたい場合（任意）
-  
-  // wallMat.disableDepthWrite = true;
-  // // 壁に適用
-  // leftWall.material = wallMat;
-  
-  // const rightWall = leftWall.clone("rightWall");
-  // rightWall.position.x = 20;
-  // rightWall.material = wallMat;
-
-  // ===== 3D darkZone（半透明 Plane） =====
-  // const darkZone = MeshBuilder.CreatePlane(
-  //   "darkZone",
-  //   { width: 12, height: 60 },
-  //   scene
-  // );
-  // darkZone.position.y = 0.1;
-  // darkZone.rotation.x = Math.PI / 2;
-
-  // const darkMat = new StandardMaterial("darkMat", scene);
-  // darkMat.diffuseColor = new Color3(0, 0, 0);
-  // darkMat.alpha = 0.6;
-  // darkZone.material = darkMat;
-
-  // ===== パドル C（発光する Box） =====
-  const paddleLength = 6;      // 左右方向の長さ（X 軸）
-  const paddleThickness = 1; // 太さ（直径）
-
-  const paddle1 = MeshBuilder.CreateCylinder(
+  // ===== Player1 =====
+  paddle1 = MeshBuilder.CreateCylinder(
     "paddle1",
     {
-      height: paddleLength,
-      diameter: paddleThickness,
+      height: PADDLE_LENGTH,
+      diameter: PADDLE_THICKNESS,
     },
     scene
   );
-
-  // 地面から少し浮かせる（高さの半分）
-  paddle1.position = new Vector3(0, paddleThickness / 2 + 1, 28);
-
-  // 必要なら向き調整（横倒しにしたい場合）
-  // paddle1.rotation.x = Math.PI / 2;
+  paddle1.position = new Vector3(-29, paddleY, 0);
 
   const p1Mat = new StandardMaterial("p1Mat", scene);
-  p1Mat.diffuseColor   = new Color3(0.1, 0.6, 1.0);
-  p1Mat.emissiveColor  = new Color3(0.2, 0.8, 1.5);
+  p1Mat.diffuseColor = new Color3(0.1, 0.6, 1.0);
+  p1Mat.emissiveColor = new Color3(0.1, 0.7, 1.3);
   paddle1.material = p1Mat;
+  paddle1.rotation.x = Math.PI / 2;
 
-  // const paddle1 = MeshBuilder.CreateBox(
-  //   "paddle1",
-  //   { width: 1, height: 6, depth: 1 },
-  //   scene
-  // );
-  // paddle1.position = new Vector3(0, 0, 28);
+  // ===== player2 =====
+  paddle2 = paddle1.clone("paddle2");
+  paddle2.position = new Vector3(29, paddleY, 0);
 
-  // const p1Mat = new StandardMaterial("p1Mat", scene);
-  // p1Mat.diffuseColor = new Color3(0.1, 0.6, 1.0);
-  // p1Mat.emissiveColor = new Color3(0.2, 0.8, 1.5); // 発光
-  // paddle1.material = p1Mat;
-
-  paddle1.rotation.z = Math.PI / 2;
-
-  const paddle2 = paddle1.clone("paddle2");
-  paddle2.position = new Vector3(0, paddleThickness / 2 + 1, -28);
-
-  const p2Mat = p1Mat.clone("p2Mat");
-  p2Mat.diffuseColor = new Color3(1.0, 0.3, 0.3);
-  p2Mat.emissiveColor = new Color3(1.5, 0.4, 0.4);
+  const p2Mat = new StandardMaterial("p2Mat", scene) ;
+  p2Mat.diffuseColor = new Color3(1.0, 0.4, 0.4);
+  p2Mat.emissiveColor = new Color3(1.3, 0.4, 0.4);
   paddle2.material = p2Mat;
 
-  // paddle2.rotation.z = Math.PI / 2;
-
   // ===== ボール C（Sphere + TrailMesh） =====
-  const ball = MeshBuilder.CreateSphere(
+  ballMesh = MeshBuilder.CreateSphere(
     "ball",
     { diameter: 2 },
     scene
   );
-  ball.position = new Vector3(0, 2, 0);
+  ballMesh.position = new Vector3(0, 1, 0);
+
+  // const trail = new TrailMesh("ballTrail", ballMesh, scene, 40, 0.3);
+
+  // function updateBall(deltaTime: number, ball: any, paddle1: any, paddle2: any) {
+  //   const dt = deltaTime * 0.01;
+
+  //   // ---- Z軸（奥行き）へ進む ----
+  //   ball.position.z += gameData.ball.speedZ * dt;
+
+  //   // ---- X軸（左右）へ飛ぶ（必要なら）----
+  //   ball.position.x += gameData.ball.speedX * dt;
+
+  //   // ---- コートのZ方向境界 ----
+  //   const maxZ = 29;
+  //   if (ball.position.z > maxZ) {
+  //     ball.position.z = maxZ;
+  //     gameData.ball.speedZ *= -1; // 前後反射
+  //   } else if (ball.position.z < -maxZ) {
+  //     ball.position.z = -maxZ;
+  //     gameData.ball.speedZ *= -1;
+  //   }
+
+  //   // ---- パドル当たり判定 ----
+  //   const paddleHitRangeZ = 28;
+
+  //   // Paddle1 付近で衝突
+  //   if (Math.abs(ball.position.z - paddle1.position.z) < 1.5) {
+  //     if (Math.abs(ball.position.x - paddle1.position.x) < 3) {
+  //       gameData.ball.speedZ *= -1;
+  //     }
+  //   }
+
+  //   // Paddle2 付近で衝突
+  //   if (Math.abs(ball.position.z - paddle2.position.z) < 1.5) {
+  //     if (Math.abs(ball.position.x - paddle2.position.x) < 3) {
+  //       gameData.ball.speedZ *= -1;
+  //     }
+  //   }
+  // }
 
   // const _trail = new TrailMesh("ballTrail", ball, scene, 40, 0.3);
 
@@ -719,13 +712,32 @@ export function startPingPongGame() {
   engine.runRenderLoop(() => {
     const deltaTime = engine.getDeltaTime();
     updatePaddles(deltaTime, paddle1, paddle2);
+    updateBall(deltaTime);
+
+    // const speed = 0.02 * deltaTime;
+    // ball.position.z += speed * ballDirection;
+
+    // const ballRadius = 1.0;
+    // const paddleThickness = 1.0;
+    // const paddleHalf = paddleThickness / 2;
+    // const hitDistance = ballRadius + paddleHalf;
+
+    // if (ballDirection > 0) {
+    //   const contactZ = paddle1.position.z - hitDistance;
+    //   if (ball.position.z >= contactZ) {
+    //     ball.position.z = contactZ;
+    //     ballDirection *= -1;
+    //   }
+    // } else {
+    //   const contactZ = paddle2.position.z + hitDistance;
+    //   if (ball.position.z <= contactZ) {
+    //     ball.position.z = contactZ;
+    //     ballDirection *= -1;
+    //   }
+    // }
+
     scene.render();
   });
-
-  // engine.runRenderLoop(() => {
-  //   scene.render();
-  // });
-
 
   // ===== 影用のライト =====
   const dirLight = new DirectionalLight(
@@ -745,7 +757,7 @@ export function startPingPongGame() {
   // 影を「落とす」メッシュ
   shadowGen.addShadowCaster(paddle1);
   shadowGen.addShadowCaster(paddle2);
-  shadowGen.addShadowCaster(ball);
+  shadowGen.addShadowCaster(ballMesh);
 
   // 影を「受ける」メッシュ
   court.receiveShadows = true;
@@ -757,31 +769,71 @@ export function startPingPongGame() {
   console.log("Babylon 3D PONG initialized");
 }
 
+function updateBall(deltaTime: number) {
+  if (!ballMesh || !paddle1 || !paddle2) return;
+  const dt = deltaTime * 0.03;
 
+  ballMesh.position.x += ballVelocity.x * dt;
+  ballMesh.position.z += ballVelocity.z * dt;
 
-function updatePaddles(deltaTime: number, paddle1: any, paddle2: any) {
-  const speed = 0.05 * deltaTime;
-
-  // Player 1
-  if (gameData.keysPressed["d"]) {
-    paddle1.position.x -= speed;
+  
+  const paddleRadius = PADDLE_LENGTH / 2;
+  
+  // paddle1
+  if (
+    Math.abs(ballMesh.position.z - paddle1.position.z) < paddleRadius &&
+    Math.abs(ballMesh.position.x - paddle1.position.x) < BALL_RADIUS + PADDLE_THICKNESS  
+  ) {
+    ballVelocity.x = Math.abs(ballVelocity.x);
   }
-  if (gameData.keysPressed["a"]) {
-    paddle1.position.x += speed;
+  
+  // paddle2
+  if (
+    Math.abs(ballMesh.position.z - paddle2.position.z) < paddleRadius &&
+    Math.abs(ballMesh.position.x - paddle2.position.x) < BALL_RADIUS + PADDLE_THICKNESS
+  ) {
+    ballVelocity.x = -Math.abs(ballVelocity.x);
+  }
+  
+  const halfWidth = COURT_WIDTH / 2;
+  const halfHeight = COURT_HEIGHT / 2;
+  const margin = 1.0;
+  
+  if (ballMesh.position.z > halfHeight - margin) {
+    ballMesh.position.z = halfHeight - margin;
+    ballVelocity.z *= -1;
+  }
+  if (ballMesh.position.z < -halfHeight + margin) {
+    ballMesh.position.z = -halfHeight + margin;
+    ballVelocity.z *= -1;
   }
 
-  // Player 2（テスト用：上下キー）
-  if (gameData.keysPressed["ArrowRight"]) {
-    paddle2.position.x -= speed;
-  }
-  if (gameData.keysPressed["ArrowLeft"]) {
-    paddle2.position.x += speed;
-  }
-
-  const min = -20;
-  const max = 20;
-
-  paddle1.position.x = Math.max(min, Math.min(max, paddle1.position.x));
-  paddle2.position.x = Math.max(min, Math.min(max, paddle2.position.x));
+  // if (ballMesh.position.x > halfWidth - margin) {
+  //   ballMesh.position.x = halfWidth - margin;
+  //   ballVelocity.x *= -1;
+  // }
+  // if (ballMesh.position.x < -halfWidth + margin) {
+  //   ballMesh.position.x = -halfWidth + margin;
+  //   ballVelocity.x *= -1;
+  // }
 }
 
+function updatePaddles(deltaTime: number, paddle1: any, paddle2: any) {
+  const speed = 0.03 * deltaTime;
+
+  // Player1 (up/down key)
+  if (gameData.keysPressed["ArrowUp"]) {
+    paddle1.position.z -= speed;
+  }
+  if (gameData.keysPressed["ArrowDown"]) {
+    paddle1.position.z += speed;
+  }
+
+  // Player 2（w/s key）
+  if (gameData.keysPressed["w"]) {
+    paddle2.position.z -= speed;
+  }
+  if (gameData.keysPressed["s"]) {
+    paddle2.position.z += speed;
+  }
+}
