@@ -42,7 +42,6 @@ class WebSocketComponent {
     this.dx = 0;
     this.dy = 0;
 
-    // 🔹 ここを「部分更新可能」にした
     this.setupSocket();
 
     const drawBall = () => {
@@ -65,7 +64,6 @@ class WebSocketComponent {
       this.animationId = requestAnimationFrame(draw);
     };
 
-    // キーを長押しすると遅くなるため、長押し期間中は通信しない
     let lastKey: string | null = null;
     const send = (key: string) => {
       if (key === lastKey) return;
