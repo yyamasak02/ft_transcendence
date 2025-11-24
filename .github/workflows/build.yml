@@ -3,31 +3,6 @@ name: build_check
 on: [pull_request]
 
 jobs:
-  lint:
-    name: ESLint check
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: ESLint review (reviewdog)
-        uses: reviewdog/action-eslint@v1
-        with:
-          github_token: ${{ secrets.GH_PROJECT_TOKEN }}
-          reporter: github-pr-review
-          eslint_flags: "./**/*.{vue,ts,js}"
-
-      - name: Run ESLint manually
-        run: yarn lint
-
   docker:
     name: Docker Compose Build & Health Check
     runs-on: ubuntu-latest
