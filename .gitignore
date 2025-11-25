@@ -4,5 +4,7 @@ convertPDFtoHTML.py
 !.env.local
 !.env.development
 docker-compose.local.yml
+node_modules
+*.sqlite
 
 memo.*
