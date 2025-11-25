@@ -3,141 +3,46 @@
 // Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"name":"admin","password":"42admin"}'
 // Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"name":"foo","password":"barbazqux"}'
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { randomBytes } from "node:crypto";
-import type { RefreshTokenPayload } from "../../../types/jwt.js";
+import type { AccessTokenPayload, RefreshTokenPayload } from "../../../types/jwt.js";
 import {
   issueTokens,
   hashPassword,
   removeRefreshToken,
   verifyUserCredentials,
+  issueLongTermToken,
+  verifyLongTermToken,
+  removeLongTermToken,
 } from "../../../utils/auth.js";
-
-const registerBodySchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
-  password: Type.String({ minLength: 8 }),
-});
-
-const registerResponseSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-});
-
-type RegisterBody = {
-  name: string;
-  password: string;
-};
-
-type LoginBody = {
-  name: string;
-  password: string;
-};
-
-const errorResponseSchema = Type.Object({
-  message: Type.String(),
-});
-
-const loginBodySchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
-  password: Type.String({ minLength: 1 }),
-});
-
-const loginSuccessSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-  accessToken: Type.String(),
-  refreshToken: Type.String(),
-});
-
-const userIdentifierSchema = Type.Object({
-  userId: Type.Number({ minimum: 1 }),
-});
-
-const userActionResponseSchema = Type.Object({
-  message: Type.String(),
-});
-
-const userInformationQuerySchema = userIdentifierSchema;
-
-const userInformationResponseSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-  status: Type.String(),
-});
-
-const userBanBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    reason: Type.Optional(Type.String()),
-  }),
-]);
-
-const userBlockBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    targetUserId: Type.Number({ minimum: 1 }),
-  }),
-]);
-
-const destroyTokenBodySchema = Type.Object({
-  userId: Type.Number({ minimum: 1 }),
-  token: Type.String({ minLength: 1 }),
-});
-
-const refreshTokenBodySchema = Type.Object({
-  refreshToken: Type.String({ minLength: 1 }),
-});
-
-const refreshTokenResponseSchema = Type.Object({
-  accessToken: Type.String(),
-  refreshToken: Type.String(),
-});
-
-const updatePasswordBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    currentPassword: Type.String({ minLength: 1 }),
-    newPassword: Type.String({ minLength: 8 }),
-  }),
-]);
-
-const deleteUserBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    reason: Type.Optional(Type.String()),
-  }),
-]);
-
-type UserIdentifier = {
-  userId: number;
-};
-
-type UserBanBody = UserIdentifier & {
-  reason?: string;
-};
-
-type UserBlockBody = UserIdentifier & {
-  targetUserId: number;
-};
-
-type DestroyTokenBody = {
-  userId: number;
-  token: string;
-};
-
-type RefreshTokenBody = {
-  refreshToken: string;
-};
-
-type UpdatePasswordBody = UserIdentifier & {
-  currentPassword: string;
-  newPassword: string;
-};
-
-type DeleteUserBody = UserIdentifier & {
-  reason?: string;
-};
+import {
+  deleteUserBodySchema,
+  destroyTokenBodySchema,
+  errorResponseSchema,
+  loginBodySchema,
+  loginSuccessSchema,
+  refreshTokenBodySchema,
+  refreshTokenResponseSchema,
+  registerBodySchema,
+  registerResponseSchema,
+  updatePasswordBodySchema,
+  userActionResponseSchema,
+  userBanBodySchema,
+  userBlockBodySchema,
+  userInformationQuerySchema,
+  userInformationResponseSchema,
+} from "../../../schemas/user.js";
+import type {
+  DeleteUserBody,
+  DestroyTokenBody,
+  LoginBody,
+  RefreshTokenBody,
+  RegisterBody,
+  UpdatePasswordBody,
+  UserBanBody,
+  UserBlockBody,
+  UserIdentifier,
+} from "../../../schemas/user.js";
 
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
@@ -196,7 +101,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body as LoginBody;
+      const { name, password, longTerm } = request.body as LoginBody;
       const user = await verifyUserCredentials(fastify, name, password);
       if (!user) {
         reply.code(401);
@@ -208,7 +113,18 @@ export default async function (fastify: FastifyInstance) {
         name: user.name,
       });
 
-      return { id: user.id, name: user.name, ...tokens };
+      let longTermToken: string | undefined;
+      if (longTerm) {
+        const issued = await issueLongTermToken(fastify, user.id);
+        longTermToken = issued.token;
+      }
+
+      return {
+        id: user.id,
+        name: user.name,
+        ...tokens,
+        ...(longTermToken ? { longTermToken } : {}),
+      };
     },
   );
 
@@ -280,6 +196,27 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
+  f.get(
+    "/user/jwt_test",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        response: {
+          200: userActionResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const payload = request.user as AccessTokenPayload;
+
+      return {
+        message: `JWT verified for user ${payload.name}.`,
+      };
+    },
+  );
+
   f.post(
     "/user/destroy_token",
     {
@@ -293,22 +230,23 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { userId, token } = request.body as DestroyTokenBody;
+      const { userId, longTermToken } = request.body as DestroyTokenBody;
 
-      try {
-        const payload = fastify.jwt.verify<RefreshTokenPayload>(token);
-        if (payload.type !== "refresh" || payload.userId !== userId) {
-          throw new Error("Token/user mismatch");
-        }
+      if (!longTermToken) {
+        reply.code(400);
+        return { message: "Token is required." };
+      }
 
-        await removeRefreshToken(fastify, payload.tokenId);
-        return {
-          message: `Token revoked for user ${userId}.`,
-        };
-      } catch {
+      const verified = await verifyLongTermToken(fastify, longTermToken);
+      if (!verified || verified.userId !== userId) {
         reply.code(400);
         return { message: "Invalid token." };
       }
+
+      await removeLongTermToken(fastify, longTermToken);
+      return {
+        message: `Long-term token revoked for user ${userId}.`,
+      };
     },
   );
 
@@ -320,57 +258,36 @@ export default async function (fastify: FastifyInstance) {
         body: refreshTokenBodySchema,
         response: {
           200: refreshTokenResponseSchema,
+          400: errorResponseSchema,
           401: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const { refreshToken } = request.body as RefreshTokenBody;
+      const { longTermToken } = request.body as RefreshTokenBody;
 
-      let payload: RefreshTokenPayload;
-      try {
-        payload = fastify.jwt.verify<RefreshTokenPayload>(refreshToken);
-      } catch {
-        reply.code(401);
-        return { message: "Invalid refresh token." };
+      if (!longTermToken) {
+        reply.code(400);
+        return { message: "Token is required." };
       }
 
-      if (payload.type !== "refresh") {
+      const verified = await verifyLongTermToken(fastify, longTermToken);
+      if (!verified) {
         reply.code(401);
-        return { message: "Invalid refresh token." };
-      }
-
-      const storedToken = await fastify.db.get<{
-        token_id: string;
-        expires_at: string;
-      }>(
-        "SELECT token_id, expires_at FROM refresh_tokens WHERE token_id = ?",
-        payload.tokenId,
-      );
-
-      if (!storedToken) {
-        reply.code(401);
-        return { message: "Refresh token has been revoked." };
-      }
-
-      if (Date.parse(storedToken.expires_at) <= Date.now()) {
-        await removeRefreshToken(fastify, payload.tokenId);
-        reply.code(401);
-        return { message: "Refresh token expired." };
+        return { message: "Invalid long-term token." };
       }
 
       const user = await fastify.db.get<{ id: number; name: string }>(
         "SELECT id, name FROM users WHERE id = ?",
-        payload.userId,
+        verified.userId,
       );
 
       if (!user) {
-        await removeRefreshToken(fastify, payload.tokenId);
+        await removeLongTermToken(fastify, longTermToken);
         reply.code(401);
         return { message: "User no longer exists." };
       }
 
-      await removeRefreshToken(fastify, payload.tokenId);
       return issueTokens(fastify, user);
     },
   );

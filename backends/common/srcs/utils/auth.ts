@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type {
   AccessTokenPayload,
@@ -9,6 +9,8 @@ export const ACCESS_TOKEN_EXPIRES_IN = "15m";
 export const REFRESH_TOKEN_EXPIRES_IN = "7d";
 export const REFRESH_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
+export const LONG_TERM_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+
 export type StoredUser = {
   id: number;
   name: string;
@@ -18,6 +20,10 @@ export type StoredUser = {
 
 export function hashPassword(password: string, salt: string) {
   return createHash("sha256").update(password + salt).digest("hex");
+}
+
+export function hashToken(value: string) {
+  return createHash("sha256").update(value).digest("hex");
 }
 
 async function persistRefreshToken(
@@ -73,6 +79,62 @@ export async function issueTokens(
   });
 
   return { accessToken, refreshToken };
+}
+
+export async function issueLongTermToken(
+  fastify: FastifyInstance,
+  userId: number,
+) {
+  const rawToken = randomBytes(48).toString("hex");
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = new Date(Date.now() + LONG_TERM_TOKEN_TTL_MS);
+
+  await fastify.db.run(
+    "INSERT INTO long_term_tokens (token_hash, user_id, expires_at) VALUES (?, ?, ?)",
+    tokenHash,
+    userId,
+    expiresAt.toISOString(),
+  );
+
+  return { token: rawToken, expiresAt };
+}
+
+export async function verifyLongTermToken(
+  fastify: FastifyInstance,
+  token: string,
+) {
+  const tokenHash = hashToken(token);
+  const record = await fastify.db.get<{
+    user_id: number;
+    expires_at: string | null;
+  }>(
+    "SELECT user_id, expires_at FROM long_term_tokens WHERE token_hash = ?",
+    tokenHash,
+  );
+
+  if (!record) {
+    return null;
+  }
+
+  if (record.expires_at && Date.parse(record.expires_at) <= Date.now()) {
+    await fastify.db.run(
+      "DELETE FROM long_term_tokens WHERE token_hash = ?",
+      tokenHash,
+    );
+    return null;
+  }
+
+  return { userId: record.user_id };
+}
+
+export async function removeLongTermToken(
+  fastify: FastifyInstance,
+  token: string,
+) {
+  await fastify.db.run(
+    "DELETE FROM long_term_tokens WHERE token_hash = ?",
+    hashToken(token),
+  );
 }
 
 export async function findUserByName(
