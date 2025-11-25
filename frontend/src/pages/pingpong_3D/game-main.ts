@@ -770,6 +770,7 @@ export function startPingPongGame() {
   console.log("Babylon 3D PONG initialized");
 }
 
+// ballの反射の動きを作る
 function updateBall(deltaTime: number) {
   if (!ballMesh || !paddle1 || !paddle2) return;
   const dt = deltaTime * 0.03;
@@ -777,26 +778,20 @@ function updateBall(deltaTime: number) {
   ballMesh.position.x += ballVelocity.x * dt;
   ballMesh.position.z += ballVelocity.z * dt;
 
+  // const paddleRadius = PADDLE_LENGTH / 2;
   
-  const paddleRadius = PADDLE_LENGTH / 2;
-  
+	// paddleで反射
   // paddle1
-  if (
-    Math.abs(ballMesh.position.z - paddle1.position.z) < paddleRadius &&
-    Math.abs(ballMesh.position.x - paddle1.position.x) < BALL_RADIUS + PADDLE_THICKNESS  
-  ) {
+  if (checkPaddleCollision(ballMesh, paddle1)) {
     ballVelocity.x = Math.abs(ballVelocity.x);
   }
-  
   // paddle2
-  if (
-    Math.abs(ballMesh.position.z - paddle2.position.z) < paddleRadius &&
-    Math.abs(ballMesh.position.x - paddle2.position.x) < BALL_RADIUS + PADDLE_THICKNESS
-  ) {
+  if (checkPaddleCollision(ballMesh, paddle2)) {
     ballVelocity.x = -Math.abs(ballVelocity.x);
   }
   
-  const halfWidth = COURT_WIDTH / 2;
+	// 壁で反射
+  // const halfWidth = COURT_WIDTH / 2;
   const halfHeight = COURT_HEIGHT / 2;
   const margin = 1.0;
   
@@ -846,4 +841,55 @@ function updatePaddles(deltaTime: number, paddle1: any, paddle2: any) {
   if (paddle2.position.z > halfHeight - margin) {
     paddle2.position.z = halfHeight - margin;
   }
+}
+
+// ballとpaddleの衝突判定
+function checkPaddleCollision(ball: Mesh, paddle: Mesh): boolean {
+	const r = BALL_RADIUS;
+
+	const bx = ball.position.x;
+	const bz = ball.position.z;
+
+	const px = paddle.position.x;
+	const pz = paddle.position.z;
+
+	const halfL = PADDLE_LENGTH / 2;
+	const halfT = PADDLE_THICKNESS / 2;
+
+	// paddleの座標
+	const minX = px - halfT;
+	const maxX = px + halfT;
+	const minZ = pz - halfL;
+	const maxZ = pz + halfL;
+
+	// 最も近い点
+	const nearestX = Math.max(minX, Math.min(bx, maxX));
+	const nearestZ = Math.max(minZ, Math.min(bz, maxZ));
+
+	// 距離
+	const dx = bx - nearestX;
+	const dz = bz - nearestZ;
+
+	return dx * dx + dz * dz <= r * r;
+}
+
+// ballとpaddleの衝突角度によって反射の強さを変える
+function reflectBall(ball: Mesh, paddle: Mesh, isLeftPaddle: boolean) {
+	// paddleの中心からどれだけ離れているか
+	const offsetZ = (ball.position.z - paddle.position.z) / (PADDLE_LENGTH / 2);
+
+	// z方向(上下)の速度に反映
+	ballVelocity.z = offsetZ * 0.6; // TODO 0.6を後で調整
+
+	// x方向(左右)の反転方向を決める
+	if (isLeftPaddle) {
+		ballVelocity.x = Math.abs(ballVelocity.x);
+	} else {
+		ballVelocity.x = -Math.abs(ballVelocity.x);
+	}
+
+	// スピードの変化をつける
+	const speedUp = 1.05;
+	ballVelocity.x *= speedUp;
+	ballVelocity.z *= speedUp;
 }
