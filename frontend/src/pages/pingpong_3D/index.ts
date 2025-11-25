@@ -1,3 +1,5 @@
+// pingpong/index.ts
+
 import type { Component } from "@/models/component";
 import type { Routes } from "@/models/routes";
 import { startPingPongGame } from "./game-main";
@@ -16,7 +18,7 @@ class PingPongComponent implements Component {
             <img id="p1-char-img" src="" alt="Player 1 Character">
         </div>
 
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <canvas id="gameCanvas3D" width="800" height="600"></canvas>
 
         <div class="ui-panel right-panel">
             <div id="p2-using-gauge-container" class="using-gauge-container"></div>
@@ -34,16 +36,17 @@ class PingPongComponent implements Component {
 
 const pingPongComponent = new PingPongComponent();
 
-export const PingPongRoute: Routes = {
-  "/pingpong": {
-    linkLabel: "Ping Pong",
+export const PingPong3DRoute: Routes = {
+  "/pingpong_3D": {
+    linkLabel: "Ping Pong 3D",
     content: pingPongComponent.render(),
     onMount: () => {
-      console.log("Ping Pong page mounted");
+      console.log("Ping Pong 3D page mounted");
       document.body.classList.add("pingpong-page");
       // スクロール防止
       document.body.classList.add("overflow-hidden");
       document.documentElement.classList.add("overflow-hidden");
+      // 3Dのgame-main.tsを起動
       startPingPongGame();
     },
     onUnmount: () => {
@@ -53,7 +56,7 @@ export const PingPongRoute: Routes = {
       document.documentElement.classList.remove("overflow-hidden");
     },
     head: {
-      title: "Ping Pong Game",
+      title: "Ping Pong Game 3D",
     },
   },
 };

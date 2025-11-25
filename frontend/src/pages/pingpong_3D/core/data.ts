@@ -2,20 +2,25 @@
 
 import { BALL_SIZE } from "./constants";
 
+import { Engine, Scene} from "@babylonjs/core";
+
 export type GameState =
-  | "menu"
-  | "modeSelect"
-  | "characterSelect"
-  | "stageSelect"
-  | "game"
-  | "paused"
-  | "gameover"
-  | "countingDown";
+| "menu"
+| "modeSelect"
+| "characterSelect"
+| "stageSelect"
+| "game"
+| "paused"
+| "gameover"
+| "countingDown";
 
 export type GameMode = "local" | "online";
 
 export let canvas: HTMLCanvasElement;
-export let ctx: CanvasRenderingContext2D;
+export let engine: Engine;
+export let scene: Scene;
+// export let canvas: HTMLCanvasElement;
+// export let ctx: CanvasRenderingContext2D;
 export let p1StaminaFill: HTMLDivElement;
 export let p2StaminaFill: HTMLDivElement;
 export let p1CharImg: HTMLImageElement;
@@ -24,8 +29,8 @@ export let p1CharImageContainer: HTMLDivElement;
 export let p2CharImageContainer: HTMLDivElement;
 export let p1UIPanel: HTMLDivElement;
 export let p2UIPanel: HTMLDivElement;
-export let p1CooldownGaugeContainer: HTMLDivElement;
-export let p2CooldownGaugeContainer: HTMLDivElement;
+export let p1CooldownGaugeContainer: HTMLDivElement; // 現在未使用
+export let p2CooldownGaugeContainer: HTMLDivElement; // 現在未使用
 export let p1UsingGaugeContainer: HTMLDivElement;
 export let p2UsingGaugeContainer: HTMLDivElement;
 
@@ -33,21 +38,26 @@ export let p2UsingGaugeContainer: HTMLDivElement;
  * ページにDOMが描画された後に呼んで初期化する
  */
 export function initDOMRefs() {
-  canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
-  ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+  canvas = document.getElementById("gameCanvas3D") as HTMLCanvasElement;
+  // ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-  if (!canvas || !ctx) {
-    throw new Error("Canvas element or 2D context not found");
+  // if (!canvas || !ctx) {
+  if (!canvas) {
+    throw new Error("Canvas element #gameCanvas not found");
   }
 
-//   canvas.width = window.innerWidth;
-//   canvas.height = window.innerHeight;
+  // canvas.width = window.innerWidth;
+  // canvas.height = window.innerHeight;
+
+  engine = new Engine(canvas, true);
+  scene = new Scene(engine);
 
   window.addEventListener("resize", () => {
-// 	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-// 	canvas.width = window.innerWidth;
-// 	canvas.height = window.innerHeight;
-// 	ctx.putImageData(imageData, 0, 0);
+	// const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	// canvas.width = window.innerWidth;
+	// canvas.height = window.innerHeight;
+	// ctx.putImageData(imageData, 0, 0);
+    engine.resize();
   });
 
   p1StaminaFill = document.getElementById("p1-stamina-fill") as HTMLDivElement;
@@ -62,6 +72,12 @@ export function initDOMRefs() {
   ) as HTMLDivElement;
   p1UIPanel = document.querySelector(".left-panel") as HTMLDivElement;
   p2UIPanel = document.querySelector(".right-panel") as HTMLDivElement;
+  p1CooldownGaugeContainer = document.getElementById(
+    "p1-cooldown-gauge-container",
+  ) as HTMLDivElement; // 現在未使用
+  p2CooldownGaugeContainer = document.getElementById(
+    "p2-cooldown-gauge-container",
+  ) as HTMLDivElement; // 現在未使用
   p1UsingGaugeContainer = document.getElementById(
     "p1-using-gauge-container",
   ) as HTMLDivElement;
