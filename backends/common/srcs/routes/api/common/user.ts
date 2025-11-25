@@ -82,7 +82,7 @@ export default async function (fastify: FastifyInstance) {
           );
 
           reply.code(201);
-          return { id: result.lastID ?? 0, name, puid };
+          return { message: "User registered." };
         } catch (error) {
           if (
             error instanceof Error &&

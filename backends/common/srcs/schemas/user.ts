@@ -8,9 +8,7 @@ export const registerBodySchema = Type.Object({
 export type RegisterBody = Static<typeof registerBodySchema>;
 
 export const registerResponseSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-  puid: Type.String({ minLength: 1 }),
+  message: Type.String({ minLength: 1 }),
 });
 
 export const errorResponseSchema = Type.Object({

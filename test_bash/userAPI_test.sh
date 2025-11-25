@@ -4,6 +4,28 @@ set -euo pipefail
 BASE_URL="${BASE_URL:-http://localhost:8080/api/common}"
 USER_NAME="${TEST_USER_NAME:-testuser_$RANDOM$RANDOM}"
 USER_PASSWORD="${TEST_USER_PASSWORD:-Passw0rd!$RANDOM}"
+ALL_TESTS_PASSED=true
+
+handle_err() {
+  ALL_TESTS_PASSED=false
+}
+trap handle_err ERR
+
+finish() {
+  if [[ "${ALL_TESTS_PASSED}" == true ]]; then
+    echo "[OK] 全てのテストが成功しました。"
+  else
+    echo "[NG] テストで失敗が発生しました。" >&2
+  fi
+}
+trap finish EXIT
+
+fail() {
+  local message="$1"
+  echo "[ERROR] ${message}" >&2
+  ALL_TESTS_PASSED=false
+  exit 1
+}
 
 log() {
   printf "\n[%s] %s\n" "$(date -Is)" "$1"
@@ -38,7 +60,6 @@ register_response="$(
     -d "{\"name\":\"${USER_NAME}\",\"password\":\"${USER_PASSWORD}\"}"
 )"
 echo "Response: ${register_response}"
-REGISTER_PUID="$(json_field "${register_response}" "puid")"
 
 log "ユーザー'${USER_NAME}'のPUIDを照会APIで取得中"
 encoded_name="$(urlencode "${USER_NAME}")"
@@ -50,13 +71,7 @@ echo "Lookup response: ${puid_lookup_response}"
 LOOKUP_PUID="$(json_field "${puid_lookup_response}" "puid")"
 
 if [[ -z "${LOOKUP_PUID}" ]]; then
-  echo "[ERROR] PUIDの取得に失敗しました。" >&2
-  exit 1
-fi
-
-if [[ -n "${REGISTER_PUID}" && "${LOOKUP_PUID}" != "${REGISTER_PUID}" ]]; then
-  echo "[ERROR] 登録結果と照会結果のPUIDが一致しません。" >&2
-  exit 1
+  fail "PUIDの取得に失敗しました。"
 fi
 
 USER_PUID="${LOOKUP_PUID}"
@@ -74,8 +89,7 @@ ACCESS_TOKEN="$(json_field "${login_response}" "accessToken")"
 LONG_TERM_TOKEN="$(json_field "${login_response}" "longTermToken")"
 
 if [[ -z "${LONG_TERM_TOKEN}" ]]; then
-  echo "[ERROR] 長期トークンが発行されなかったためテストを中断します。" >&2
-  exit 1
+  fail "長期トークンが発行されなかったためテストを中断します。"
 fi
 
 log "初回発行したアクセストークンでJWT検証を実行"
@@ -85,6 +99,22 @@ jwt_response_initial="$(
     "${BASE_URL}/user/jwt_test"
 )"
 echo "JWT test response: ${jwt_response_initial}"
+
+log "無効なアクセストークンでJWT検証が失敗することを確認"
+invalid_jwt_body="$(mktemp)"
+set +e
+invalid_jwt_status="$(
+  curl -sS -o "${invalid_jwt_body}" -w "%{http_code}" \
+    -H "Authorization: Bearer invalid.jwt.token" \
+    "${BASE_URL}/user/jwt_test"
+)"
+set -e
+echo "Invalid JWT response body: $(cat "${invalid_jwt_body}")"
+rm -f "${invalid_jwt_body}"
+
+if [[ "${invalid_jwt_status}" -ne 401 ]]; then
+  fail "無効なJWTでのアクセスが想定どおり401になりませんでした (status: ${invalid_jwt_status})。"
+fi
 
 log "長期トークンを使ってアクセストークンを再発行"
 refresh_response="$(
@@ -129,8 +159,7 @@ echo "Response body: $(cat "${tmp_body}")"
 rm -f "${tmp_body}"
 
 if [[ "${http_code}" == "200" ]]; then
-  echo "[ERROR] 破棄後の長期トークンで再発行に成功しました。" >&2
-  exit 1
+  fail "破棄後の長期トークンで再発行に成功しました。"
 fi
 
 echo "HTTP status after destroy: ${http_code}"
