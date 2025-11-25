@@ -325,10 +325,6 @@ export default async function (fastify: FastifyInstance) {
     async (request, reply) => {
       const { longTermToken } = request.body as RefreshTokenBody;
 
-      if (!longTermToken) {
-        reply.code(400);
-        return { message: "Token is required." };
-      }
 
       const verified = await verifyLongTermToken(fastify, longTermToken);
       if (!verified) {
