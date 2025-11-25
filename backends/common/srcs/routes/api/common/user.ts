@@ -73,7 +73,7 @@ export default async function (fastify: FastifyInstance) {
       for (let attempt = 0; attempt < 5; attempt++) {
         const puid = generatePuid();
         try {
-          const result = await fastify.db.run(
+          await fastify.db.run(
             "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
             name,
             hashedPassword,
