@@ -18,7 +18,7 @@ export default fp(
             return reply.send({ message: "Access token is required." });
           }
         } catch (error) {
-          reply.send(error);
+          return reply.send(error);
           return;
         }
       },
