@@ -19,6 +19,7 @@ export default fp(
           }
         } catch (error) {
           reply.send(error);
+          return;
         }
       },
     );
