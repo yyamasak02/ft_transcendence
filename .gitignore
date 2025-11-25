@@ -3,16 +3,6 @@ convertPDFtoHTML.py
 .env*
 !.env.local
 !.env.development
-node_modules
-.claude
-.db
-.DS_Store
-*.sqlite
-backends/common/db/
 docker-compose.local.yml
-backends/common/swagger/swagger.yml
-
-# swaggerは自動生成される
-swagger.yml
 
 memo.*

@@ -1,3 +1,6 @@
 node_modules
 app.db
 test.db
+db/
+dist/
+swagger/swagger.yml
