@@ -11,3 +11,7 @@ node_modules
 backends/common/db/
 docker-compose.local.yml
 backends/common/swagger/swagger.yml
+
+# swaggerは自動生成される
+swagger.yml
+
