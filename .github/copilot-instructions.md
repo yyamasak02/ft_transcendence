@@ -4,8 +4,8 @@
 - 日本語
 
 # 言語、フレームワーク、ライブラリ
-- backends: fastify(typescript), sqlite3
-- frontend: vanilla typescript, tailwind, babylon.js
+- backends: fastify(TypeScript), sqlite3
+- frontend: vanilla TypeScript, tailwind, babylon.js
 
 # フォルダ構造
 - backends: バックエンド, 直下のディレクトリはサービスごとに分けています
