@@ -105,6 +105,10 @@ export default async function (fastify: FastifyInstance) {
         }
       }
 
+      fastify.log.error(
+        { username: name },
+        "Failed to generate unique PUID after 5 attempts during user registration."
+      );
       reply.code(500);
       return { message: "Failed to generate unique PUID." };
     },
