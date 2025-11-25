@@ -30,7 +30,7 @@ print(value)
 PY
 }
 
-log "Registering user '${USER_NAME}'"
+log "ユーザー'${USER_NAME}'を登録中"
 register_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/register" \
@@ -40,7 +40,7 @@ register_response="$(
 echo "Response: ${register_response}"
 REGISTER_PUID="$(json_field "${register_response}" "puid")"
 
-log "Fetching PUID for '${USER_NAME}' via lookup API"
+log "ユーザー'${USER_NAME}'のPUIDを照会APIで取得中"
 encoded_name="$(urlencode "${USER_NAME}")"
 puid_lookup_response="$(
   curl -sS -f \
@@ -50,18 +50,18 @@ echo "Lookup response: ${puid_lookup_response}"
 LOOKUP_PUID="$(json_field "${puid_lookup_response}" "puid")"
 
 if [[ -z "${LOOKUP_PUID}" ]]; then
-  echo "[ERROR] Failed to obtain PUID via lookup API." >&2
+  echo "[ERROR] PUIDの取得に失敗しました。" >&2
   exit 1
 fi
 
 if [[ -n "${REGISTER_PUID}" && "${LOOKUP_PUID}" != "${REGISTER_PUID}" ]]; then
-  echo "[ERROR] PUID mismatch between register and lookup responses." >&2
+  echo "[ERROR] 登録結果と照会結果のPUIDが一致しません。" >&2
   exit 1
 fi
 
 USER_PUID="${LOOKUP_PUID}"
 
-log "Logging in and requesting long-term token"
+log "ログインして長期トークンを要求中"
 login_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/login" \
@@ -74,11 +74,11 @@ ACCESS_TOKEN="$(json_field "${login_response}" "accessToken")"
 LONG_TERM_TOKEN="$(json_field "${login_response}" "longTermToken")"
 
 if [[ -z "${LONG_TERM_TOKEN}" ]]; then
-  echo "[ERROR] Long-term token was not issued; aborting test." >&2
+  echo "[ERROR] 長期トークンが発行されなかったためテストを中断します。" >&2
   exit 1
 fi
 
-log "Testing JWT with initial access token"
+log "初回発行したアクセストークンでJWT検証を実行"
 jwt_response_initial="$(
   curl -sS -f \
     -H "Authorization: Bearer ${ACCESS_TOKEN}" \
@@ -86,7 +86,7 @@ jwt_response_initial="$(
 )"
 echo "JWT test response: ${jwt_response_initial}"
 
-log "Refreshing tokens via long-term token"
+log "長期トークンを使ってアクセストークンを再発行"
 refresh_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/refresh_token" \
@@ -97,7 +97,7 @@ echo "Response: ${refresh_response}"
 
 ACCESS_TOKEN="$(json_field "${refresh_response}" "accessToken")"
 
-log "Testing JWT with refreshed access token"
+log "再発行したアクセストークンでJWT検証を実行"
 jwt_response_refreshed="$(
   curl -sS -f \
     -H "Authorization: Bearer ${ACCESS_TOKEN}" \
@@ -105,7 +105,7 @@ jwt_response_refreshed="$(
 )"
 echo "JWT test response: ${jwt_response_refreshed}"
 
-log "Destroying long-term token"
+log "長期トークンを破棄"
 destroy_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/destroy_token" \
@@ -114,7 +114,7 @@ destroy_response="$(
 )"
 echo "Response: ${destroy_response}"
 
-log "Verifying destroyed long-term token cannot refresh"
+log "破棄済み長期トークンで再発行できないことを確認"
 tmp_body="$(mktemp)"
 set +e
 http_code="$(
@@ -129,9 +129,9 @@ echo "Response body: $(cat "${tmp_body}")"
 rm -f "${tmp_body}"
 
 if [[ "${http_code}" == "200" ]]; then
-  echo "[ERROR] Refresh succeeded after destroying long-term token." >&2
+  echo "[ERROR] 破棄後の長期トークンで再発行に成功しました。" >&2
   exit 1
 fi
 
 echo "HTTP status after destroy: ${http_code}"
-log "Test flow completed successfully."
+log "テストフローが正常に完了しました"

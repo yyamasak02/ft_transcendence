@@ -58,6 +58,7 @@ clean:
 
 delete: clean
 	rm -f backends/common/db/app.db
+	rm -f backends/common/db/common.sqlite
 
 # Show logs
 logs:
