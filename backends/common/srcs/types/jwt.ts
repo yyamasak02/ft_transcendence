@@ -1,12 +1,6 @@
 export type AccessTokenPayload = {
   userId: number;
+  puid: string;
   name: string;
   type: "access";
-};
-
-export type RefreshTokenPayload = {
-  userId: number;
-  name: string;
-  type: "refresh";
-  tokenId: string;
 };

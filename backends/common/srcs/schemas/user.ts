@@ -10,6 +10,7 @@ export type RegisterBody = Static<typeof registerBodySchema>;
 export const registerResponseSchema = Type.Object({
   id: Type.Number(),
   name: Type.String(),
+  puid: Type.String({ minLength: 1 }),
 });
 
 export const errorResponseSchema = Type.Object({
@@ -25,15 +26,12 @@ export const loginBodySchema = Type.Object({
 export type LoginBody = Static<typeof loginBodySchema>;
 
 export const loginSuccessSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
   accessToken: Type.String(),
-  refreshToken: Type.String(),
   longTermToken: Type.Optional(Type.String()),
 });
 
 export const userIdentifierSchema = Type.Object({
-  userId: Type.Number({ minimum: 1 }),
+  puid: Type.String({ minLength: 1 }),
 });
 
 export type UserIdentifier = Static<typeof userIdentifierSchema>;
@@ -47,6 +45,7 @@ export const userInformationQuerySchema = userIdentifierSchema;
 export const userInformationResponseSchema = Type.Object({
   id: Type.Number(),
   name: Type.String(),
+  puid: Type.String({ minLength: 1 }),
   status: Type.String(),
 });
 
@@ -62,7 +61,7 @@ export type UserBanBody = Static<typeof userBanBodySchema>;
 export const userBlockBodySchema = Type.Composite([
   userIdentifierSchema,
   Type.Object({
-    targetUserId: Type.Number({ minimum: 1 }),
+    targetPuid: Type.String({ minLength: 1 }),
   }),
 ]);
 
@@ -85,7 +84,6 @@ export type RefreshTokenBody = Static<typeof refreshTokenBodySchema>;
 
 export const refreshTokenResponseSchema = Type.Object({
   accessToken: Type.String(),
-  refreshToken: Type.String(),
 });
 
 export const updatePasswordBodySchema = Type.Composite([
@@ -106,3 +104,14 @@ export const deleteUserBodySchema = Type.Composite([
 ]);
 
 export type DeleteUserBody = Static<typeof deleteUserBodySchema>;
+
+export const puidLookupQuerySchema = Type.Object({
+  name: Type.String({ minLength: 1 }),
+});
+
+export const puidLookupResponseSchema = Type.Object({
+  puid: Type.String({ minLength: 1 }),
+});
+
+export type PuidLookupQuery = Static<typeof puidLookupQuerySchema>;
+export type PuidLookupResponse = Static<typeof puidLookupResponseSchema>;

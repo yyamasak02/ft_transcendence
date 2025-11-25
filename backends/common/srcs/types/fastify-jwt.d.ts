@@ -1,11 +1,8 @@
-import type {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-} from "./jwt.js";
+import type { AccessTokenPayload } from "./jwt.js";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: AccessTokenPayload | RefreshTokenPayload;
+    payload: AccessTokenPayload;
     user: AccessTokenPayload;
   }
 }

@@ -9,6 +9,13 @@ log() {
   printf "\n[%s] %s\n" "$(date -Is)" "$1"
 }
 
+urlencode() {
+  URLENCODE_INPUT="$1" python3 - <<'PY'
+import os, urllib.parse
+print(urllib.parse.quote(os.environ["URLENCODE_INPUT"]))
+PY
+}
+
 json_field() {
   local json_input="$1"
   local key="$2"
@@ -31,6 +38,28 @@ register_response="$(
     -d "{\"name\":\"${USER_NAME}\",\"password\":\"${USER_PASSWORD}\"}"
 )"
 echo "Response: ${register_response}"
+REGISTER_PUID="$(json_field "${register_response}" "puid")"
+
+log "Fetching PUID for '${USER_NAME}' via lookup API"
+encoded_name="$(urlencode "${USER_NAME}")"
+puid_lookup_response="$(
+  curl -sS -f \
+    "${BASE_URL}/user/puid?name=${encoded_name}"
+)"
+echo "Lookup response: ${puid_lookup_response}"
+LOOKUP_PUID="$(json_field "${puid_lookup_response}" "puid")"
+
+if [[ -z "${LOOKUP_PUID}" ]]; then
+  echo "[ERROR] Failed to obtain PUID via lookup API." >&2
+  exit 1
+fi
+
+if [[ -n "${REGISTER_PUID}" && "${LOOKUP_PUID}" != "${REGISTER_PUID}" ]]; then
+  echo "[ERROR] PUID mismatch between register and lookup responses." >&2
+  exit 1
+fi
+
+USER_PUID="${LOOKUP_PUID}"
 
 log "Logging in and requesting long-term token"
 login_response="$(
@@ -41,9 +70,7 @@ login_response="$(
 )"
 echo "Response: ${login_response}"
 
-USER_ID="$(json_field "${login_response}" "id")"
 ACCESS_TOKEN="$(json_field "${login_response}" "accessToken")"
-REFRESH_TOKEN="$(json_field "${login_response}" "refreshToken")"
 LONG_TERM_TOKEN="$(json_field "${login_response}" "longTermToken")"
 
 if [[ -z "${LONG_TERM_TOKEN}" ]]; then
@@ -69,7 +96,6 @@ refresh_response="$(
 echo "Response: ${refresh_response}"
 
 ACCESS_TOKEN="$(json_field "${refresh_response}" "accessToken")"
-REFRESH_TOKEN="$(json_field "${refresh_response}" "refreshToken")"
 
 log "Testing JWT with refreshed access token"
 jwt_response_refreshed="$(
@@ -84,7 +110,7 @@ destroy_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/destroy_token" \
     -H "Content-Type: application/json" \
-    -d "{\"userId\":${USER_ID},\"longTermToken\":\"${LONG_TERM_TOKEN}\"}"
+    -d "{\"puid\":\"${USER_PUID}\",\"longTermToken\":\"${LONG_TERM_TOKEN}\"}"
 )"
 echo "Response: ${destroy_response}"
 

@@ -5,15 +5,17 @@
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyInstance } from "fastify";
 import { randomBytes } from "node:crypto";
-import type { AccessTokenPayload, RefreshTokenPayload } from "../../../types/jwt.js";
+import type { AccessTokenPayload } from "../../../types/jwt.js";
 import {
   issueTokens,
   hashPassword,
-  removeRefreshToken,
   verifyUserCredentials,
   issueLongTermToken,
   verifyLongTermToken,
   removeLongTermToken,
+  findUserByPuid,
+  findUserByName,
+  generatePuid,
 } from "../../../utils/auth.js";
 import {
   deleteUserBodySchema,
@@ -31,6 +33,8 @@ import {
   userBlockBodySchema,
   userInformationQuerySchema,
   userInformationResponseSchema,
+  puidLookupQuerySchema,
+  puidLookupResponseSchema,
 } from "../../../schemas/user.js";
 import type {
   DeleteUserBody,
@@ -42,6 +46,7 @@ import type {
   UserBanBody,
   UserBlockBody,
   UserIdentifier,
+  PuidLookupQuery,
 } from "../../../schemas/user.js";
 
 export default async function (fastify: FastifyInstance) {
@@ -56,6 +61,7 @@ export default async function (fastify: FastifyInstance) {
         response: {
           201: registerResponseSchema,
           409: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
@@ -64,27 +70,43 @@ export default async function (fastify: FastifyInstance) {
       const salt = randomBytes(16).toString("hex");
       const hashedPassword = hashPassword(password, salt);
 
-      try {
-        const result = await fastify.db.run(
-          "INSERT INTO users (name, password, salt) VALUES (?, ?, ?)",
-          name,
-          hashedPassword,
-          salt,
-        );
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const puid = generatePuid();
+        try {
+          const result = await fastify.db.run(
+            "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
+            name,
+            hashedPassword,
+            salt,
+            puid,
+          );
 
-        reply.code(201);
-        return { id: result.lastID ?? 0, name };
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          /UNIQUE constraint failed: users\.name/.test(error.message)
-        ) {
-          reply.code(409);
-          return { message: "User already exists." };
+          reply.code(201);
+          return { id: result.lastID ?? 0, name, puid };
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            /UNIQUE constraint failed: users\.name/.test(error.message)
+          ) {
+            reply.code(409);
+            return { message: "User already exists." };
+          }
+
+          if (
+            error instanceof Error &&
+            /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
+              error.message,
+            )
+          ) {
+            continue;
+          }
+
+          throw error;
         }
-
-        throw error;
       }
+
+      reply.code(500);
+      return { message: "Failed to generate unique PUID." };
     },
   );
 
@@ -110,6 +132,7 @@ export default async function (fastify: FastifyInstance) {
 
       const tokens = await issueTokens(fastify, {
         id: user.id,
+        puid: user.puid,
         name: user.name,
       });
 
@@ -120,11 +143,33 @@ export default async function (fastify: FastifyInstance) {
       }
 
       return {
-        id: user.id,
-        name: user.name,
         ...tokens,
         ...(longTermToken ? { longTermToken } : {}),
       };
+    },
+  );
+
+  f.get(
+    "/user/puid",
+    {
+      schema: {
+        tags: ["User"],
+        querystring: puidLookupQuerySchema,
+        response: {
+          200: puidLookupResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { name } = request.query as PuidLookupQuery;
+      const user = await findUserByName(fastify, name);
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+
+      return { puid: user.puid };
     },
   );
 
@@ -138,15 +183,22 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: userInformationResponseSchema,
           401: errorResponseSchema,
+          404: errorResponseSchema,
         },
       },
     },
-    async (request) => {
-      const { userId } = request.query as UserIdentifier;
+    async (request, reply) => {
+      const { puid } = request.query as UserIdentifier;
+      const user = await findUserByPuid(fastify, puid);
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
 
       return {
-        id: userId,
-        name: "placeholder",
+        id: user.id,
+        name: user.name,
+        puid: user.puid,
         status: "active",
       };
     },
@@ -166,10 +218,10 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { userId, reason } = request.body as UserBanBody;
+      const { puid, reason } = request.body as UserBanBody;
 
       return {
-        message: `User ${userId} banned${reason ? ` for ${reason}` : ""}.`,
+        message: `User ${puid} banned${reason ? ` for ${reason}` : ""}.`,
       };
     },
   );
@@ -188,10 +240,10 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { userId, targetUserId } = request.body as UserBlockBody;
+      const { puid, targetPuid } = request.body as UserBlockBody;
 
       return {
-        message: `User ${userId} blocked user ${targetUserId}.`,
+        message: `User ${puid} blocked user ${targetPuid}.`,
       };
     },
   );
@@ -212,7 +264,7 @@ export default async function (fastify: FastifyInstance) {
       const payload = request.user as AccessTokenPayload;
 
       return {
-        message: `JWT verified for user ${payload.name}.`,
+        message: `JWT verified for user ${payload.name} (puid: ${payload.puid}).`,
       };
     },
   );
@@ -226,26 +278,33 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: userActionResponseSchema,
           400: errorResponseSchema,
+          404: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const { userId, longTermToken } = request.body as DestroyTokenBody;
+      const { puid, longTermToken } = request.body as DestroyTokenBody;
 
       if (!longTermToken) {
         reply.code(400);
         return { message: "Token is required." };
       }
 
+      const user = await findUserByPuid(fastify, puid);
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+
       const verified = await verifyLongTermToken(fastify, longTermToken);
-      if (!verified || verified.userId !== userId) {
+      if (!verified || verified.userId !== user.id) {
         reply.code(400);
         return { message: "Invalid token." };
       }
 
       await removeLongTermToken(fastify, longTermToken);
       return {
-        message: `Long-term token revoked for user ${userId}.`,
+        message: `Long-term token revoked for user ${puid}.`,
       };
     },
   );
@@ -277,8 +336,8 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Invalid long-term token." };
       }
 
-      const user = await fastify.db.get<{ id: number; name: string }>(
-        "SELECT id, name FROM users WHERE id = ?",
+      const user = await fastify.db.get<{ id: number; name: string; puid: string }>(
+        "SELECT id, name, puid FROM users WHERE id = ?",
         verified.userId,
       );
 
@@ -306,10 +365,10 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { userId } = request.body as UpdatePasswordBody;
+      const { puid } = request.body as UpdatePasswordBody;
 
       return {
-        message: `Password updated for user ${userId}.`,
+        message: `Password updated for user ${puid}.`,
       };
     },
   );
@@ -328,10 +387,10 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { userId, reason } = request.body as DeleteUserBody;
+      const { puid, reason } = request.body as DeleteUserBody;
 
       return {
-        message: `User ${userId} deleted${reason ? ` for ${reason}` : ""}.`,
+        message: `User ${puid} deleted${reason ? ` for ${reason}` : ""}.`,
       };
     },
   );
