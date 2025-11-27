@@ -40,15 +40,15 @@ export function initDOMRefs() {
     throw new Error("Canvas element or 2D context not found");
   }
 
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+//   canvas.width = window.innerWidth;
+//   canvas.height = window.innerHeight;
 
-  window.addEventListener("resize", () => {
-	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	ctx.putImageData(imageData, 0, 0);
-  });
+//   window.addEventListener("resize", () => {
+// 	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+// 	canvas.width = window.innerWidth;
+// 	canvas.height = window.innerHeight;
+// 	ctx.putImageData(imageData, 0, 0);
+//   });
 
   p1StaminaFill = document.getElementById("p1-stamina-fill") as HTMLDivElement;
   p2StaminaFill = document.getElementById("p2-stamina-fill") as HTMLDivElement;
