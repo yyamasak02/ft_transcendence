@@ -19,7 +19,6 @@ export default fp(
           }
         } catch (error) {
           return reply.send(error);
-          return;
         }
       },
     );
@@ -28,12 +27,3 @@ export default fp(
     name: "authenticate",
   },
 );
-
-declare module "fastify" {
-  interface FastifyInstance {
-    authenticate(
-      request: FastifyRequest,
-      reply: FastifyReply,
-    ): Promise<void>;
-  }
-}
