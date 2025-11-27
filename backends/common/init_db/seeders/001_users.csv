@@ -1,2 +1,2 @@
 name,password,salt,puid
-"admin","68346f91c38997469560c23d21959a96235efae4401b0d3a082e53b96ac9bc90","5ac5542ab8660b90e1c839c4c9ea95a6","4c0e4f4ebb0c5f039019cb90f9c90be92302beef3f9fdadf8ab0e06979cd13c2"
+"admin","$argon2id$v=19$m=65536,t=3,p=1$WsVUKrhmC5DhyDnEyeqVpg$iDn23mVMZsnCHU3bM2b+25H0s36b4CgSj5KAt0JTuOc","5ac5542ab8660b90e1c839c4c9ea95a6","4c0e4f4ebb0c5f039019cb90f9c90be92302beef3f9fdadf8ab0e06979cd13c2"

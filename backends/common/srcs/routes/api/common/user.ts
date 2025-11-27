@@ -68,7 +68,7 @@ export default async function (fastify: FastifyInstance) {
     async (request, reply) => {
       const { name, password } = request.body as RegisterBody;
       const salt = randomBytes(16).toString("hex");
-      const hashedPassword = hashPassword(password, salt);
+      const hashedPassword = await hashPassword(password, salt);
 
       for (let attempt = 0; attempt < 5; attempt++) {
         const puid = generatePuid();
@@ -289,23 +289,27 @@ export default async function (fastify: FastifyInstance) {
     async (request, reply) => {
       const { puid, longTermToken } = request.body as DestroyTokenBody;
 
+      // リクエストにロングタームトークンが含まれているか検証し、欠けていれば即時400を返す
       if (!longTermToken) {
         reply.code(400);
         return { message: "Token is required." };
       }
 
+      // puidでユーザーを取得できなければ、その場で404を返して処理を打ち切る
       const user = await findUserByPuid(fastify, puid);
       if (!user) {
         reply.code(404);
         return { message: "User not found." };
       }
 
+      // トークンの整合性と所有者を確認し、想定ユーザーのものではなければ400を返す
       const verified = await verifyLongTermToken(fastify, longTermToken);
       if (!verified || verified.userId !== user.id) {
         reply.code(400);
         return { message: "Invalid token." };
       }
 
+      // 条件を満たした場合のみトークンを削除し、破棄完了メッセージを返す
       await removeLongTermToken(fastify, longTermToken);
       return {
         message: `Long-term token revoked for user ${puid}.`,
