@@ -5,7 +5,6 @@
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyInstance } from "fastify";
 import { randomBytes } from "node:crypto";
-import type { AccessTokenPayload } from "../../../types/jwt.js";
 import {
   issueTokens,
   hashPassword,
@@ -52,7 +51,7 @@ import type {
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
-  f.post(
+  f.post<{ Body: RegisterBody }>(
     "/user/register",
     {
       schema: {
@@ -66,7 +65,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body as RegisterBody;
+      const { name, password } = request.body;
       const salt = randomBytes(16).toString("hex");
       const hashedPassword = await hashPassword(password, salt);
 
@@ -114,7 +113,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.post(
+  f.post<{ Body: LoginBody }>(
     "/user/login",
     {
       schema: {
@@ -127,7 +126,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password, longTerm } = request.body as LoginBody;
+      const { name, password, longTerm } = request.body;
       const user = await verifyUserCredentials(fastify, name, password);
       if (!user) {
         reply.code(401);
@@ -153,7 +152,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.get(
+  f.get<{ Querystring: PuidLookupQuery }>(
     "/user/puid",
     {
       schema: {
@@ -166,7 +165,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name } = request.query as PuidLookupQuery;
+      const { name } = request.query;
       const user = await findUserByName(fastify, name);
       if (!user) {
         reply.code(404);
@@ -177,7 +176,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.get(
+  f.get<{ Querystring: UserIdentifier }>(
     "/user/information",
     {
       preHandler: fastify.authenticate,
@@ -192,7 +191,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { puid } = request.query as UserIdentifier;
+      const { puid } = request.query;
       const user = await findUserByPuid(fastify, puid);
       if (!user) {
         reply.code(404);
@@ -208,7 +207,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.post(
+  f.post<{ Body: UserBanBody }>(
     "/user/ban",
     {
       preHandler: fastify.authenticate,
@@ -222,7 +221,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { puid, reason } = request.body as UserBanBody;
+      const { puid, reason } = request.body;
 
       return {
         message: `User ${puid} banned${reason ? ` for ${reason}` : ""}.`,
@@ -230,7 +229,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.post(
+  f.post<{ Body: UserBlockBody }>(
     "/user/block",
     {
       preHandler: fastify.authenticate,
@@ -244,7 +243,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { puid, targetPuid } = request.body as UserBlockBody;
+      const { puid, targetPuid } = request.body;
 
       return {
         message: `User ${puid} blocked user ${targetPuid}.`,
@@ -265,7 +264,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const payload = request.user as AccessTokenPayload;
+      const payload = request.user;
 
       return {
         message: `JWT verified for user ${payload.name} (puid: ${payload.puid}).`,
@@ -273,7 +272,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.post(
+  f.post<{ Body: DestroyTokenBody }>(
     "/user/destroy_token",
     {
       schema: {
@@ -287,7 +286,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { puid, longTermToken } = request.body as DestroyTokenBody;
+      const { puid, longTermToken } = request.body;
 
       // リクエストにロングタームトークンが含まれているか検証し、欠けていれば即時400を返す
       if (!longTermToken) {
@@ -317,7 +316,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.post(
+  f.post<{ Body: RefreshTokenBody }>(
     "/user/refresh_token",
     {
       schema: {
@@ -331,7 +330,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { longTermToken } = request.body as RefreshTokenBody;
+      const { longTermToken } = request.body;
 
 
       const verified = await verifyLongTermToken(fastify, longTermToken);
@@ -355,7 +354,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.patch(
+  f.patch<{ Body: UpdatePasswordBody }>(
     "/user/password",
     {
       preHandler: fastify.authenticate,
@@ -369,7 +368,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { puid } = request.body as UpdatePasswordBody;
+      const { puid } = request.body;
 
       return {
         message: `Password updated for user ${puid}.`,
@@ -377,7 +376,7 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.delete(
+  f.delete<{ Body: DeleteUserBody }>(
     "/user/delete",
     {
       preHandler: fastify.authenticate,
@@ -391,7 +390,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const { puid, reason } = request.body as DeleteUserBody;
+      const { puid, reason } = request.body;
 
       return {
         message: `User ${puid} deleted${reason ? ` for ${reason}` : ""}.`,
