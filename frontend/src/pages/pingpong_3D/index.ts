@@ -3,6 +3,7 @@
 import type { Component } from "@/models/component";
 import type { Routes } from "@/models/routes";
 import { startPingPongGame } from "./game-main";
+import "./style.css";
 
 class PingPongComponent implements Component {
   render = (): string => {
@@ -18,7 +19,7 @@ class PingPongComponent implements Component {
             <img id="p1-char-img" src="" alt="Player 1 Character">
         </div>
 
-        <canvas id="gameCanvas3D" width="800" height="600"></canvas>
+        <canvas id="gameCanvas3D"></canvas>
 
         <div class="ui-panel right-panel">
             <div id="p2-using-gauge-container" class="using-gauge-container"></div>
@@ -29,6 +30,10 @@ class PingPongComponent implements Component {
         <div id="p2-char-image" class="char-image-container right-char-image">
             <img id="p2-char-img" src="" alt="Player 2 Character">
         </div>
+	<div id="hud" class="hud-overlay">
+	    <div id="score">0 - 0</div>
+	    <div id ="countdown"></div>
+	</div>
     </div>
     `;
   };

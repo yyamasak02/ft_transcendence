@@ -22,4 +22,12 @@ export default defineConfig({
     },
   },
   plugins: [tsconfigPaths(), tailwindcss()],
+	// 新たに加えた部分 by yotsurud
+	optimizeDeps: {
+		exclude: [
+			"@babylonjs/core",
+			"@babylonjs/gui",
+			"@babylonjs/loaders"
+		],
+	},
 });
