@@ -21,11 +21,7 @@ import {
   GlowLayer,
   DirectionalLight,     
   ShadowGenerator,
-  Mesh,
-	BaseTexture,
-	TorusBlock,
-	LengthBlock,
-	LensFlareSystem,      
+  Mesh,  
   // TrailMesh,
 } from "@babylonjs/core";
 // import { update, updateAI } from "./systems/game";
@@ -56,7 +52,6 @@ import {
 import {
   toggleUIElements,
   updateCharacterImages,
-  applyCharacterStats,
   // updateUI,
   preloadCharacterIcons,
 } from "./ui/ui";
@@ -81,23 +76,9 @@ import {
   setBallSpeed,
   setWinningScore,
 } from "./core/constants";
-import { createDefaultImportMeta } from "vite/module-runner";
-import { pbrBlockAlbedoOpacity } from "@babylonjs/core/Shaders/ShadersInclude/pbrBlockAlbedoOpacity";
-// import { count } from "console";
-import {
-	AdvancedDynamicTexture,
-	TextBlock,
-} from "@babylonjs/gui";
 // import { count } from "console";
 
 let lastWinner: 1 | 2 | null = null;
-// let lastTime = 0;
-// let countdownTimer = 0;
-// let accumulator = 0;
-// let gameTime = 0;
-// let lastFireworkTime = 0;
-
-
 
 // function updateGameLogic(deltaTime: number) {
 //   gameTime += deltaTime;
@@ -653,24 +634,6 @@ export function startPingPongGame() {
   // ===== GlowLayer（発光エフェクト） =====
   const glow = new GlowLayer("glow", scene);
   glow.intensity = 0.25;
-
-	// ===== HUD =====
-	// ui = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
-
-	// scoreText = new TextBlock("scoreText");
-	// scoreText.text = "0 : 0";
-	// scoreText.color = "while";
-	// scoreText.fontSize = 48;
-	// scoreText.top = "-40px";
-	// scoreText.verticalAlignment = TextBlock.VERTICAL_ALIGNMENT_TOP;
-	// ui.addControl(scoreText);
-
-	// countdownText = new TextBlock("countdownText");
-	// countdownText.text = "";
-	// countdownText.color = "yellow";
-	// countdownText.fontSize = 72;
-	// countdownText.verticalAlignment = TextBlock.VERTICAL_ALIGNMENT_CENTER;
-	// ui.addControl(countdownText);
 
   // ===== コート（床） =====
   const court = MeshBuilder.CreateGround(
