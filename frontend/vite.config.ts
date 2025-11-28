@@ -4,8 +4,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   server: {
-    host: process.env.VITE_HOST,
-    port: Number(process.env.VITE_PORT),
+    // host: process.env.VITE_HOST,
+		host: "0.0.0.0",
+    // port: Number(process.env.VITE_PORT),
+		port: 5173,
     // ft_frontendコンテナに直接アクセスして操作するときでもAPIサーバーに繋がるようにする
     proxy: {
       "/api/common": {

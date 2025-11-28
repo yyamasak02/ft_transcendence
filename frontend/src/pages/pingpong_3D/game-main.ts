@@ -636,6 +636,7 @@ export function startPingPongGame() {
 
 	// スマホ向けカメラ制御
 	if (window.innerWidth < 768) {
+		camera.radius *= 1.8;
 		// ズーム固定
 		camera.lowerRadiusLimit = camera.radius;
 		camera.upperRadiusLimit = camera.radius;
