@@ -96,11 +96,11 @@ function handleWallCollision() {
   const ball = gameData.ball;
 
   if (
-    ball.getCenterY() > canvas.height ||
-    ball.getCenterY() < 0
+    ball.y + ball.size / 2 > canvas.height ||
+    ball.y - ball.size / 2 < 0
   ) {
     if (currentStage.effects.warpWalls) {
-      if (ball.getCenterY() < 0) {
+      if (ball.y - ball.size / 2 < 0) {
         ball.y = canvas.height - ball.size / 2;
       } else {
         ball.y = ball.size / 2;
