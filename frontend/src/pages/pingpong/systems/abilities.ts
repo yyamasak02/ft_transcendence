@@ -127,7 +127,7 @@ export function activateAbility(
       createShotEffect(gameData.ball.x, gameData.ball.y);
       createScreenShake(8, 300);
 
-      gameData.ball.speedY = -gameData.ball.speedY;
+      gameData.ball.reverseSpeedY();
       player.abilityUsages++;
       console.log(`Player ${playerId} Shot ability used!`);
       break;

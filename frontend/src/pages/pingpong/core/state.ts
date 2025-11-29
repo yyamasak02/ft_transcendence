@@ -47,11 +47,7 @@ export function setSelectedStage(index: number) {
 }
 
 export function resetBall() {
-  gameData.ball.x = canvas.width / 2;
-  gameData.ball.y = canvas.height / 2;
-  gameData.ball.speedX = 0;
-  gameData.ball.speedY = 0;
-  gameData.ball.power = 1;
+  gameData.ball.reset(canvas.width / 2, canvas.height / 2);
   gameData.gameState = "countingDown";
   gameData.countdown = 3;
 }

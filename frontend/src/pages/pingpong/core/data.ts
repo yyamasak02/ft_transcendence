@@ -1,6 +1,6 @@
 // src/core/data.ts
 
-import { BALL_SIZE } from "./constants";
+import { Ball } from "./Ball";
 
 export type GameState =
   | "menu"
@@ -93,14 +93,7 @@ export const gameData = {
   player1Ready: false,
   player2Ready: false,
   player2AILevel: "Player",
-  ball: {
-    x: 0,
-    y: 0,
-    size: BALL_SIZE,
-    speedX: 0,
-    speedY: 0,
-    power: 1,
-  },
+  ball: new Ball(),
   player1: {
     x: 0,
     y: 0,

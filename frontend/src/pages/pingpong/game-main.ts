@@ -108,8 +108,7 @@ function updateGameLogic(deltaTime: number) {
           BASE_BALL_SPEED * currentStage.effects.ballSpeedMultiplier;
         const startDirection =
           gameData.player1.score > gameData.player2.score ? -1 : 1;
-        gameData.ball.speedX = adjustedBallSpeed * startDirection;
-        gameData.ball.speedY = 0;
+        gameData.ball.setSpeed(adjustedBallSpeed * startDirection, 0);
         setGameState("game");
       }
     }

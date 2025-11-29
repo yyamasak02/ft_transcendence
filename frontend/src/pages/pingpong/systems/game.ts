@@ -16,86 +16,97 @@ import {
   createShotEffect,
   createReturnEffect,
 } from "./effects";
+import { Ball } from "../core/Ball";
+
+interface Player {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  score: number;
+  isPlayer1: boolean;
+  stamina: number;
+}
 
 let lastAITick = 0;
 let aiTargetY = gameData.player2.y;
 
-function checkCollision(ball: any, player: any) {
-  let ballX = ball.x + ball.size / 2;
-  let ballY = ball.y + ball.size / 2;
-  let playerX = player.x;
-  let playerY = player.y;
-  let playerW = player.width;
-  let playerH = player.height;
+function checkCollision(ball: Ball, player: Player) {
+  const ballCenterX = ball.getCenterX();
+  const ballCenterY = ball.getCenterY();
+  const playerX = player.x;
+  const playerY = player.y;
+  const playerW = player.width;
+  const playerH = player.height;
 
-  let hit =
-    ballX + ball.size / 2 > playerX &&
-    ballX - ball.size / 2 < playerX + playerW &&
-    ballY + ball.size / 2 > playerY &&
-    ballY - ball.size / 2 < playerY + playerH;
+  const hit =
+    ballCenterX + ball.size / 2 > playerX &&
+    ballCenterX - ball.size / 2 < playerX + playerW &&
+    ballCenterY + ball.size / 2 > playerY &&
+    ballCenterY - ball.size / 2 < playerY + playerH;
 
   if (hit) {
-    let collidePoint = ball.y + ball.size / 2 - (player.y + playerH / 2);
+    let collidePoint = ball.getCenterY() - (player.y + playerH / 2);
     collidePoint = collidePoint / (playerH / 2);
-    let angleRad = (Math.PI / 4) * collidePoint;
-    let direction = ball.x < canvas.width / 2 ? 1 : -1;
+    const angleRad = (Math.PI / 4) * collidePoint;
+    const direction = ball.x < canvas.width / 2 ? 1 : -1;
 
-    let charIndex = player.isPlayer1
+    const charIndex = player.isPlayer1
       ? gameData.player1CharIndex
       : gameData.player2CharIndex;
-    let char = characters[charIndex];
+    const char = characters[charIndex];
 
     const currentStage = stages[gameData.selectedStageIndex];
 
     if (Math.abs(collidePoint) <= CORE_HIT_RANGE) {
-      gameData.ball.power = char.power;
+      ball.power = char.power;
     } else {
-      gameData.ball.power = 1;
+      ball.power = 1;
     }
 
-    let opponent = player.isPlayer1 ? gameData.player2 : gameData.player1;
-    opponent.stamina = Math.max(0, opponent.stamina - gameData.ball.power * 5);
+    const opponent = player.isPlayer1 ? gameData.player2 : gameData.player1;
+    opponent.stamina = Math.max(0, opponent.stamina - ball.power * 5);
 
-    let newSpeedX =
+    const newSpeedX =
       BASE_BALL_SPEED *
       Math.cos(angleRad) *
-      gameData.ball.power *
+      ball.power *
       currentStage.effects.bounceMultiplier;
-    let newSpeedY =
+    const newSpeedY =
       BASE_BALL_SPEED *
       Math.sin(angleRad) *
-      gameData.ball.power *
+      ball.power *
       currentStage.effects.bounceMultiplier;
 
-    ball.speedX = direction * newSpeedX;
-    ball.speedY = newSpeedY;
+    ball.setSpeed(direction * newSpeedX, newSpeedY);
 
     const totalSpeed = Math.sqrt(newSpeedX * newSpeedX + newSpeedY * newSpeedY);
     if (totalSpeed > BASE_BALL_SPEED) {
-      createFastReturnEffect(ballX, ballY, gameData.ball.power);
+      createFastReturnEffect(ballCenterX, ballCenterY, ball.power);
       createScreenShake(5, 200);
       console.log(
-        `Fast return effect! Speed: ${totalSpeed}, Power: ${gameData.ball.power}`,
+        `Fast return effect! Speed: ${totalSpeed}, Power: ${ball.power}`,
       );
-    } else createReturnEffect(ballX, ballY);
+    } else createReturnEffect(ballCenterX, ballCenterY);
   }
 }
 
 function handleWallCollision() {
   const currentStage = stages[gameData.selectedStageIndex];
+  const ball = gameData.ball;
 
   if (
-    gameData.ball.y + gameData.ball.size / 2 > canvas.height ||
-    gameData.ball.y - gameData.ball.size / 2 < 0
+    ball.getCenterY() > canvas.height ||
+    ball.getCenterY() < 0
   ) {
     if (currentStage.effects.warpWalls) {
-      if (gameData.ball.y - gameData.ball.size / 2 < 0) {
-        gameData.ball.y = canvas.height - gameData.ball.size / 2;
+      if (ball.getCenterY() < 0) {
+        ball.y = canvas.height - ball.size / 2;
       } else {
-        gameData.ball.y = gameData.ball.size / 2;
+        ball.y = ball.size / 2;
       }
     } else {
-      gameData.ball.speedY = -gameData.ball.speedY;
+      ball.reverseSpeedY();
     }
   }
 }
@@ -105,17 +116,18 @@ function handleAIAbility() {
     return;
   }
 
+  const ball = gameData.ball;
   const aiChar = characters[gameData.player2CharIndex];
   const aiPlayer = gameData.player2;
-  const distanceX = canvas.width - gameData.ball.x;
+  const distanceX = canvas.width - ball.x;
 
   switch (aiChar.name) {
     case "Gust":
       if (
         aiPlayer.abilityUsages < aiChar.maxUsages &&
-        Math.abs(gameData.ball.x - aiPlayer.x) < 30 &&
-        Math.abs(gameData.ball.y - aiPlayer.y) > 5 &&
-        gameData.ball.speedX > 0
+        Math.abs(ball.x - aiPlayer.x) < 30 &&
+        Math.abs(ball.y - aiPlayer.y) > 5 &&
+        ball.speedX > 0
       ) {
         aiChar.ability(aiPlayer, gameData.player2CharIndex);
         console.log("AI Gust used ability!");
@@ -130,21 +142,21 @@ function handleAIAbility() {
     case "Sniper":
       if (
         !gameData.player2.isSniperActive &&
-        gameData.ball.speedX < 0 &&
+        ball.speedX < 0 &&
         aiPlayer.abilityUsages < aiChar.maxUsages &&
-        gameData.ball.x < 160 &&
-        gameData.ball.x > 150 &&
-        Math.abs(gameData.ball.speedY) > 0.7
+        ball.x < 160 &&
+        ball.x > 150 &&
+        Math.abs(ball.speedY) > 0.7
       ) {
-        createShotEffect(gameData.ball.x, gameData.ball.y);
+        createShotEffect(ball.x, ball.y);
         createScreenShake(8, 300);
 
-        gameData.ball.speedY = -gameData.ball.speedY;
+        ball.reverseSpeedY();
         aiPlayer.abilityUsages++;
         console.log("AI Sniper used ability!");
         gameData.player2.isSniperActive = true;
       } else {
-        if (gameData.ball.speedX > 0) {
+        if (ball.speedX > 0) {
           gameData.player2.isSniperActive = false;
         }
       }
@@ -152,16 +164,16 @@ function handleAIAbility() {
     case "Suicider":
       if (!gameData.player2.isSuiciderActive) {
         if (
-          gameData.ball.x > canvas.width / 2 - 50 &&
-          gameData.ball.x < canvas.width / 2 &&
-          Math.abs(gameData.ball.y - aiPlayer.y) < 50
+          ball.x > canvas.width / 2 - 50 &&
+          ball.x < canvas.width / 2 &&
+          Math.abs(ball.y - aiPlayer.y) < 50
         ) {
           gameData.player2.x = canvas.width / 2 - gameData.player2.width - 50;
           gameData.player2.isSuiciderActive = true;
           console.log("AI Suicider used ability!");
         }
       } else {
-        if (gameData.ball.speedX < 0) {
+        if (ball.speedX < 0) {
           gameData.player2.x = canvas.width - gameData.player2.width;
           gameData.player2.isSuiciderActive = false;
           console.log("AI Suicider reverted!");
@@ -174,15 +186,15 @@ function handleAIAbility() {
 export function update(deltaTime: number = FIXED_TIME_STEP) {
   const frameMultiplier = deltaTime / FIXED_TIME_STEP;
   const speedMultiplier2 = gameData.player2.stamina > 10 ? 1 : 0.5;
+  const ball = gameData.ball;
 
-  gameData.ball.x += gameData.ball.speedX * frameMultiplier;
-  gameData.ball.y += gameData.ball.speedY * frameMultiplier;
+  ball.update(frameMultiplier);
 
   handleWallCollision();
 
-  if (gameData.ball.speedX < 0) checkCollision(gameData.ball, gameData.player1);
-  else if (gameData.ball.speedX > 0)
-    checkCollision(gameData.ball, gameData.player2);
+  if (ball.speedX < 0) checkCollision(ball, gameData.player1);
+  else if (ball.speedX > 0)
+    checkCollision(ball, gameData.player2);
   if (gameData.player2AILevel !== "Player") {
     const aiLevel =
       AI_LEVELS[gameData.player2AILevel as keyof typeof AI_LEVELS];
@@ -211,11 +223,11 @@ export function update(deltaTime: number = FIXED_TIME_STEP) {
   }
 
   handleAIAbility();
-  if (gameData.ball.x - gameData.ball.size / 2 < 0) {
+  if (ball.x - ball.size / 2 < 0) {
     gameData.player2.score++;
     createGoalEffect(50, canvas.height / 2);
     resetBall();
-  } else if (gameData.ball.x + gameData.ball.size / 2 > canvas.width) {
+  } else if (ball.x + ball.size / 2 > canvas.width) {
     gameData.player1.score++;
     createGoalEffect(canvas.width - 50, canvas.height / 2);
     resetBall();
