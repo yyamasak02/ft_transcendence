@@ -18,24 +18,43 @@ import {
   GlowLayer,
   DirectionalLight,     
   ShadowGenerator,
-  Mesh,  
+  Mesh,
+	Scene,  
 } from "@babylonjs/core";
 import {
   toggleUIElements,
   updateCharacterImages,
   preloadCharacterIcons,
 } from "./ui/ui";
-import {
-  setGameState,
-} from "./core/state";
+import { setGameState, } from "./core/state";
 import {
   BASE_BALL_SPEED,
   WINNING_SCORE,
   setBallSpeed,
   setWinningScore,
 } from "./core/constants";
+import { Ball } from "./object/Ball";
+import { GAME_CONFIG } from "./core/constants";
 
-let lastWinner: 1 | 2 | null = null;
+export const gameState = {
+	rallyActive: true,
+	isServing: false,
+	lastWinner: null as 1 | 2 | null,
+};
+
+////// 各種 define ///////////////
+
+const {
+	COURT_WIDTH,
+  COURT_HEIGHT,
+  PADDLE_LENGTH,
+  PADDLE_THICKNESS,
+  BALL_RADIUS,
+} = GAME_CONFIG;
+
+let paddle1: Mesh | null = null;
+let paddle2: Mesh | null = null;
+let ball: Ball | null = null;
 
 document.addEventListener("keydown", (e) => {
   gameData.keysPressed[e.key] = true;
@@ -93,24 +112,6 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keyup", (e) => {
   gameData.keysPressed[e.key] = false;
 });
-
-////// 各種 define ///////////////
-
-const COURT_WIDTH = 60;  // 横（2D の canvas.width に相当）
-const COURT_HEIGHT = 40; // 縦（2D の canvas.height に相当）
-
-const PADDLE_LENGTH = 8;
-const PADDLE_THICKNESS = 1;
-const BALL_RADIUS = 1;
-
-let paddle1: Mesh | null = null;
-let paddle2: Mesh | null = null;
-
-let ballMesh: Mesh | null = null;
-let ballVelocity = new Vector3(0.15, 0, 0.25);
-
-let rallyActive = true; // ラリー中true
-let isServing = false; // サーブ準備中かどうか
 
 ////// 3D Game 心臓部 //////////////
 export function startPingPongGame() {
@@ -212,15 +213,11 @@ export function startPingPongGame() {
   p2Mat.emissiveColor = new Color3(1.3, 0.4, 0.4);
   paddle2.material = p2Mat;
 
-  // ===== ボール C（Sphere + TrailMesh） =====
-  ballMesh = MeshBuilder.CreateSphere(
-    "ball",
-    { diameter: 2 },
-    scene
-  );
-  ballMesh.position = new Vector3(0, 1, 0);
+  // ===== ボール （Sphere + TrailMesh） =====
+	const initialBallPos = new Vector3(0, 1, 0);
+	ball = new Ball(scene, initialBallPos);
 
-	resetBall("center");
+	ball.reset("center", paddle1, paddle2);
 	setTimeout(() => {
 		countdownAndServe("center");
 	}, 0);
@@ -230,9 +227,24 @@ export function startPingPongGame() {
   //-----------------------------------------------------
   engine.runRenderLoop(() => {
     const deltaTime = engine.getDeltaTime();
-
+		if (ball && paddle1 && paddle2) {
+			const result = ball.update(deltaTime, paddle1, paddle2, gameState, checkPaddleCollision);
+			if (result) {
+				const score = result.scorer;
+				if (score === 1) {
+						gameData.player1.score++;
+						gameState.rallyActive = false;
+						updateScoreUI();
+						countdownAndServe(1);
+				} else {
+					gameData.player2.score += 1;
+					gameState.rallyActive = false;
+					updateScoreUI();
+					countdownAndServe(2);
+				}
+			}
+		}
     updatePaddles(deltaTime, paddle1, paddle2);
-    updateBall(deltaTime);
     scene.render();
   });
 
@@ -254,7 +266,7 @@ export function startPingPongGame() {
   // 影を「落とす」メッシュ
   shadowGen.addShadowCaster(paddle1);
   shadowGen.addShadowCaster(paddle2);
-  shadowGen.addShadowCaster(ballMesh);
+  shadowGen.addShadowCaster(ball.mesh);
 
   // 影を「受ける」メッシュ
   court.receiveShadows = true;
@@ -263,73 +275,6 @@ export function startPingPongGame() {
 }
 
 //////// ここから動きを制御するための関数群 ////////
-
-// ballの反射の動きを作る
-function updateBall(deltaTime: number) {
-  if (!ballMesh || !paddle1 || !paddle2) return;
-
-	// カウントダウン中はパドルに追従
-	if (isServing) {
-		console.log("追従中:", lastWinner, ballMesh.position);
-		if (lastWinner === 1) {
-			ballMesh.position.x = paddle1.position.x - 1.5;
-			ballMesh.position.z = paddle1.position.z;
-		} else if (lastWinner === 2) {
-			ballMesh.position.x = paddle2.position.x + 1.5;
-			ballMesh.position.z = paddle2.position.z;
-		}
-		return;
-	}
-
-  const dt = deltaTime * 0.03;
-
-  ballMesh.position.x += ballVelocity.x * dt;
-  ballMesh.position.z += ballVelocity.z * dt;
-
-	// paddleで反射
-  // paddle1
-  if (checkPaddleCollision(ballMesh, paddle1)) {
-		reflectBall(ballMesh, paddle1, false);
-  }
-  // paddle2
-  if (checkPaddleCollision(ballMesh, paddle2)) {
-		reflectBall(ballMesh, paddle2, true);
-  }
-  
-	// 壁で反射
-  // const halfWidth = COURT_WIDTH / 2;
-  const halfHeight = COURT_HEIGHT / 2;
-  const margin = 1.0;
-  
-  if (ballMesh.position.z > halfHeight - margin) {
-    ballMesh.position.z = halfHeight - margin;
-    ballVelocity.z *= -1;
-  }
-  if (ballMesh.position.z < -halfHeight + margin) {
-    ballMesh.position.z = -halfHeight + margin;
-    ballVelocity.z *= -1;
-  }
-
-	// 得点判定
-	const halfWidth = COURT_WIDTH / 2;
-	if (!rallyActive) return;
-	//  p2得点 p2サーブ
-	if (ballMesh.position.x > halfWidth + 1) {
-		gameData.player2.score++;
-		rallyActive = false;
-		updateScoreUI();
-		countdownAndServe(2);
-		return;
-	}
-	//  p1得点 p1サーブ
-	if (ballMesh.position.x < -halfWidth - 1) {
-		gameData.player1.score += 1;
-		rallyActive = false;
-		updateScoreUI();
-		countdownAndServe(1);
-		return;
-	}
-}
 
 // スマホ用画面のリサイズ
 window.addEventListener("resize", () => {
@@ -383,58 +328,7 @@ function checkPaddleCollision(ball: Mesh, paddle: Mesh): boolean {
 	return dx ** 2  + dz ** 2 <= r ** 2;
 }
 
-// ballとpaddleの衝突角度によって反射の強さを変える
-function reflectBall(ball: Mesh, paddle: Mesh, isLeftPaddle: boolean) {
-	// paddleの中心からどれだけ離れているか
-	const offsetZ = (ball.position.z - paddle.position.z) / (PADDLE_LENGTH / 2);
-	const hitCenterRate = 1 - Math.min(Math.abs(offsetZ), 1);
 
-	// z方向(上下)の速度に反映
-	ballVelocity.z = offsetZ * 0.6; // TODO 0.6を後で調整
-	// x方向(左右)の反転方向を決める
-	if (isLeftPaddle) {
-		ballVelocity.x = Math.abs(ballVelocity.x);
-		ball.position.x = paddle.position.x + (PADDLE_THICKNESS / 2 + BALL_RADIUS + 0.1);
-	} else {
-		ballVelocity.x = -Math.abs(ballVelocity.x);
-		ball.position.x = paddle.position.x - (PADDLE_THICKNESS / 2 + BALL_RADIUS + 0.1);
-	}
-	
-	// スピードの変化をつける
-	const baseSpeedUp = 1.02;
-	const extraSpeedUp = 0.10;
-	const speedUp = baseSpeedUp + extraSpeedUp * hitCenterRate;
-
-	const maxSpeed = 1.5;
-	ballVelocity.x *= speedUp;
-	ballVelocity.z *= speedUp;
-	const currentSpeed = Math.sqrt(ballVelocity.x ** 2 + ballVelocity.z ** 2);
-	
-	if (currentSpeed > maxSpeed) {
-		const scale = maxSpeed / currentSpeed;
-		ballVelocity.x *= scale;
-		ballVelocity.z *= scale;
-	}
-}
-
-// プレイ開始時のball positionと射出角度
-function resetBall(startFrom: 1 | 2 | "center") {
-	if (!ballMesh || !paddle1 || !paddle2) {
-		console.warn("resetBall called before beshes are ready");
-		return;
-	}
-
-	// ball position
-	if (startFrom === "center") {
-		ballMesh.position = new Vector3(0, 1, 0);
-	} else if (startFrom === 1) {
-		// paddle1から
-		ballMesh.position = new Vector3(30, 1, paddle1.position.z);
-	} else if (startFrom === 2) {
-		// paddle2から
-		ballMesh.position = new Vector3(-30, 1, paddle2.position.z);
-	}
-}
 
 // random angle生成
 function randomServeVelocity(startFrom: "center" | 1 | 2): Vector3 {
@@ -471,15 +365,15 @@ function updateScoreUI() {
 // countdown
 async function countdownAndServe(startFrom: "center" | 1 | 2) {
 	const el = document.getElementById("countdown");
-	if (!el) return;
+	if (!el || !ball || !paddle1 || !paddle2) return;
 
-	if (startFrom === 1 || startFrom === 2) lastWinner = startFrom;
-	isServing = true;
-	rallyActive = false;
+	if (startFrom === 1 || startFrom === 2) gameState.lastWinner = startFrom;
+	gameState.isServing = true;
+	gameState.rallyActive = false;
 
-	ballVelocity = new Vector3(0, 0, 0); // ball停止
-	
-	resetBall(startFrom);
+	ball.stop(); // ball停止
+	ball.reset(startFrom, paddle1, paddle2);
+
 	el.textContent = "3";
 	await delay(800);
 	el.textContent = "2";
@@ -488,10 +382,10 @@ async function countdownAndServe(startFrom: "center" | 1 | 2) {
 	await delay(800);
 	el.textContent = "";
 
-	ballVelocity = randomServeVelocity(startFrom);
+	ball.velocity = randomServeVelocity(startFrom);
 	
-	isServing = false;
-	rallyActive = true;
+	gameState.isServing = false;
+	gameState.rallyActive = true;
 }
 
 // countdownに使用
