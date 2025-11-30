@@ -19,8 +19,6 @@ export type GameMode = "local" | "online";
 export let canvas: HTMLCanvasElement;
 export let engine: Engine;
 export let scene: Scene;
-// export let canvas: HTMLCanvasElement;
-// export let ctx: CanvasRenderingContext2D;
 export let p1StaminaFill: HTMLDivElement;
 export let p2StaminaFill: HTMLDivElement;
 export let p1CharImg: HTMLImageElement;
@@ -39,26 +37,15 @@ export let p2UsingGaugeContainer: HTMLDivElement;
  */
 export function initDOMRefs() {
   canvas = document.getElementById("gameCanvas3D") as HTMLCanvasElement;
-  // ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-  // if (!canvas || !ctx) {
   if (!canvas) {
     throw new Error("Canvas element #gameCanvas not found");
   }
 
-  // canvas.width = window.innerWidth;
-  // canvas.height = window.innerHeight;
-
   engine = new Engine(canvas, true);
   scene = new Scene(engine);
 
-  window.addEventListener("resize", () => {
-	// const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	// canvas.width = window.innerWidth;
-	// canvas.height = window.innerHeight;
-	// ctx.putImageData(imageData, 0, 0);
-    engine.resize();
-  });
+  window.addEventListener("resize", () => { engine.resize(); });
 
   p1StaminaFill = document.getElementById("p1-stamina-fill") as HTMLDivElement;
   p2StaminaFill = document.getElementById("p2-stamina-fill") as HTMLDivElement;
