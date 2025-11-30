@@ -2,6 +2,7 @@
 import { Mesh, MeshBuilder, Vector3, Scene } from "@babylonjs/core";
 import { GAME_CONFIG } from "../core/constants"; 
 import { Paddle } from "./Paddle"
+import { createBallMaterial } from "./materials/ballMaterial";
 
 const {
 	COURT_WIDTH,
@@ -31,6 +32,7 @@ export class Ball {
 		this.mesh.visibility = 0;
 		this.mesh.position.copyFrom(initialPosition);
 		this.velocity = new Vector3(0.15, 0, 0.25);
+		this.mesh.material = createBallMaterial(scene);
 	}
 
 	appear() { this.mesh.visibility = 1; }
@@ -68,6 +70,7 @@ function updateBallImp(
 	gameState: GameState,
 	checkPaddleCollision: (ballMesh: Mesh, paddleMesh: Mesh) => boolean
 ): ScoreResult {
+	console.log("update ball called");
 	if (!ball || !paddle1 || !paddle2) return null;
 
 	// カウントダウン中はパドルに追従
@@ -108,11 +111,13 @@ function updateBallImp(
 	const halfWidth = COURT_WIDTH / 2;
 	if (ball.mesh.position.x > halfWidth + 1) return { scorer: 2 };
 	if (ball.mesh.position.x < -halfWidth - 1) return { scorer: 1};
+	console.log("update ball done");
 	return null;
 }
 
 // ballとpaddleの衝突角度によって反射の強さを変える /////////////////
 function reflectBallImp(ball: Ball, paddle: Paddle, isLeftPaddle: boolean) {
+	console.log("reflect ball called");
 	const mesh = ball.mesh;
 	const vel	 = ball.velocity;
 	
@@ -146,10 +151,12 @@ function reflectBallImp(ball: Ball, paddle: Paddle, isLeftPaddle: boolean) {
 		vel.x *= scale;
 		vel.z *= scale;
 	}
+	console.log("ball reflect done");
 }
 
 // プレイ開始時のball positionと射出角度 //////////////////////////
 function resetBallImp(ball: Ball, startFrom: 1 | 2 | "center", paddle1: Paddle, paddle2: Paddle) {
+	console.log("reset ball called");
 	let x = 0;
 	let z = 0;
 
@@ -171,4 +178,5 @@ function resetBallImp(ball: Ball, startFrom: 1 | 2 | "center", paddle1: Paddle, 
 	ball.mesh.position.y = 1;
 	ball.mesh.position.z = z;
 	ball.appear();
+	console.log("ball reset done");
 }

@@ -38,6 +38,7 @@ export class Paddle {
 // ============================================
 
 function updateImp(paddle: Paddle, deltaTime: number, input: PaddleInput) {
+	console.log("update paddle called");
 	const speed = 0.05 * deltaTime;
 	const halfHeight = COURT_HEIGHT / 2;
 	const margin = 2;
@@ -48,4 +49,5 @@ function updateImp(paddle: Paddle, deltaTime: number, input: PaddleInput) {
 	// 上限下限
 	if (paddle.mesh.position.z < -halfHeight + margin) { paddle.mesh.position.z = -halfHeight + margin; }
 	if (paddle.mesh.position.z > halfHeight - margin) { paddle.mesh.position.z = halfHeight - margin; }
+	console.log("update paddle done");
 }
