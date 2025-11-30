@@ -1,0 +1,283 @@
+The content has been copied to your clipboard. Please paste it here to complete the file creation.{
+  "repo_notes": [
+    {
+      "content": "all contents written in japanese"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce ft_transcendence project, its purpose as a real-time multiplayer Pong web application, and high-level architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started",
+      "purpose": "Guide developers through initial setup, installation, and running the application locally",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Environment Setup",
+      "purpose": "Explain Docker requirements, Makefile commands, and local development workflow",
+      "parent": "Getting Started",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Environment Configuration",
+      "purpose": "Document environment variables, .env files structure, and configuration options for all services",
+      "parent": "Getting Started",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Architecture",
+      "purpose": "Explain the overall system architecture, microservices design, and communication patterns",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Docker Infrastructure",
+      "purpose": "Detail the Docker Compose setup, container orchestration, networking, and service dependencies",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reverse Proxy and Routing",
+      "purpose": "Explain Nginx configuration, SSL termination, path-based routing, and service discovery",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CI/CD Pipeline",
+      "purpose": "Document the GitHub Actions workflow, build validation, health checks, and deployment process",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend",
+      "purpose": "Overview of the frontend SPA architecture, technology stack (TypeScript, Vite, Tailwind), and organization",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Build System and Configuration",
+      "purpose": "Explain Vite configuration, TypeScript setup, Tailwind CSS integration, and build/dev scripts",
+      "parent": "Frontend",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Routing System",
+      "purpose": "Document the client-side routing implementation, route definitions, and navigation flow",
+      "parent": "Frontend",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Application Pages",
+      "purpose": "Overview of all pages in the application and their purposes",
+      "parent": "Frontend",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "PingPong Game",
+      "purpose": "Deep dive into the PingPong game implementation: game loop, state management, character system, and rendering",
+      "parent": "Frontend",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "WebSocket Demo Page",
+      "purpose": "Explain the WebSocket demonstration page, real-time communication, and canvas interaction",
+      "parent": "Frontend",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Login Page",
+      "purpose": "Document the login page component, form structure, and authentication flow",
+      "parent": "Frontend",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Backend Services",
+      "purpose": "Overview of the microservices architecture, shared patterns (Fastify, TypeBox, SQLite), and service responsibilities",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "be_common Service",
+      "purpose": "Document the common backend service: user management, authentication, and shared utilities",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "User Management API",
+      "purpose": "Detail all user-related endpoints: registration, login, profile management, ban/block functionality",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication and Security",
+      "purpose": "Explain JWT implementation, password hashing, 2FA considerations, and security measures",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Schema and Management",
+      "purpose": "Document the users table schema, migration system, and seeding process",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "be_game Service",
+      "purpose": "Document the game backend service: game logic, WebSocket support, and state management",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Game API Endpoints",
+      "purpose": "Detail game-related REST API endpoints, authentication routes, and schema definitions",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "WebSocket Implementation",
+      "purpose": "Explain WebSocket setup, message handling, real-time game state synchronization, and connection management",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "be_text_chat Service",
+      "purpose": "Document the text chat backend service: message handling and database structure",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Practices",
+      "purpose": "Document development workflows, tooling, and best practices for contributing to the project",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Code Quality and Linting",
+      "purpose": "Explain pre-commit hooks, Prettier formatting, ESLint configuration, and code style enforcement",
+      "parent": "Development Practices",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Management",
+      "purpose": "Guide for creating migrations, writing seeders, and managing database schema changes",
+      "parent": "Development Practices",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "API Documentation",
+      "purpose": "Explain Swagger/OpenAPI setup, documentation generation, and accessing API docs",
+      "parent": "Development Practices",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
