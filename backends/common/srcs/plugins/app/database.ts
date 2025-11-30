@@ -1,13 +1,7 @@
 import fp from "fastify-plugin";
 import sqlite3 from "sqlite3";
-import { open, Database } from "sqlite";
+import { open } from "sqlite";
 import type { FastifyInstance } from "fastify";
-
-declare module "fastify" {
-  interface FastifyInstance {
-    db: Database;
-  }
-}
 
 export default fp(
   async (fastify: FastifyInstance) => {
