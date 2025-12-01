@@ -1,26 +1,20 @@
 // src/game-main.ts
 import { Vector3, Color4, } from "@babylonjs/core";
-import {
-	initDOMRefs,
-	gameData,
-	canvas,
-	engine,
-	scene,
-} from "./core/data";
+import { initDOMRefs, gameData, canvas, engine, scene,} from "./core/data";
 import { GAME_CONFIG,} from "./core/constants";
-import {
-	toggleUIElements,
-	updateCharacterImages,
-	preloadCharacterIcons,
-} from "./ui/ui";
+import { toggleUIElements, updateCharacterImages, preloadCharacterIcons, } from "./ui/ui";
 import { Ball } from "./object/Ball";
 import { Paddle, type PaddleInput } from "./object/Paddle";
 import { Stage } from "./object/Stage";
 import { createPaddleMaterial } from "./object/materials/paddleMaterial";
 import { checkPaddleCollision, countdownAndServe } from "./object/ballPaddleUtils";
 import { setupKeyboardListener } from "./input/keyboard";
+import { GameHUD } from "./object/ui3D/GameHUD";
+import { WINNING_SCORE } from "../pingpong/core/constants";
+import { navigate } from "@/router/router";
 
 export const gameState = {
+	phase: "menu" as "menu" | "game" | "gameover" | "pause",
 	rallyActive: true,
 	isServing: false,
 	lastWinner: null as 1 | 2 | null,
@@ -30,28 +24,24 @@ const { COURT_WIDTH } = GAME_CONFIG;
 let ball: Ball | null = null;
 
 // ============================================
-// start PingPong Game
+// ゲーム本体
 // ============================================
 
 export function startPingPongGame() {
   console.log("startPingPongGame 3D called");
 	setupKeyboardListener();
 
-  //===== 初期化 =========================================
-
-	// Canvas 取得
   initDOMRefs();
-  // UI 用の画像読み込みなど
-  preloadCharacterIcons();
-  updateCharacterImages();
-  toggleUIElements();
-	// score初期化
+  // preloadCharacterIcons();
+  // updateCharacterImages();
+  // toggleUIElements();
+	
+	gameState.phase = "game";
+	gameState.rallyActive = false;
 	gameData.player1.score = 0;
 	gameData.player2.score = 0;
-	updateScoreUI();
+	
   scene.clearColor = new Color4(0.02, 0.02, 0.06, 1.0);
-
-	// ===== シーン構築 ====================================
 
   // Player
 	const paddle1 = new Paddle(scene, new Vector3(COURT_WIDTH / 2 - 1, 1, 0));
@@ -63,21 +53,27 @@ export function startPingPongGame() {
 	const initialBallPos = new Vector3(0, 1, 0);
 	const gameBall = new Ball(scene, initialBallPos);
 	ball = gameBall;
+	
+	gameBall.stop();
 	gameBall.reset("center", paddle1, paddle2);
 	setTimeout(() => {
-		countdownAndServe("center", gameBall, paddle1, paddle2, gameState);
+		countdownAndServe("center", gameBall, paddle1, paddle2, gameState, hud);
 	}, 0);
-
+	
 	// Stage
 	const stage = new Stage(scene, canvas, paddle1, paddle2, ball);
+	
+	// Display
+	const hud = new GameHUD(scene);
+	hud.setScore(gameData.player1.score, gameData.player2.score);
 
-  // ===== Babylon の描画ループ開始 ========================
+  // ===== 描画ループ開始 ========================
 
 	engine.runRenderLoop(() => {
     const deltaTime = engine.getDeltaTime();
 		
 		// paddleの動き
-		if (paddle1 && paddle2) {
+		if (paddle1 && paddle2 && ball) {
 			const p1Input: PaddleInput = {
 				up: gameData.keysPressed["w"],
 				down: gameData.keysPressed["s"],
@@ -86,38 +82,53 @@ export function startPingPongGame() {
 				up: gameData.keysPressed["ArrowUp"],
 				down: gameData.keysPressed["ArrowDown"],
 			};
-			paddle1.update(deltaTime, p1Input);
-			paddle2.update(deltaTime, p2Input);
-		}
-
-		// 衝突判定 &　スコア
-		if (ball && paddle1 && paddle2) {
-			const result = ball.update(deltaTime, paddle1, paddle2, gameState,
-																 (ballMesh, paddle) => checkPaddleCollision(ballMesh, paddle));
-			if (result) {
-				const score = result.scorer;
-				if (score === 1) {
+			if (gameState.phase === "game") {
+				paddle2.update(deltaTime, p2Input);
+				paddle1.update(deltaTime, p1Input);
+				// 衝突判定 &　スコア
+				const result = ball.update(deltaTime, paddle1, paddle2, gameState,
+					(ballMesh, paddle) => checkPaddleCollision(ballMesh, paddle));
+				if (result) {
+					const score = result.scorer;
+					if (score === 1) {
 						gameData.player1.score++;
 						gameState.rallyActive = false;
-						updateScoreUI();
-						countdownAndServe(1, ball, paddle1, paddle2, gameState);
-				} else {
-					gameData.player2.score += 1;
-					gameState.rallyActive = false;
-					updateScoreUI();
-					countdownAndServe(2, ball, paddle1, paddle2, gameState);
+						gameState.lastWinner = 1;
+						gameState.rallyActive = true;
+						hud.setScore(gameData.player1.score, gameData.player2.score);
+						if (gameData.player1.score >= WINNING_SCORE) {
+							endGame(hud, 1);
+							return;
+						}
+						countdownAndServe(1, ball, paddle1, paddle2, gameState, hud);
+					} else {
+						gameData.player2.score += 1;
+						gameState.rallyActive = false;
+						gameState.lastWinner = 2;
+						gameState.rallyActive = true;
+						hud.setScore(gameData.player1.score, gameData.player2.score);
+						if (gameData.player2.score >= WINNING_SCORE) {
+							endGame(hud, 2);
+							return;
+						}
+						countdownAndServe(2, ball, paddle1, paddle2, gameState, hud);
+					}
 				}
 			}
 		}
 
     scene.render();
   });
+	
   console.log("Babylon 3D PONG initialized");
 }
 
-// score
-function updateScoreUI() {
-	const el = document.getElementById("score");
-	if (!el) return;
-	el.textContent = `${gameData.player1.score} - ${gameData.player2.score}`;
+function endGame(hub: GameHUD, winner: 1 | 2) {
+	console.log("Game Over");
+	gameState.phase = "gameover";
+	hub.showGameOver(winner === 1 ? "Player1" : "Player2");
+	if (ball) ball.stop();
+	setTimeout(() => {
+		navigate("/pingpong_3D_config");
+	}, 3000);
 }

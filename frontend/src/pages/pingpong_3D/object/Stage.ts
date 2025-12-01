@@ -15,6 +15,10 @@ import { createCourtMaterial } from "./materials/courtMaterial";
 import { setupCameraForMobile } from "./stageControl/cameraControl";
 import { createMainLight, createShadowLight, createGlowLayer } from "./stageControl/lightControl";
 
+// ============================================
+// Stage クラス
+// ============================================
+
 export class Stage {
 	camera: ArcRotateCamera;
 	light: HemisphericLight;

@@ -39,7 +39,7 @@ export function initDOMRefs() {
   canvas = document.getElementById("gameCanvas3D") as HTMLCanvasElement;
 
   if (!canvas) {
-    throw new Error("Canvas element #gameCanvas not found");
+    throw new Error("Canvas element #gameCanvas3D not found");
   }
 
   engine = new Engine(canvas, true);
