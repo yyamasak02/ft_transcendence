@@ -3,6 +3,7 @@ import { gameData, engine } from "../core/data";
 import { setBallSpeed, setWinningScore, BASE_BALL_SPEED, WINNING_SCORE } from "../core/constants";
 import { setGameState } from "../core/state";
 import { toggleUIElements } from "../ui/ui";
+import type { PaddleInput } from "../object/Paddle";
 
 export function setupKeyboardListener() {
 	document.addEventListener("keydown", (e) => {
@@ -58,6 +59,7 @@ export function setupKeyboardListener() {
 		}
 	});
 
+	
 	document.addEventListener("keyup", (e) => {
 		gameData.keysPressed[e.key] = false;
 	});
@@ -66,4 +68,18 @@ export function setupKeyboardListener() {
 	window.addEventListener("resize", () => {
 		engine.resize();
 	});
+}
+
+// paddle移動
+export function getPaddleInputs(): { p1: PaddleInput; p2: PaddleInput } {
+	return {
+		p1: {
+			up: gameData.keysPressed["w"],
+			down: gameData.keysPressed["s"],
+		},
+		p2: {
+			up: gameData.keysPressed["ArrowUp"],
+			down: gameData.keysPressed["ArrowDown"],
+		},
+	};
 }

@@ -3,6 +3,7 @@ import { Mesh, Vector3 } from "@babylonjs/core";
 import { GAME_CONFIG, COUNTDOWN_INTERVAL } from "../core/constants";
 import type { Ball, GameState } from "./Ball";
 import type { Paddle } from "./Paddle";
+import { GameHUD } from "./ui3D/GameHUD";
 
 const {
 	PADDLE_LENGTH,
@@ -73,26 +74,23 @@ export async function countdownAndServe(
 	ball: Ball,
 	paddle1: Paddle,
 	paddle2: Paddle,
-	gameState: GameState
+	gameState: GameState,
+	hud: GameHUD,
 ) {
-	const el = document.getElementById("countdown");
-	if (!el || !ball || !paddle1 || !paddle2) return;
-
-	if (startFrom === 1 || startFrom === 2) gameState.lastWinner = startFrom;
 	gameState.isServing = true;
 	gameState.rallyActive = false;
 
-	// ball.stop(); // ball停止
+	ball.stop();
 	ball.reset(startFrom, paddle1, paddle2);
-
-	el.textContent = "3";
+	
+	hud.setCountdown("3");
 	await delay(COUNTDOWN_INTERVAL);
-	el.textContent = "2";
+	hud.setCountdown("2");
 	await delay(COUNTDOWN_INTERVAL);
-	el.textContent = "1";
+	hud.setCountdown("1");
 	await delay(COUNTDOWN_INTERVAL);
-	el.textContent = "";
-
+	hud.clearCountdown();
+	
 	ball.velocity = randomServeVelocity(startFrom);
 	
 	gameState.isServing = false;

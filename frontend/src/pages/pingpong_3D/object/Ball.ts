@@ -4,25 +4,25 @@ import { GAME_CONFIG } from "../core/constants";
 import { Paddle } from "./Paddle"
 import { createBallMaterial } from "./materials/ballMaterial";
 
-const {
-	COURT_WIDTH,
-  COURT_HEIGHT,
-  PADDLE_LENGTH,
-  PADDLE_THICKNESS,
-  BALL_RADIUS,
-} = GAME_CONFIG;
-
 export type GameState = {
 	rallyActive: boolean;
 	isServing: boolean;
 	lastWinner: 1 | 2 | null;
 }
-
 export type ScoreResult = { scorer: 1 | 2 } | null;
+
+const {
+	COURT_WIDTH,
+	COURT_HEIGHT,
+	PADDLE_LENGTH,
+	PADDLE_THICKNESS,
+	BALL_RADIUS,
+} = GAME_CONFIG;
 
 // ============================================
 // Ball クラス
 // ============================================
+
 export class Ball {
 	mesh: Mesh;
 	velocity: Vector3;
@@ -157,6 +157,7 @@ function reflectBallImp(ball: Ball, paddle: Paddle, isLeftPaddle: boolean) {
 // プレイ開始時のball positionと射出角度 //////////////////////////
 function resetBallImp(ball: Ball, startFrom: 1 | 2 | "center", paddle1: Paddle, paddle2: Paddle) {
 	console.log("reset ball called");
+	
 	let x = 0;
 	let z = 0;
 

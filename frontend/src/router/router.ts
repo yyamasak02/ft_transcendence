@@ -1,3 +1,5 @@
+// src/router/router.ts
+
 import { routes } from "./routes";
 import { NotFoundPage } from "@/pages/404";
 

@@ -2,16 +2,17 @@
 import { Mesh, MeshBuilder, Vector3, Scene,} from "@babylonjs/core";
 import { GAME_CONFIG } from "../core/constants";
 
-const { COURT_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS } = GAME_CONFIG;
-
 export type PaddleInput = {
 	up: boolean;
 	down: boolean;
 };
 
+const { COURT_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS } = GAME_CONFIG;
+
 // ============================================
 // Paddle クラス
 // ============================================
+
 export class Paddle {
 	mesh: Mesh;
 
