@@ -2,8 +2,6 @@
 import {
 	Scene,
 	MeshBuilder,
-	StandardMaterial,
-	Color3,
 	Vector3,
 	Mesh,
 } from "@babylonjs/core"
@@ -31,22 +29,16 @@ export class GameHUD {
 			{ width: 18, height: 8 },
 			scene,
 		);
-		this.plane.position = new Vector3(0, 12, -25); // コートの奥・上
-		this.plane.rotation = new Vector3(-Math.PI / 8, Math.PI, 0);
-		this.plane.lookAt(new Vector3(0, 5, 0));
+		// rotation と lookAt は絶対に使わない（billboard と衝突する）
 		this.plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-		
+		// plane の位置をカメラの少し前に
+		this.plane.position = new Vector3(0, 12, -25);
+		// scaling は軽めに（GUI の歪み防止）
 		this.plane.scaling = new Vector3(5, 10, 5);
-
-		const mat = new StandardMaterial("hudMat", scene);
-		mat.diffuseColor = new Color3(1, 1, 0);
-		mat.alpha = 0.6; // 半透明
-		mat.backFaceCulling = false;
-		this.plane.material = mat;
-
+		
 		// GUIを貼る
 		this.texture = AdvancedDynamicTexture.CreateForMesh(this.plane);
-
+		
 		// スコア
 		const score = new TextBlock("score", "0 - 0");
 		score.fontSize = 64;
@@ -56,20 +48,23 @@ export class GameHUD {
 		score.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 		score.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
 		score.top = "-70px";
+		score.zIndex = 1;
 		this.texture.addControl(score);
 		this.scoreText = score;
 		
 		// カウントダウン
 		const countdown = new TextBlock("countdown", "");
+		console.log("countdownText init:", countdown);
 		countdown.fontSize = 56;
 		countdown.color = "yellow";
 		countdown.outlineWidth = 4;
 		countdown.outlineColor = "yellow";
 		countdown.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 		countdown.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+		countdown.zIndex = 100;
 		this.texture.addControl(countdown);
 		this.countdownText = countdown;
-
+		
 		// メッセージ (Game Over など)
 		const info = new TextBlock("");
 		info.fontSize = 36;
@@ -77,15 +72,30 @@ export class GameHUD {
 		info.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 		info.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
 		info.top = "60px";
+		info.zIndex = 50;
 		this.texture.addControl(info);
 		this.infoText = info;
-		
-		console.log(scene.meshes);
 	}
 
-	setScore(p1: number, p2: number) { this.scoreText.text = `${p1} - ${p2}`; }
-	setCountdown(text: string) { this.countdownText.text = text; }
-	clearCountdown() { this.countdownText.text = ""; }
-	showGameOver(winner: "Player1" | "Player2") { this.infoText.text = `${winner} Wins!`; }
-	clearGameOver() { this.infoText.text = ""; }
+	setScore(p1: number, p2: number) { 
+		if (!this.scoreText) return;
+		this.scoreText.text = `${p1} - ${p2}`;
+	}
+	setCountdown(text: string) {
+		console.log("HUD setCountdown called:", text);
+		if (!this.countdownText) return;
+			this.countdownText.text = text;
+	}
+	clearCountdown() { 
+		if (!this.countdownText) return;
+			this.countdownText.text = "";
+	}
+	showGameOver(winner: "Player1" | "Player2") { 
+		if (!this.infoText) return;
+			this.infoText.text = `${winner} Wins!`; 
+	}	
+	clearGameOver() {
+		if (!this.infoText) return;
+			this.infoText.text = ""; 
+	}
 }

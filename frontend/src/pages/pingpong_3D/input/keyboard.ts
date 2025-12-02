@@ -1,6 +1,6 @@
 // pingpong_3D/input/keyboard.ts
 import { gameData, engine } from "../core/data";
-import { setBallSpeed, setWinningScore, BASE_BALL_SPEED, WINNING_SCORE } from "../core/constants";
+import { setBallSpeed, setWinningScore, BASE_BALL_SPEED, WINNING_SCORE } from "../core/constants3D";
 import { setGameState } from "../core/state";
 import { toggleUIElements } from "../ui/ui";
 import type { PaddleInput } from "../object/Paddle";

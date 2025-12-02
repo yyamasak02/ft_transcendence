@@ -8,7 +8,7 @@ import {
   ShadowGenerator,
 	GroundMesh,
 } from "@babylonjs/core";
-import { GAME_CONFIG } from "../core/constants";
+import { GAME_CONFIG } from "../core/constants3D";
 import { Paddle } from "./Paddle";
 import { Ball } from "./Ball";
 import { createCourtMaterial } from "./materials/courtMaterial";

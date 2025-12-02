@@ -1,7 +1,7 @@
 // src/game-main.ts
 import { Vector3, Color4 } from "@babylonjs/core";
 import { initDOMRefs, gameData, canvas, engine, scene } from "./core/data";
-import { GAME_CONFIG,} from "./core/constants";
+import { GAME_CONFIG, WINNING_SCORE, BASE_BALL_SPEED, MAX_DELTA_TIME, COUNTDOWN_INTERVAL } from "./core/constants3D";
 import { Ball } from "./object/Ball";
 import { Paddle } from "./object/Paddle";
 import { Stage } from "./object/Stage";
@@ -9,8 +9,13 @@ import { createPaddleMaterial } from "./object/materials/paddleMaterial";
 import { checkPaddleCollision, countdownAndServe } from "./object/ballPaddleUtils";
 import { setupKeyboardListener, getPaddleInputs } from "./input/keyboard";
 import { GameHUD } from "./object/ui3D/GameHUD";
-import { WINNING_SCORE } from "../pingpong/core/constants";
 import { navigate } from "@/router/router";
+import type { ScoreResult } from "./object/Ball";
+
+const { COURT_WIDTH } = GAME_CONFIG;
+let ball: Ball | null = null;
+let isRunning = false;
+let hud: GameHUD | null = null;
 
 export const gameState = {
 	phase: "menu" as "menu" | "game" | "gameover" | "pause",
@@ -18,19 +23,26 @@ export const gameState = {
 	isServing: false,
 	lastWinner: null as 1 | 2 | null,
 };
-export type ScoreResult = { scorer: 1 | 2 } | null;
-
-const { COURT_WIDTH } = GAME_CONFIG;
-let ball: Ball | null = null;
 
 // ============================================
 // ゲーム本体
 // ============================================
 
 export function startPingPongGame() {
+	if (isRunning) {
+		console.log("startPingPongGame called but game is already running");
+		return;
+	}
+	isRunning = true;
+	console.log("3D COUNTDOWN_INTERVAL =", COUNTDOWN_INTERVAL);
+	console.log("HUD countdown element =", document.getElementById("countdown"));
   console.log("startPingPongGame 3D called");
-	setupKeyboardListener();
+	console.log("WINNING_SCORE =", WINNING_SCORE);
+	console.log("BASE_BALL_SPEED =", BASE_BALL_SPEED);
+	console.log("MAX_DELTA_TIME =", MAX_DELTA_TIME);
   initDOMRefs();
+	if (!hud) hud = new GameHUD(scene);
+	setupKeyboardListener();
 	
 	gameState.phase = "game";
 	gameState.rallyActive = false;
@@ -52,14 +64,14 @@ export function startPingPongGame() {
 	gameBall.stop();
 	gameBall.reset("center", paddle1, paddle2);
 	setTimeout(() => {
-		countdownAndServe("center", gameBall, paddle1, paddle2, gameState, hud);
+		if (hud) countdownAndServe("center", gameBall, paddle1, paddle2, gameState, hud);
 	}, 0);
 	
 	// Stage
 	const stage = new Stage(scene, canvas, paddle1, paddle2, ball);
 	
 	// Display
-	const hud = new GameHUD(scene);
+	// const hud = new GameHUD(scene);
 	hud.setScore(gameData.player1.score, gameData.player2.score);
 
   // ===== 描画ループ開始 ========================
@@ -77,16 +89,32 @@ export function startPingPongGame() {
 				const result = ball.update(deltaTime, paddle1, paddle2, gameState,
 																	 (ballMesh, paddle) => checkPaddleCollision(ballMesh,
 																	 paddle));
-				handleScoreAndRally(result, ball, paddle1, paddle2, hud);
+				if (hud) handleScoreAndRally(result, ball, paddle1, paddle2, hud);
 			}
 		}
     scene.render();
   });
 }
 
+
 // ============================================
 // 内部実装部
 // ============================================
+
+//　ゲーム強制終了処理
+export function stopPingPongGame() {
+	console.log("soptPingPongGame called");
+	if (!isRunning) return;
+	if (hud) {
+		hud.plane.dispose();
+		hud = null;
+	}
+
+	isRunning = false;
+	if (engine) engine.stopRenderLoop();
+	if (scene && !scene.isDisposed) scene.dispose();
+	ball = null;
+}
 
 // ラリー & スコア
 function handleScoreAndRally(
@@ -94,12 +122,12 @@ function handleScoreAndRally(
 	ball: Ball,
 	paddle1: Paddle,
 	paddle2: Paddle,
-	// gameState: typeof GameState,
 	hud: GameHUD,
 ): void {
 	if (!result) return;
 	
 	const scorer = result.scorer;
+
 	// ラリー停止
 	gameState.rallyActive = false;
 	
@@ -136,9 +164,9 @@ function endGame(hub: GameHUD, winner: 1 | 2) {
 	hub.showGameOver(winner === 1 ? "Player1" : "Player2");
 	if (ball) ball.stop();
 	engine.stopRenderLoop();
-	scene.dispose();
-	engine.dispose();
 	setTimeout(() => {
+		if (scene && !scene.isDisposed) scene.dispose();
+		if (engine) engine.dispose();
 		navigate("/pingpong_3D_config");
 	}, 3000);
 }

@@ -1,6 +1,6 @@
 // pingpong_3D/object/Paddle.ts
 import { Mesh, MeshBuilder, Vector3, Scene,} from "@babylonjs/core";
-import { GAME_CONFIG } from "../core/constants";
+import { GAME_CONFIG } from "../core/constants3D";
 
 export type PaddleInput = {
 	up: boolean;
@@ -40,7 +40,7 @@ export class Paddle {
 
 function updateImp(paddle: Paddle, deltaTime: number, input: PaddleInput) {
 	console.log("update paddle called");
-	const speed = 0.05 * deltaTime;
+	const speed = 0.05 * deltaTime; // paddleスピードを決める部分
 	const halfHeight = COURT_HEIGHT / 2;
 	const margin = 2;
 	

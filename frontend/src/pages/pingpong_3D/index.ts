@@ -1,8 +1,7 @@
 // pingpong_3D/index.ts
-
 import type { Component } from "@/models/component";
 import type { Routes } from "@/models/routes";
-import { startPingPongGame } from "./game-main";
+import { startPingPongGame, stopPingPongGame } from "./game-main";
 import { PingPong3DGameView } from "./game-view";
 import { navigate } from "@/router/router";
 import "./style.css";
@@ -61,6 +60,9 @@ export const PingPong3DGameRoute: Routes = {
 		content: gameView.render(),
 		onMount: () => {
 			startPingPongGame();
+		},
+		onUnmount: () => {
+			stopPingPongGame();
 		},
 		head: { title: "Ping Pong 3D" }
 	},

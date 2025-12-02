@@ -8,7 +8,7 @@ import {
   CORE_HIT_RANGE,
   AI_TICK_RATE,
   FIXED_TIME_STEP,
-} from "../core/constants";
+} from "../core/constants3D";
 // import {
 //   createGoalEffect,
 //   createFastReturnEffect,

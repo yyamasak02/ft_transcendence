@@ -1,6 +1,6 @@
 // src/core/data.ts
 
-import { BALL_SIZE } from "./constants";
+import { BALL_SIZE } from "./constants3D";
 
 import { Engine, Scene} from "@babylonjs/core";
 

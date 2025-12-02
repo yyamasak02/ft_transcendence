@@ -1,6 +1,6 @@
 // pingpong_3D/object/Ball.ts
 import { Mesh, MeshBuilder, Vector3, Scene } from "@babylonjs/core";
-import { GAME_CONFIG } from "../core/constants"; 
+import { GAME_CONFIG } from "../core/constants3D"; 
 import { Paddle } from "./Paddle"
 import { createBallMaterial } from "./materials/ballMaterial";
 
@@ -87,7 +87,7 @@ function updateBallImp(
 	}
 
 	// 移動処理
-	const dt = deltaTime * 0.03;
+	const dt = deltaTime * 0.03; // ballスピードを決める部分
 	ball.mesh.position.x += ball.velocity.x * dt;
 	ball.mesh.position.z += ball.velocity.z * dt;
 	// paddle1衝突

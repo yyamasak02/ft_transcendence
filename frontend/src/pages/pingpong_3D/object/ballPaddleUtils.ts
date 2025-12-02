@@ -1,6 +1,6 @@
-// pingpong_3D/utils.ts　// game-main.ts用のutility関数
+// pingpong_3D/object/ballPaddleUtils.ts　// game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GAME_CONFIG, COUNTDOWN_INTERVAL } from "../core/constants";
+import { GAME_CONFIG, COUNTDOWN_INTERVAL } from "../core/constants3D";
 import type { Ball, GameState } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";
@@ -82,7 +82,9 @@ export async function countdownAndServe(
 
 	ball.stop();
 	ball.reset(startFrom, paddle1, paddle2);
-	
+
+	console.log("COUNTDOWN_INTERVAL =", COUNTDOWN_INTERVAL);
+
 	hud.setCountdown("3");
 	await delay(COUNTDOWN_INTERVAL);
 	hud.setCountdown("2");
