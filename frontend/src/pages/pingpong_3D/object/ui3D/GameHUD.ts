@@ -1,15 +1,6 @@
 // pingpong_3D/object/ui3D/GameHUD.ts
-import {
-	Scene,
-	MeshBuilder,
-	Vector3,
-	Mesh,
-} from "@babylonjs/core"
-import { 
-	AdvancedDynamicTexture,
-	TextBlock, 
-	Control,
-} from "@babylonjs/gui";
+import { Scene, MeshBuilder, Vector3, Mesh } from "@babylonjs/core"
+import { AdvancedDynamicTexture, TextBlock, Control } from "@babylonjs/gui";
 
 // ============================================
 // GameHUD クラス
@@ -29,11 +20,9 @@ export class GameHUD {
 			{ width: 18, height: 8 },
 			scene,
 		);
-		// rotation と lookAt は絶対に使わない（billboard と衝突する）
+		// billboard　と衝突するので rotation と lookAt は使わない
 		this.plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-		// plane の位置をカメラの少し前に
 		this.plane.position = new Vector3(0, 12, -25);
-		// scaling は軽めに（GUI の歪み防止）
 		this.plane.scaling = new Vector3(5, 10, 5);
 		
 		// GUIを貼る

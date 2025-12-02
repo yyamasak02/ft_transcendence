@@ -1,7 +1,7 @@
 // src/game-main.ts
 import { Vector3, Color4 } from "@babylonjs/core";
 import { initDOMRefs, gameData, canvas, engine, scene } from "./core/data";
-import { GAME_CONFIG, WINNING_SCORE, BASE_BALL_SPEED, MAX_DELTA_TIME, COUNTDOWN_INTERVAL } from "./core/constants3D";
+import { GAME_CONFIG } from "./core/constants3D";
 import { Ball } from "./object/Ball";
 import { Paddle } from "./object/Paddle";
 import { Stage } from "./object/Stage";
@@ -10,18 +10,19 @@ import { checkPaddleCollision, countdownAndServe } from "./object/ballPaddleUtil
 import { setupKeyboardListener, getPaddleInputs } from "./input/keyboard";
 import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
-import type { ScoreResult } from "./object/Ball";
+import { handleScoreAndRally } from "./object/ballPaddleUtils";
+import type { GameState } from "./types/game";
 
 const { COURT_WIDTH } = GAME_CONFIG;
 let ball: Ball | null = null;
 let isRunning = false;
 let hud: GameHUD | null = null;
 
-export const gameState = {
-	phase: "menu" as "menu" | "game" | "gameover" | "pause",
+export const gameState: GameState = {
+	phase: "menu",
 	rallyActive: true,
 	isServing: false,
-	lastWinner: null as 1 | 2 | null,
+	lastWinner: null,
 };
 
 // ============================================
@@ -33,13 +34,8 @@ export function startPingPongGame() {
 		console.log("startPingPongGame called but game is already running");
 		return;
 	}
+
 	isRunning = true;
-	console.log("3D COUNTDOWN_INTERVAL =", COUNTDOWN_INTERVAL);
-	console.log("HUD countdown element =", document.getElementById("countdown"));
-  console.log("startPingPongGame 3D called");
-	console.log("WINNING_SCORE =", WINNING_SCORE);
-	console.log("BASE_BALL_SPEED =", BASE_BALL_SPEED);
-	console.log("MAX_DELTA_TIME =", MAX_DELTA_TIME);
   initDOMRefs();
 	if (!hud) hud = new GameHUD(scene);
 	setupKeyboardListener();
@@ -71,7 +67,6 @@ export function startPingPongGame() {
 	const stage = new Stage(scene, canvas, paddle1, paddle2, ball);
 	
 	// Display
-	// const hud = new GameHUD(scene);
 	hud.setScore(gameData.player1.score, gameData.player2.score);
 
   // ===== 描画ループ開始 ========================
@@ -89,7 +84,7 @@ export function startPingPongGame() {
 				const result = ball.update(deltaTime, paddle1, paddle2, gameState,
 																	 (ballMesh, paddle) => checkPaddleCollision(ballMesh,
 																	 paddle));
-				if (hud) handleScoreAndRally(result, ball, paddle1, paddle2, hud);
+				if (hud) handleScoreAndRally(result, ball, paddle1, paddle2, gameState, hud, endGame);
 			}
 		}
     scene.render();
@@ -100,6 +95,20 @@ export function startPingPongGame() {
 // ============================================
 // 内部実装部
 // ============================================
+
+// ゲーム終了
+export function endGame(hub: GameHUD, winner: 1 | 2) {
+	console.log("Game Over");
+	gameState.phase = "gameover";
+	hub.showGameOver(winner === 1 ? "Player1" : "Player2");
+	if (ball) ball.stop();
+	engine.stopRenderLoop();
+	setTimeout(() => {
+		if (scene && !scene.isDisposed) scene.dispose();
+		if (engine) engine.dispose();
+		navigate("/pingpong_3D_config");
+	}, 3000);
+}
 
 //　ゲーム強制終了処理
 export function stopPingPongGame() {
@@ -114,59 +123,4 @@ export function stopPingPongGame() {
 	if (engine) engine.stopRenderLoop();
 	if (scene && !scene.isDisposed) scene.dispose();
 	ball = null;
-}
-
-// ラリー & スコア
-function handleScoreAndRally(
-	result: ScoreResult,
-	ball: Ball,
-	paddle1: Paddle,
-	paddle2: Paddle,
-	hud: GameHUD,
-): void {
-	if (!result) return;
-	
-	const scorer = result.scorer;
-
-	// ラリー停止
-	gameState.rallyActive = false;
-	
-	// スコア更新
-	if (scorer === 1) {
-		gameData.player1.score++;
-		gameState.rallyActive = false;
-		gameState.lastWinner = 1;
-	} else {
-		gameData.player2.score++;
-		gameState.rallyActive = false;
-		gameState.lastWinner = 2;
-	}
-	hud.setScore(gameData.player1.score, gameData.player2.score);
-	
-	// ゲーム終了判定
-	if (gameData.player1.score >= WINNING_SCORE) {
-		endGame(hud, 1);
-		return;
-	}
-	if (gameData.player2.score >= WINNING_SCORE) {
-		endGame(hud, 2);
-		return;
-	}
-	
-	// 次のサーブ
-	countdownAndServe(scorer, ball, paddle1, paddle2, gameState, hud);
-}
-
-// ゲーム終了
-function endGame(hub: GameHUD, winner: 1 | 2) {
-	console.log("Game Over");
-	gameState.phase = "gameover";
-	hub.showGameOver(winner === 1 ? "Player1" : "Player2");
-	if (ball) ball.stop();
-	engine.stopRenderLoop();
-	setTimeout(() => {
-		if (scene && !scene.isDisposed) scene.dispose();
-		if (engine) engine.dispose();
-		navigate("/pingpong_3D_config");
-	}, 3000);
 }

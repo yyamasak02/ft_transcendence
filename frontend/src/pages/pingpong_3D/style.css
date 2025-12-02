@@ -1,34 +1,4 @@
 /* pingpong_3D/style.css */
-/* 
-.hud-overlay {
-	position: absolute;
-	top: 20px;
-	left: 50%;
-	transform: translateX(-50%);
-	text-align: center;
-	font-family: "Bebas Neue", monospace;
-	z-index: 10;
-	pointer-events: none;
-}
-
-#score {
-	color: white;
-	font-size: 60px;
-	text-shadow: 2px 2px 6px black;
-	margin-bottom: 10px;
-}
-
-#countdown {
-	color: yellow;
-	font-size: 48px;
-	text-shadow: 2px 2px 10px black;
-	animation: countdown-pop 0.3s ease-out;
-}
-
-@keyframes countdown-pop {
-	0%		{ transform: scale(0.5); opacity: 0.5; }
-	100%	{ transform: scale(1.0); opacity: 1; }
-} */
 
 #gameCanvas3D {
 	width: 100%;

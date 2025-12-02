@@ -1,9 +1,11 @@
 // pingpong_3D/object/ballPaddleUtils.ts　// game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GAME_CONFIG, COUNTDOWN_INTERVAL } from "../core/constants3D";
-import type { Ball, GameState } from "./Ball";
+import { GAME_CONFIG, COUNTDOWN_INTERVAL, WINNING_SCORE } from "../core/constants3D";
+import type { Ball, ScoreResult } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";
+import { gameData } from "../core/data";
+import type { GameState } from "../types/game";
 
 const {
 	PADDLE_LENGTH,
@@ -97,4 +99,47 @@ export async function countdownAndServe(
 	
 	gameState.isServing = false;
 	gameState.rallyActive = true;
+}
+
+// ラリー & スコア
+export function handleScoreAndRally(
+	result: ScoreResult,
+	ball: Ball,
+	paddle1: Paddle,
+	paddle2: Paddle,
+	gameState: GameState,
+	hud: GameHUD,
+	endGame: (hud: GameHUD, winner: 1 | 2) => void
+): void {
+	if (!result) return;
+	
+	const scorer = result.scorer;
+
+	// ラリー停止
+	gameState.rallyActive = false;
+	
+	// スコア更新
+	if (scorer === 1) {
+		gameData.player1.score++;
+		gameState.rallyActive = false;
+		gameState.lastWinner = 1;
+	} else {
+		gameData.player2.score++;
+		gameState.rallyActive = false;
+		gameState.lastWinner = 2;
+	}
+	hud.setScore(gameData.player1.score, gameData.player2.score);
+	
+	// ゲーム終了判定
+	if (gameData.player1.score >= WINNING_SCORE) {
+		endGame(hud, 1);
+		return;
+	}
+	if (gameData.player2.score >= WINNING_SCORE) {
+		endGame(hud, 2);
+		return;
+	}
+	
+	// 次のサーブ
+	countdownAndServe(scorer, ball, paddle1, paddle2, gameState, hud);
 }
