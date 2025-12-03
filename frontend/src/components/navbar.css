@@ -22,6 +22,6 @@ nav {
 	transform: scale(1.15);
 }
 
-.nav-ling:active {
+.nav-link:active {
 	color: #ff9f00;
 }
