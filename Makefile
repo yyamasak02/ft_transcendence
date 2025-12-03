@@ -8,13 +8,16 @@ COMPOSE_FILE = docker-compose.local.yml
 # Default target
 help:
 	@echo "🚀 Inception Project Commands:"
+	@echo "  make init     - Install backend deps and initialize SQLite"
 	@echo "  make up       - Start all containers"
 	@echo "  make down     - Stop all containers"
 	@echo "  make build    - Build all containers"
 	@echo "  make clean    - Stop and remove all containers, volumes, and images"
+	@echo "  make delete   - Clean and remove SQLite database file"
 	@echo "  make test     - Run integration test"
 	@echo "  make logs     - Show container logs"
 	@echo "  make status   - Show container status"
+	@echo "  make re       - Rebuild and start all containers"
 
 urls:
 	@echo "Swagger http://127.0.0.1:8080/docs/"
@@ -41,10 +44,21 @@ down:
 build:
 	docker compose -f $(COMPOSE_FILE) up -d --build
 
+init: delete
+	cd backends/common && \
+	npm install && \
+	npm run db:setup && \
+	cd ../../ && \
+	make up
+
 # Clean everything
 clean:
 	docker compose -f $(COMPOSE_FILE) down -v --rmi all
 	docker system prune -f
+
+delete: clean
+	rm -f backends/common/db/app.db
+	rm -f backends/common/db/common.sqlite
 
 # Show logs
 logs:

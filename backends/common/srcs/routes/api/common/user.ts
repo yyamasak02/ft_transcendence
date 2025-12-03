@@ -3,141 +3,55 @@
 // Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"name":"admin","password":"42admin"}'
 // Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"name":"foo","password":"barbazqux"}'
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
-import { randomBytes, createHash } from "node:crypto";
-
-const registerBodySchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
-  password: Type.String({ minLength: 8 }),
-});
-
-const registerResponseSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-});
-
-type RegisterBody = {
-  name: string;
-  password: string;
-};
-
-type LoginBody = {
-  name: string;
-  password: string;
-};
-
-const errorResponseSchema = Type.Object({
-  message: Type.String(),
-});
-
-const loginBodySchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
-  password: Type.String({ minLength: 1 }),
-});
-
-const loginSuccessSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-});
-
-const userIdentifierSchema = Type.Object({
-  userId: Type.Number({ minimum: 1 }),
-});
-
-const userActionResponseSchema = Type.Object({
-  message: Type.String(),
-});
-
-const userInformationQuerySchema = userIdentifierSchema;
-
-const userInformationResponseSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-  status: Type.String(),
-});
-
-const userBanBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    reason: Type.Optional(Type.String()),
-  }),
-]);
-
-const userBlockBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    targetUserId: Type.Number({ minimum: 1 }),
-  }),
-]);
-
-const destroyTokenBodySchema = Type.Object({
-  userId: Type.Number({ minimum: 1 }),
-  token: Type.String({ minLength: 1 }),
-});
-
-const refreshTokenBodySchema = Type.Object({
-  refreshToken: Type.String({ minLength: 1 }),
-});
-
-const refreshTokenResponseSchema = Type.Object({
-  accessToken: Type.String(),
-  refreshToken: Type.String(),
-});
-
-const updatePasswordBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    currentPassword: Type.String({ minLength: 1 }),
-    newPassword: Type.String({ minLength: 8 }),
-  }),
-]);
-
-const deleteUserBodySchema = Type.Composite([
-  userIdentifierSchema,
-  Type.Object({
-    reason: Type.Optional(Type.String()),
-  }),
-]);
-
-type UserIdentifier = {
-  userId: number;
-};
-
-type UserBanBody = UserIdentifier & {
-  reason?: string;
-};
-
-type UserBlockBody = UserIdentifier & {
-  targetUserId: number;
-};
-
-type DestroyTokenBody = {
-  userId: number;
-  token: string;
-};
-
-type RefreshTokenBody = {
-  refreshToken: string;
-};
-
-type UpdatePasswordBody = UserIdentifier & {
-  currentPassword: string;
-  newPassword: string;
-};
-
-type DeleteUserBody = UserIdentifier & {
-  reason?: string;
-};
-
-function hashPassword(password: string, salt: string) {
-  return createHash("sha256").update(password + salt).digest("hex");
-}
+import { randomBytes } from "node:crypto";
+import {
+  issueTokens,
+  hashPassword,
+  verifyUserCredentials,
+  issueLongTermToken,
+  verifyLongTermToken,
+  removeLongTermToken,
+  findUserByPuid,
+  findUserByName,
+  generatePuid,
+} from "../../../utils/auth.js";
+import {
+  deleteUserBodySchema,
+  destroyTokenBodySchema,
+  errorResponseSchema,
+  loginBodySchema,
+  loginSuccessSchema,
+  refreshTokenBodySchema,
+  refreshTokenResponseSchema,
+  registerBodySchema,
+  registerResponseSchema,
+  updatePasswordBodySchema,
+  userActionResponseSchema,
+  userBanBodySchema,
+  userBlockBodySchema,
+  userInformationQuerySchema,
+  userInformationResponseSchema,
+  puidLookupQuerySchema,
+  puidLookupResponseSchema,
+} from "../../../schemas/user.js";
+import type {
+  DeleteUserBody,
+  DestroyTokenBody,
+  LoginBody,
+  RefreshTokenBody,
+  RegisterBody,
+  UpdatePasswordBody,
+  UserBanBody,
+  UserBlockBody,
+  UserIdentifier,
+  PuidLookupQuery,
+} from "../../../schemas/user.js";
 
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
-  f.post(
+  f.post<{ Body: RegisterBody }>(
     "/user/register",
     {
       schema: {
@@ -146,39 +60,60 @@ export default async function (fastify: FastifyInstance) {
         response: {
           201: registerResponseSchema,
           409: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body as LoginBody;
+      const { name, password } = request.body;
       const salt = randomBytes(16).toString("hex");
-      const hashedPassword = hashPassword(password, salt);
+      const hashedPassword = await hashPassword(password, salt);
 
-      try {
-        const result = await fastify.db.run(
-          "INSERT INTO users (name, password, salt) VALUES (?, ?, ?)",
-          name,
-          hashedPassword,
-          salt,
-        );
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const puid = generatePuid();
+        try {
+          await fastify.db.run(
+            "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
+            name,
+            hashedPassword,
+            salt,
+            puid,
+          );
 
-        reply.code(201);
-        return { id: result.lastID ?? 0, name };
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          /UNIQUE constraint failed: users\.name/.test(error.message)
-        ) {
-          reply.code(409);
-          return { message: "User already exists." };
+          reply.code(201);
+          return { message: "User registered." };
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            /UNIQUE constraint failed: users\.name/.test(error.message)
+          ) {
+            reply.code(409);
+            return { message: "User already exists." };
+          }
+
+          if (
+            error instanceof Error &&
+            /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
+              error.message,
+            )
+          ) {
+            continue;
+          }
+
+          throw error;
         }
-
-        throw error;
       }
+
+      fastify.log.error(
+        { username: name },
+        "Failed to generate unique PUID after 5 attempts during user registration."
+      );
+      reply.code(500);
+      return { message: "Failed to generate unique PUID." };
     },
   );
 
-  f.post(
+  f.post<{ Body: LoginBody }>(
     "/user/login",
     {
       schema: {
@@ -191,92 +126,153 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body as RegisterBody;
-      const row = await fastify.db.get<{
-        id: number;
-        name: string;
-        password: string;
-        salt: string;
-      }>("SELECT id, name, password, salt FROM users WHERE name = ?", name);
-
-      if (!row) {
+      const { name, password, longTerm } = request.body;
+      const user = await verifyUserCredentials(fastify, name, password);
+      if (!user) {
         reply.code(401);
         return { message: "Invalid credentials." };
       }
 
-      const hashed = hashPassword(password, row.salt);
-      if (hashed !== row.password) {
-        reply.code(401);
-        return { message: "Invalid credentials." };
+      const tokens = await issueTokens(fastify, {
+        id: user.id,
+        puid: user.puid,
+        name: user.name,
+      });
+
+      let longTermToken: string | undefined;
+      if (longTerm) {
+        const issued = await issueLongTermToken(fastify, user.id);
+        longTermToken = issued.token;
       }
 
-      return { id: row.id, name: row.name };
+      return {
+        ...tokens,
+        ...(longTermToken ? { longTermToken } : {}),
+      };
     },
   );
 
-  f.get(
+  f.get<{ Querystring: PuidLookupQuery }>(
+    "/user/puid",
+    {
+      schema: {
+        tags: ["User"],
+        querystring: puidLookupQuerySchema,
+        response: {
+          200: puidLookupResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { name } = request.query;
+      const user = await findUserByName(fastify, name);
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+
+      return { puid: user.puid };
+    },
+  );
+
+  f.get<{ Querystring: UserIdentifier }>(
     "/user/information",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         querystring: userInformationQuerySchema,
         response: {
           200: userInformationResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
         },
       },
     },
-    async (request) => {
-      const { userId } = request.query as UserIdentifier;
+    async (request, reply) => {
+      const { puid } = request.query;
+      const user = await findUserByPuid(fastify, puid);
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
 
       return {
-        id: userId,
-        name: "placeholder",
+        id: user.id,
+        name: user.name,
+        puid: user.puid,
         status: "active",
       };
     },
   );
 
-  f.post(
+  f.post<{ Body: UserBanBody }>(
     "/user/ban",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: userBanBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
     async (request) => {
-      const { userId, reason } = request.body as UserBanBody;
+      const { puid, reason } = request.body;
 
       return {
-        message: `User ${userId} banned${reason ? ` for ${reason}` : ""}.`,
+        message: `User ${puid} banned${reason ? ` for ${reason}` : ""}.`,
       };
     },
   );
 
-  f.post(
+  f.post<{ Body: UserBlockBody }>(
     "/user/block",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: userBlockBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
     async (request) => {
-      const { userId, targetUserId } = request.body as UserBlockBody;
+      const { puid, targetPuid } = request.body;
 
       return {
-        message: `User ${userId} blocked user ${targetUserId}.`,
+        message: `User ${puid} blocked user ${targetPuid}.`,
       };
     },
   );
 
-  f.post(
+  f.get(
+    "/user/jwt_test",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        response: {
+          200: userActionResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const payload = request.user;
+
+      return {
+        message: `JWT verified for user ${payload.name} (puid: ${payload.puid}).`,
+      };
+    },
+  );
+
+  f.post<{ Body: DestroyTokenBody }>(
     "/user/destroy_token",
     {
       schema: {
@@ -284,19 +280,43 @@ export default async function (fastify: FastifyInstance) {
         body: destroyTokenBodySchema,
         response: {
           200: userActionResponseSchema,
+          400: errorResponseSchema,
+          404: errorResponseSchema,
         },
       },
     },
-    async (request) => {
-      const { userId, token } = request.body as DestroyTokenBody;
+    async (request, reply) => {
+      const { puid, longTermToken } = request.body;
 
+      // リクエストにロングタームトークンが含まれているか検証し、欠けていれば即時400を返す
+      if (!longTermToken) {
+        reply.code(400);
+        return { message: "Token is required." };
+      }
+
+      // puidでユーザーを取得できなければ、その場で404を返して処理を打ち切る
+      const user = await findUserByPuid(fastify, puid);
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+
+      // トークンの整合性と所有者を確認し、想定ユーザーのものではなければ400を返す
+      const verified = await verifyLongTermToken(fastify, longTermToken);
+      if (!verified || verified.userId !== user.id) {
+        reply.code(400);
+        return { message: "Invalid token." };
+      }
+
+      // 条件を満たした場合のみトークンを削除し、破棄完了メッセージを返す
+      await removeLongTermToken(fastify, longTermToken);
       return {
-        message: `Token ${token} destroyed for user ${userId}.`,
+        message: `Long-term token revoked for user ${puid}.`,
       };
     },
   );
 
-  f.post(
+  f.post<{ Body: RefreshTokenBody }>(
     "/user/refresh_token",
     {
       schema: {
@@ -304,55 +324,76 @@ export default async function (fastify: FastifyInstance) {
         body: refreshTokenBodySchema,
         response: {
           200: refreshTokenResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
-    async (request) => {
-      const { refreshToken } = request.body as RefreshTokenBody;
+    async (request, reply) => {
+      const { longTermToken } = request.body;
 
-      return {
-        accessToken: `new-access-token-for-${refreshToken}`,
-        refreshToken: `new-refresh-token-for-${refreshToken}`,
-      };
+
+      const verified = await verifyLongTermToken(fastify, longTermToken);
+      if (!verified) {
+        reply.code(401);
+        return { message: "Invalid long-term token." };
+      }
+
+      const user = await fastify.db.get<{ id: number; name: string; puid: string }>(
+        "SELECT id, name, puid FROM users WHERE id = ?",
+        verified.userId,
+      );
+
+      if (!user) {
+        await removeLongTermToken(fastify, longTermToken);
+        reply.code(401);
+        return { message: "User no longer exists." };
+      }
+
+      return issueTokens(fastify, user);
     },
   );
 
-  f.patch(
+  f.patch<{ Body: UpdatePasswordBody }>(
     "/user/password",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: updatePasswordBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
     async (request) => {
-      const { userId } = request.body as UpdatePasswordBody;
+      const { puid } = request.body;
 
       return {
-        message: `Password updated for user ${userId}.`,
+        message: `Password updated for user ${puid}.`,
       };
     },
   );
 
-  f.delete(
+  f.delete<{ Body: DeleteUserBody }>(
     "/user/delete",
     {
+      preHandler: fastify.authenticate,
       schema: {
         tags: ["User"],
         body: deleteUserBodySchema,
         response: {
           200: userActionResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
     async (request) => {
-      const { userId, reason } = request.body as DeleteUserBody;
+      const { puid, reason } = request.body;
 
       return {
-        message: `User ${userId} deleted${reason ? ` for ${reason}` : ""}.`,
+        message: `User ${puid} deleted${reason ? ` for ${reason}` : ""}.`,
       };
     },
   );
