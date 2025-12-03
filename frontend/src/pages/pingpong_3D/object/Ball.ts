@@ -89,10 +89,10 @@ function updateBallImp(
 	const dt = (deltaTime / 1000) * getBallSpeed(); // ballスピードを決める部分
 	ball.mesh.position.x += ball.velocity.x * dt;
 	ball.mesh.position.z += ball.velocity.z * dt;
-	// paddle1衝突
-	if (checkPaddleCollision(ball.mesh, paddle1)) { ball.reflect(paddle1, false);}
-	// paddle2衝突
-	if (checkPaddleCollision(ball.mesh, paddle2)) { ball.reflect(paddle2, true); }
+	// paddle1
+	if (checkPaddleCollision(ball.mesh, paddle1)) ball.reflect(paddle1, false);
+	// paddle2
+	if (checkPaddleCollision(ball.mesh, paddle2)) ball.reflect(paddle2, true);
 	
 	// 壁で反射
 	const halfHeight = COURT_HEIGHT / 2;
