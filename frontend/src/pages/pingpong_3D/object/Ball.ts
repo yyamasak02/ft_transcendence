@@ -1,6 +1,6 @@
 // pingpong_3D/object/Ball.ts
 import { Mesh, MeshBuilder, Vector3, Scene } from "@babylonjs/core";
-import { BALL_SPEED_RATE, GAME_CONFIG } from "../core/constants3D"; 
+import { getBallSpeed, GAME_CONFIG } from "../core/constants3D"; 
 import { Paddle } from "./Paddle"
 import { createBallMaterial } from "./materials/ballMaterial";
 
@@ -14,7 +14,6 @@ export type ScoreResult = { scorer: 1 | 2 } | null;
 const {
 	COURT_WIDTH,
 	COURT_HEIGHT,
-	PADDLE_LENGTH,
 	PADDLE_THICKNESS,
 	BALL_RADIUS,
 } = GAME_CONFIG;
@@ -45,7 +44,7 @@ export class Ball {
 		paddle1: Paddle, 
 		paddle2: Paddle,
 		gameState: GameState,
-		checkPaddleCollision: (ballMesh: Mesh, paddleMesh: Mesh) => boolean
+		checkPaddleCollision: (ballMesh: Mesh, paddl: Paddle) => boolean
 		): ScoreResult { 
 		return updateBallImp(this, deltaTime, paddle1, paddle2, gameState, checkPaddleCollision); 
 	}
@@ -68,7 +67,7 @@ function updateBallImp(
 	paddle1: Paddle,
 	paddle2: Paddle,
 	gameState: GameState,
-	checkPaddleCollision: (ballMesh: Mesh, paddleMesh: Mesh) => boolean
+	checkPaddleCollision: (ballMesh: Mesh, paddle: Paddle) => boolean
 ): ScoreResult {
 	console.log("update ball called");
 	if (!ball || !paddle1 || !paddle2) return null;
@@ -87,13 +86,13 @@ function updateBallImp(
 	}
 
 	// 移動処理
-	const dt = deltaTime * BALL_SPEED_RATE; // ballスピードを決める部分
+	const dt = (deltaTime / 1000) * getBallSpeed(); // ballスピードを決める部分
 	ball.mesh.position.x += ball.velocity.x * dt;
 	ball.mesh.position.z += ball.velocity.z * dt;
 	// paddle1衝突
-	if (checkPaddleCollision(ball.mesh, paddle1.mesh)) { ball.reflect(paddle1, false);}
+	if (checkPaddleCollision(ball.mesh, paddle1)) { ball.reflect(paddle1, false);}
 	// paddle2衝突
-	if (checkPaddleCollision(ball.mesh, paddle2.mesh)) { ball.reflect(paddle2, true); }
+	if (checkPaddleCollision(ball.mesh, paddle2)) { ball.reflect(paddle2, true); }
 	
 	// 壁で反射
 	const halfHeight = COURT_HEIGHT / 2;
@@ -122,7 +121,7 @@ function reflectBallImp(ball: Ball, paddle: Paddle, isLeftPaddle: boolean) {
 	const vel	 = ball.velocity;
 	
 	// paddleの中心からどれだけ離れているか
-	const offsetZ = (mesh.position.z - paddle.mesh.position.z) / (PADDLE_LENGTH / 2);
+	const offsetZ = (mesh.position.z - paddle.mesh.position.z) / (paddle.length / 2);
 	const hitCenterRate = 1 - Math.min(Math.abs(offsetZ), 1);
 
 	// z方向(上下)の速度に反映

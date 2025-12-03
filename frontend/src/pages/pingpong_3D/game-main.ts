@@ -1,4 +1,5 @@
-// src/game-main.ts
+// src/game-main.ts　ゲーム本体
+
 import { Vector3, Color4 } from "@babylonjs/core";
 import { initDOMRefs, gameData, canvas, engine, scene } from "./core/data";
 import { GAME_CONFIG } from "./core/constants3D";
@@ -37,27 +38,39 @@ export function startPingPongGame() {
 
 	isRunning = true;
   initDOMRefs();
+	const canvasEl = document.getElementById("gameCanvas3D");
+	if (canvasEl) {
+		canvasEl.addEventListener("click", () => {
+			console.log("canvas clicked!");
+		});
+	}
 	if (!hud) hud = new GameHUD(scene);
 	setupKeyboardListener();
 	
 	gameState.phase = "game";
 	gameState.rallyActive = false;
-	gameData.player1.score = 0;
-	gameData.player2.score = 0;
+	gameData.paddles.player1.score = 0;
+	gameData.paddles.player2.score = 0;
 	
-  scene.clearColor = new Color4(0.02, 0.02, 0.06, 1.0);
+  scene.clearColor = new Color4(0, 0, 0, 0.5);
 
-  // Player
-	const paddle1 = new Paddle(scene, new Vector3(COURT_WIDTH / 2 - 1, 1, 0));
-	paddle1.mesh.material = createPaddleMaterial("p1", scene);
-	const paddle2 = new Paddle(scene, new Vector3(-(COURT_WIDTH / 2 - 1), 1, 0));
-	paddle2.mesh.material = createPaddleMaterial("p2", scene);
+  // Player1
+	const p1Length = gameData.paddles.player1.length;
+	const p1Color = gameData.paddles.player1.color;
+	const paddle1 = new Paddle(scene, new Vector3(COURT_WIDTH / 2 - 1, 1, 0), p1Length);
+	paddle1.mesh.material = createPaddleMaterial("p1", p1Color, scene);
+  // Player2
+	const p2Length = gameData.paddles.player2.length;
+	const p2Color = gameData.paddles.player2.color;
+	const paddle2 = new Paddle(scene, new Vector3(-(COURT_WIDTH / 2 - 1), 1, 0), p2Length);
+	paddle2.mesh.material = createPaddleMaterial("p2", p2Color, scene);
 
 	// Ball
 	const initialBallPos = new Vector3(0, 1, 0);
 	const gameBall = new Ball(scene, initialBallPos);
 	ball = gameBall;
 	gameBall.stop();
+	gameBall.velocity = new Vector3(0, 0, 0);
 	gameBall.reset("center", paddle1, paddle2);
 	setTimeout(() => {
 		if (hud) countdownAndServe("center", gameBall, paddle1, paddle2, gameState, hud);
@@ -67,7 +80,7 @@ export function startPingPongGame() {
 	const stage = new Stage(scene, canvas, paddle1, paddle2, ball);
 	
 	// Display
-	hud.setScore(gameData.player1.score, gameData.player2.score);
+	hud.setScore(gameData.paddles.player1.score, gameData.paddles.player2.score);
 
   // ===== 描画ループ開始 ========================
 
@@ -81,9 +94,7 @@ export function startPingPongGame() {
 				paddle1.update(deltaTime, p1);
 				paddle2.update(deltaTime, p2);
 				// ラリー &　スコア
-				const result = ball.update(deltaTime, paddle1, paddle2, gameState,
-																	 (ballMesh, paddle) => checkPaddleCollision(ballMesh,
-																	 paddle));
+				const result = ball.update(deltaTime, paddle1, paddle2, gameState,checkPaddleCollision);
 				if (hud) handleScoreAndRally(result, ball, paddle1, paddle2, gameState, hud, endGame);
 			}
 		}
@@ -114,13 +125,20 @@ export function endGame(hub: GameHUD, winner: 1 | 2) {
 export function stopPingPongGame() {
 	console.log("soptPingPongGame called");
 	if (!isRunning) return;
-	if (hud) {
-		hud.plane.dispose();
-		hud = null;
-	}
 
 	isRunning = false;
-	if (engine) engine.stopRenderLoop();
+	if (hud) {
+		if (hud.plane && !hud.plane.isDisposed()) hud.plane.dispose();
+		hud = null;
+	}
+	if (ball) {
+		ball.stop();
+		ball = null;
+	}
 	if (scene && !scene.isDisposed) scene.dispose();
+	if (engine) {
+		engine.stopRenderLoop();
+		engine.dispose();
+	}
 	ball = null;
 }

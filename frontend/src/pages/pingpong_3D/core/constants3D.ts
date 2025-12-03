@@ -1,21 +1,33 @@
 // src/core/constants.ts
-export let BALL_SPEED_RATE = 0.5;
-export let WINNING_SCORE = 5;
-export const BALL_SIZE = 10;
-export const COUNTDOWN_INTERVAL = 1000;
+let BALL_SPEED = 50;
+let WINNING_SCORE = 5;
+let COUNTDOWN_INTERVAL = 1000;
 
-export function setBallSpeed(speed: number) {
-  BALL_SPEED_RATE = Math.max(0.1, Math.min(1.0, speed));
+export function getBallSpeed() {
+  return BALL_SPEED;
+}
+export function setBallSpeed(value: number) {
+	BALL_SPEED = value;
 }
 
-export function setWinningScore(score: number) {
-  WINNING_SCORE = Math.max(1, Math.min(50, score));
+export function getWinningScore() {
+	return WINNING_SCORE;
+}
+export function setWinningScore(value: number) {
+  WINNING_SCORE = value;
+}
+
+export function getCountdownInterval() {
+	return COUNTDOWN_INTERVAL;
+}
+export function setCountdownInterval(value: number) {
+	COUNTDOWN_INTERVAL = value;
 }
 
 export const GAME_CONFIG = {
   COURT_WIDTH: 60,
   COURT_HEIGHT: 40,
-  PADDLE_LENGTH: 8,
+  // PADDLE_LENGTH: 8,
   PADDLE_THICKNESS: 1,
   BALL_RADIUS: 1,
 };

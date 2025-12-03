@@ -14,6 +14,7 @@ export class GameHUD {
 	private infoText: TextBlock;
 
 	constructor(scene: Scene) {
+
 		// 板を作る
 		this.plane = MeshBuilder.CreatePlane(
 			"hudplane", 

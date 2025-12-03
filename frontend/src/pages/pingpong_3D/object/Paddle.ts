@@ -7,7 +7,7 @@ export type PaddleInput = {
 	down: boolean;
 };
 
-const { COURT_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS } = GAME_CONFIG;
+const { COURT_HEIGHT, PADDLE_THICKNESS } = GAME_CONFIG;
 
 // ============================================
 // Paddle クラス
@@ -15,18 +15,22 @@ const { COURT_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS } = GAME_CONFIG;
 
 export class Paddle {
 	mesh: Mesh;
+	length: number;
 
-	constructor(scene: Scene, position: Vector3) {
+	constructor(scene: Scene, position: Vector3, length: number) {
+		this.length = length;
 		this.mesh = MeshBuilder.CreateCylinder(
 			"paddle",
 			{ 
-				height: PADDLE_LENGTH,
+				height: length,
 				diameterTop: PADDLE_THICKNESS,
 				diameterBottom: PADDLE_THICKNESS
 			},
 			scene
 		);
+		this.mesh.rotation.x = Math.PI / 2;
 		this.mesh.position.copyFrom(position);
+		this.mesh.metadata = { length };
 		this.mesh.rotation.x = Math.PI / 2;
 	}
 

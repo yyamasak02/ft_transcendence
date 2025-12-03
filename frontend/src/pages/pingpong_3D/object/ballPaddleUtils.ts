@@ -1,6 +1,6 @@
 // pingpong_3D/object/ballPaddleUtils.ts　// game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GAME_CONFIG, COUNTDOWN_INTERVAL, WINNING_SCORE } from "../core/constants3D";
+import { GAME_CONFIG, getCountdownInterval, getWinningScore } from "../core/constants3D";
 import type { Ball, ScoreResult } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";
@@ -8,19 +8,20 @@ import { gameData } from "../core/data";
 import type { GameState } from "../types/game";
 
 const {
-	PADDLE_LENGTH,
+	// PADDLE_LENGTH,
 	PADDLE_THICKNESS,
 	BALL_RADIUS,
 } = GAME_CONFIG;
 
 // 衝突判定
-export function checkPaddleCollision(ballMesh: Mesh, paddleMesh: Mesh): boolean {
+export function checkPaddleCollision(ballMesh: Mesh, paddle: Paddle): boolean {
 	const r = BALL_RADIUS;
 	const bx = ballMesh.position.x;
 	const bz = ballMesh.position.z;
-	const px = paddleMesh.position.x;
-	const pz = paddleMesh.position.z;
-	const halfL = PADDLE_LENGTH / 2;
+	const px = paddle.mesh.position.x;
+	const pz = paddle.mesh.position.z;
+	const length = paddle.mesh.metadata?.length ?? 8;
+	const halfL = length / 2;
 	const halfT = PADDLE_THICKNESS / 2;
 
 	// paddleの座標
@@ -85,14 +86,13 @@ export async function countdownAndServe(
 	ball.stop();
 	ball.reset(startFrom, paddle1, paddle2);
 
-	console.log("COUNTDOWN_INTERVAL =", COUNTDOWN_INTERVAL);
-
+	const countdownInterval = getCountdownInterval();
 	hud.setCountdown("3");
-	await delay(COUNTDOWN_INTERVAL);
+	await delay(countdownInterval);
 	hud.setCountdown("2");
-	await delay(COUNTDOWN_INTERVAL);
+	await delay(countdownInterval);
 	hud.setCountdown("1");
-	await delay(COUNTDOWN_INTERVAL);
+	await delay(countdownInterval);
 	hud.clearCountdown();
 	
 	ball.velocity = randomServeVelocity(startFrom);
@@ -120,22 +120,23 @@ export function handleScoreAndRally(
 	
 	// スコア更新
 	if (scorer === 1) {
-		gameData.player1.score++;
+		gameData.paddles.player1.score++;
 		gameState.rallyActive = false;
 		gameState.lastWinner = 1;
 	} else {
-		gameData.player2.score++;
+		gameData.paddles.player2.score++;
 		gameState.rallyActive = false;
 		gameState.lastWinner = 2;
 	}
-	hud.setScore(gameData.player1.score, gameData.player2.score);
+	hud.setScore(gameData.paddles.player1.score, gameData.paddles.player2.score);
 	
 	// ゲーム終了判定
-	if (gameData.player1.score >= WINNING_SCORE) {
+	const winningScore = getWinningScore();
+	if (gameData.paddles.player1.score >= winningScore) {
 		endGame(hud, 1);
 		return;
 	}
-	if (gameData.player2.score >= WINNING_SCORE) {
+	if (gameData.paddles.player2.score >= winningScore) {
 		endGame(hud, 2);
 		return;
 	}
