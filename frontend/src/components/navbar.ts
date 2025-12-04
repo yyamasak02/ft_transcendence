@@ -1,4 +1,4 @@
-// src/components/navvar.ts
+// src/components/navbar.ts
 import { routes } from "@/router/routes";
 import { navigate } from "@/router/router";
 import "./navbar.css";

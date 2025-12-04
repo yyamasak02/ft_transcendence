@@ -77,7 +77,7 @@ export function startPingPongGame() {
 	}, 0);
 	
 	// Stage
-	const stage = new Stage(scene, canvas, paddle1, paddle2, ball);
+	new Stage(scene, canvas, paddle1, paddle2, ball);
 	
 	// Display
 	hud.setScore(gameData.paddles.player1.score, gameData.paddles.player2.score);
@@ -123,7 +123,7 @@ export function endGame(hub: GameHUD, winner: 1 | 2) {
 
 //　ゲーム強制終了処理
 export function stopPingPongGame() {
-	console.log("soptPingPongGame called");
+	console.log("stopPingPongGame called");
 	if (!isRunning) return;
 
 	isRunning = false;

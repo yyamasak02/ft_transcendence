@@ -1,6 +1,6 @@
 // pingpong_3D/index.ts　ルーティングと設定画面
-import type { Component } from "@/models/component";
-import type { Routes } from "@/models/routes";
+import type { Component } from "@/types/component";
+import type { Routes } from "@/types/routes";
 import { startPingPongGame, stopPingPongGame } from "./game-main";
 import { PingPong3DGameView } from "./game-view";
 import { navigate } from "@/router/router";
@@ -82,7 +82,7 @@ class PingPongComponent implements Component {
 					<canvas id="previewCanvas3D"></canvas>
 				</div>
 
-				<div lass="pp-config-row">
+				<div class="pp-config-row">
 					<button id="pingpong-start-btn">Start Game</button>
 				</div>
 

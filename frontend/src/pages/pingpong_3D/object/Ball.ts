@@ -44,7 +44,7 @@ export class Ball {
 		paddle1: Paddle, 
 		paddle2: Paddle,
 		gameState: GameState,
-		checkPaddleCollision: (ballMesh: Mesh, paddl: Paddle) => boolean
+		checkPaddleCollision: (ballMesh: Mesh, paddle: Paddle) => boolean
 		): ScoreResult { 
 		return updateBallImp(this, deltaTime, paddle1, paddle2, gameState, checkPaddleCollision); 
 	}
