@@ -1,3 +1,4 @@
+// src/components/navbar.ts
 import { routes } from "@/router/routes";
 import { navigate } from "@/router/router";
 import "./navbar.css";
@@ -13,7 +14,8 @@ export function renderNavbar(
     const linkElement = document.createElement("a");
 
     linkElement.href = route;
-    linkElement.textContent = linkLabel;
+    // linkElement.textContent = linkLabel;
+    linkElement.textContent = linkLabel ?? "";
     linkElement.classList.add(...classNames);
 
     linkElement.addEventListener("click", (e) => {

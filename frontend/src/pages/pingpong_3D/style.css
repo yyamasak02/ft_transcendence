@@ -1,0 +1,100 @@
+/* pingpong_3D/style.css */
+
+#gameCanvas3D {
+	width: 100%;
+	height: 100%;
+	display: block;
+	touch-action: none;
+	position: relative !important;
+	z-index: 9999 !important;
+	pointer-events: auto !important;
+}
+
+#game-container-3d {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+#game-ui-3d {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	display: flex;
+	gap: 10px;
+	z-index: 10000;
+}
+
+#game-ui-3d button {
+	background: #fff;
+	color: #000;
+	padding: 10px 20px;
+	font-size: 18px;
+	border-radius: 8;
+	cursor: pointer;
+}
+
+.pp-config {
+	color: #fff;
+	font-size: 18px;
+}
+
+.pp-config-row {
+	margin: 15px 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.pp-config-row--button {
+	justify-content: center;
+	margin-top: 25px;
+}
+
+.pp-config label {
+	min-width: 150px;;
+}
+
+.pp-config input,
+.pp-config select {
+	color: #000;
+	padding: 6px 10px;
+	border-radius: 6px;
+	border: none;
+	background: #f00;
+	font-size: 16px;
+}
+
+.pp-config button {
+	padding: 12px 20px;
+	background: #fc0;
+	color: #000;
+	border-radius: 10px;
+	font-weight: bold;
+	font-size: 18px;
+	cursor: pointer;
+	box-shadow: 0 0 12px rgba(255, 204, 0 , 0.7);
+}
+
+.pp-config button:hover {
+	background-color: #f00;
+}
+
+.on-overflow {
+	overflow: hidden;;
+}
+
+.pp-preview-container {
+	width: 75%;
+	height: 250px;
+	margin-top: 20px;
+	border: 1px solid #aaa;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+#previewCanvas3D {
+	width: 100%;
+	height: 100%;
+	background: black;
+}

@@ -1,3 +1,5 @@
+// /src/main.ts
+
 import { renderNavbar } from "@/components/navbar";
 import {
   renderInitialPage,

@@ -19,7 +19,7 @@
  * }
  */
 export type Route = {
-  linkLabel: string;
+  linkLabel?: string;
   content: string;
   onMount?: () => void | Promise<void>;
   onUnmount?: () => void | Promise<void>;

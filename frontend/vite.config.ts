@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   server: {
-    host: process.env.VITE_HOST,
+    host: process.env.VITE_HOST || "0.0.0.0",
     port: Number(process.env.VITE_PORT),
     // ft_frontendコンテナに直接アクセスして操作するときでもAPIサーバーに繋がるようにする
     proxy: {
@@ -22,4 +22,12 @@ export default defineConfig({
     },
   },
   plugins: [tsconfigPaths(), tailwindcss()],
+	// 新たに加えた部分 by yotsurud
+	optimizeDeps: {
+		exclude: [
+			"@babylonjs/core",
+			"@babylonjs/gui",
+			"@babylonjs/loaders"
+		],
+	},
 });

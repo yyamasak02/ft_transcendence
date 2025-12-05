@@ -1,3 +1,5 @@
+// src/router/router.ts
+
 import { routes } from "./routes";
 import { NotFoundPage } from "@/pages/404";
 
@@ -8,7 +10,8 @@ let currentRoute: string | null = null;
 const renderPage = (route: string) => {
   // 前のページの onUnmount を呼ぶ
   if (currentRoute && routes[currentRoute]?.onUnmount) {
-    routes[currentRoute].onUnmount();
+    routes[currentRoute].onUnmount?.();
+    // routes[currentRoute].onUnmount();
   }
 
   const r = routes[route];
