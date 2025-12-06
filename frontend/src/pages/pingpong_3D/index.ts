@@ -29,8 +29,12 @@ class PingPongComponent implements Component {
 				</div>
 				
 				<div class="pp-config-row">
-					<label>Countdown (ms):</label>
-					<input id="countdown-interval" type="number" min="200" max="2000" value="1000" />
+					<label>CountSpeed:</label>
+					<select id="countdown-interval">
+						<option value="500">fast (✕2)</option>
+						<option value="1000" selected>normal</option>
+						<option value="2000">slow (✕0.5)</option>
+					</select>
 				</div>
 				
 				<div class="pp-config-row">
