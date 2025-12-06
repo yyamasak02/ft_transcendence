@@ -34,29 +34,29 @@
 	cursor: pointer;
 }
 
-.pp-config {
+.pp3d-config {
 	color: #fff;
 	font-size: 18px;
 }
 
-.pp-config-row {
+.pp3d-config-row {
 	margin: 15px 0;
 	display: flex;
 	align-items: center;
 	gap: 10px;
 }
 
-.pp-config-row--button {
+.pp3d-config-row--button {
 	justify-content: center;
 	margin-top: 25px;
 }
 
-.pp-config label {
+.pp3d-config label {
 	min-width: 150px;;
 }
 
-.pp-config input,
-.pp-config select {
+.pp3d-config input,
+.pp3d-config select {
 	color: #000;
 	padding: 6px 10px;
 	border-radius: 6px;
@@ -65,7 +65,7 @@
 	font-size: 16px;
 }
 
-.pp-config button {
+.pp3d-config button {
 	padding: 12px 20px;
 	background: #fc0;
 	color: #000;
@@ -76,7 +76,7 @@
 	box-shadow: 0 0 12px rgba(255, 204, 0 , 0.7);
 }
 
-.pp-config button:hover {
+.pp3d-config button:hover {
 	background-color: #f00;
 }
 

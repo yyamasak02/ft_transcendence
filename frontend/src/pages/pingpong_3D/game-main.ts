@@ -15,8 +15,9 @@ import { handleScoreAndRally } from "./object/ballPaddleUtils";
 import type { GameState } from "./types/game";
 
 const { COURT_WIDTH } = GAME_CONFIG;
-let ball: Ball | null = null;
 let isRunning = false;
+let isPaused = false;
+let ball: Ball | null = null;
 let hud: GameHUD | null = null;
 
 export const gameState: GameState = {
@@ -141,4 +142,16 @@ export function stopPingPongGame() {
 		engine.dispose();
 	}
 	ball = null;
+}
+
+export function resetGame() {
+
+}
+
+export function pauseGame() {
+
+}
+
+export function resumeGame(){
+
 }
