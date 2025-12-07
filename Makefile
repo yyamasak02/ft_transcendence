@@ -31,11 +31,6 @@ up:
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 
-
-buildup:
-	docker compose -f $(COMPOSE_FILE) up -d --build
-	@$(MAKE) urls
-
 # Stop all containers
 down:
 	docker compose -f $(COMPOSE_FILE) down
@@ -43,13 +38,11 @@ down:
 # Build and start all containers
 build:
 	docker compose -f $(COMPOSE_FILE) up -d --build
+	@$(MAKE) urls
 
-init: delete
-	cd backends/common && \
-	npm install && \
-	npm run db:setup && \
-	cd ../../ && \
-	make up
+init: down
+	BE_COM_CMD="sh -c 'npm run db:setup && npm run dev'" \
+	docker compose -f $(COMPOSE_FILE) up -d
 
 # Clean everything
 clean:

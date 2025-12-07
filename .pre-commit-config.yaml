@@ -5,6 +5,7 @@ repos:
       - id: prettier
         files: \.(js|jsx|ts|tsx|json|css|scss|md|yaml|yml)$
         language_version: system
+        fail_fast: false
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v9.38.0
     hooks:
@@ -14,3 +15,4 @@ repos:
           - eslint
           - eslint-config-next
         language_version: system
+        fail_fast: false

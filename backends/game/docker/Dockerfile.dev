@@ -6,10 +6,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-EXPOSE 5173
-
-RUN npm run build
+EXPOSE 8080
 
 ENV TZ=Asia/Tokyo
 
-CMD ["sh", "-c", "npm run start"]
+CMD ["sh", "-c", "npm run dev"]
