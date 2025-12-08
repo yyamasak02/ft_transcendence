@@ -40,9 +40,10 @@ build:
 	docker compose -f $(COMPOSE_FILE) up -d --build
 	@$(MAKE) urls
 
-init: down
+init: delete
 	BE_COM_CMD="sh -c 'npm run db:setup && npm run dev'" \
 	docker compose -f $(COMPOSE_FILE) up -d
+	@$(MAKE) urls
 
 # Clean everything
 clean:

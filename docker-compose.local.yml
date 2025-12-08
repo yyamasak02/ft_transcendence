@@ -31,7 +31,7 @@ services:
       - ./frontend/.env.local
     networks:
       - ft_network
-    command: ${FE_CMD:-}
+    command: ${FE_CMD:-npm run dev}
   be_common:
     build:
       context: ./backends/common
@@ -50,7 +50,7 @@ services:
       - 8080:80
     networks:
       - ft_network
-    command: ${BE_COM_CMD:-}
+    command: ${BE_COM_CMD:-npm run dev}
   be_game:
     build:
       context: ./backends/game
@@ -69,7 +69,7 @@ services:
       - 8081:80
     networks:
       - ft_network
-    command: ${BE_GM_CMD:-}
+    command: ${BE_GM_CMD:-npm run dev}
   be_text_chat:
     build:
       context: ./backends/text_chat
@@ -88,7 +88,7 @@ services:
       - 8082:80
     networks:
       - ft_network
-    command: ${BE_TC_CMD:-}
+    command: ${BE_TC_CMD:-npm run dev}
 networks:
   ft_network:
     driver: bridge
