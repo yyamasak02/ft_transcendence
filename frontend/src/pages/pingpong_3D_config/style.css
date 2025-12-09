@@ -64,3 +64,32 @@
 	height: 100%;
 	background: black;
 }
+
+.pp3d-inline-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pp3d-label {
+	min-width: 100px;
+}
+
+.pp3d-sub-label {
+	margin-left: 50px;
+}
+
+.pp3d-color-select {
+	width: 90px;
+	box-sizing: border-box;
+}
+
+.pp3d-paddle-row {
+	gap: 4px;
+}
+
+.pp3d-length-group {
+	display: flex;
+	align-items: left;
+	gap: 0px;
+}

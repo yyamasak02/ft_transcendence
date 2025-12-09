@@ -18,7 +18,7 @@ class PingPongComponent implements Component {
 					<h2>Ping Pong 3D Settings</h2>
 
 					<div class="pp3d-config-row">
-						<label>Winning Score:</label>
+						<label>Score to Win:</label>
 						<input id="winning-score" type="number" min="1" max="20" value="5" />
 					</div>
 
@@ -27,7 +27,7 @@ class PingPongComponent implements Component {
 						<input id="ball-speed" type="range" min="10" max="100" step="10" value="50" />
 					</div>
 					
-				<div class="pp-config-row">
+				<div class="pp3d-config-row">
 					<label>CountSpeed:</label>
 					<select id="countdown-interval">
 						<option value="500">fast (✕2)</option>
@@ -45,41 +45,41 @@ class PingPongComponent implements Component {
 						</select>
 					</div>
 
-					<div class="pp3d-config-row">
-						<label>Paddle 1 Color: </label>
-						<select id="paddle1-color">
-							<option value="blue">Blue</option>
-							<option value="green">Green</option>
-							<option value="red">Red</option>
-							<option value="yellow">Yellow</option>
-							<option value="white">White</option>
-							<option value="black">Black</option>
-							<option value="pink">Pink</option>
-						</select>
-					</div>
+					<div class="pp3d-config-row pp3d-inline-row">
+							<label class="pp3d-label">Player 1 Color: </label>
+							<select id="paddle1-color" class="pp3d-color-select">
+								<option value="blue">Blue</option>
+								<option value="green">Green</option>
+								<option value="red">Red</option>
+								<option value="yellow">Yellow</option>
+								<option value="white">White</option>
+								<option value="black">Black</option>
+								<option value="pink">Pink</option>
+							</select>
 
-					<div class="pp3d-config-row">
-						<label>-------- Length: </label>
-						<input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
-					</div>
+							<div class="pp3d-length-group">
+								<label class="pp3d-sub-label">Paddle Length: </label>
+								<input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
+							</div>
+						</div>
 
-					<div class="pp3d-config-row">
-						<label>Paddle 2 Color: </label>
-						<select id="paddle2-color">
-							<option value="green">Green</option>
-							<option value="blue">Blue</option>
-							<option value="red">Red</option>
-							<option value="yellow">Yellow</option>
-							<option value="white">White</option>
-							<option value="black">Black</option>
-							<option value="pink">Pink</option>
-						</select>
-					</div>
+						<div class="pp3d-config-row pp3d-inline-row">
+							<label class="pp3d-label">Paddle 2 Color: </label>
+							<select id="paddle2-color" class="pp3d-color-select">
+								<option value="green">Green</option>
+								<option value="blue">Blue</option>
+								<option value="red">Red</option>
+								<option value="yellow">Yellow</option>
+								<option value="white">White</option>
+								<option value="black">Black</option>
+								<option value="pink">Pink</option>
+							</select>
 
-					<div class="pp3d-config-row">
-						<label>-------- Length: </label>
-						<input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
-					</div>
+							<div class="pp3d-length-group">
+								<label class="pp3d-sub-label">Paddle Length: </label>
+								<input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
+							</div>
+						</div>
 
 					<div class="pp-preview-container">
 						<canvas id="previewCanvas3D"></canvas>
