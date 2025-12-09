@@ -20,6 +20,7 @@ export function initDOMRefs() {
 
 // gameData
 export const gameData = {
+	selectedCountdownSpeed: 0,
   player1CharIndex: 0,
   player2CharIndex: 0,
   selectedStageIndex: 0,

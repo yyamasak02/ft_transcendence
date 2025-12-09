@@ -3,7 +3,7 @@ import type { Component } from "@/types/component";
 import type { Routes } from "@/types/routes";
 import { navigate } from "@/router/router";
 import "./style.css";
-import { setBallSpeed, setCountdownInterval, setWinningScore } from "../pingpong_3D/core/constants3D";
+import { setBallSpeed, setWinningScore } from "../pingpong_3D/core/constants3D";
 import { gameData } from "../pingpong_3D/core/data";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
 
@@ -27,10 +27,14 @@ class PingPongComponent implements Component {
 						<input id="ball-speed" type="range" min="10" max="100" step="10" value="50" />
 					</div>
 					
-					<div class="pp3d-config-row">
-						<label>Countdown (ms):</label>
-						<input id="countdown-interval" type="number" min="200" max="2000" value="1000" />
-					</div>
+				<div class="pp-config-row">
+					<label>CountSpeed:</label>
+					<select id="countdown-interval">
+						<option value="500">fast (✕2)</option>
+						<option value="1000" selected>normal</option>
+						<option value="2000">slow (✕0.5)</option>
+					</select>
+				</div>
 					
 					<div class="pp3d-config-row">
 						<label>Stage:</label>
@@ -116,7 +120,7 @@ export const PingPong3DSettingRoute: Routes = {
 			// 入力要素の参照を取る
 			const winningScoreInput	= pp3dConfigRoot.querySelector<HTMLInputElement>("#winning-score");
 			const ballSpeedInput		= pp3dConfigRoot.querySelector<HTMLInputElement>("#ball-speed");
-			const countdownInput		= pp3dConfigRoot.querySelector<HTMLInputElement>("#countdown-interval");
+			const countdownSelect		= pp3dConfigRoot.querySelector<HTMLSelectElement>("#countdown-interval");
 			const stageSelect				= pp3dConfigRoot.querySelector<HTMLSelectElement>("#stage-select");
 
 			const p1LenInput				= pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle1-length");
@@ -149,13 +153,13 @@ export const PingPong3DSettingRoute: Routes = {
 			// Game Start ボタンが押された時
 			if (!startBtn) return;
 			startBtn.addEventListener("click", () => {
-				if (!winningScoreInput || !ballSpeedInput || !countdownInput || !stageSelect ||
+				if (!winningScoreInput || !ballSpeedInput || !countdownSelect || !stageSelect ||
 						!p1LenInput || !p1ColSelect || !p2LenInput || !p2ColSelect) return;
 
 				// Start Game が押された時の設定値を受け取る
 				const winningScore	= Number(winningScoreInput.value);
 				const ballSpeed			= Number(ballSpeedInput.value);
-				const countdown			= Number(countdownInput.value);
+				const countdown			= Number(countdownSelect.value);
 				const stage					= Number(stageSelect.value);
 				const p1Length			= Number(p1LenInput.value);
 				const p1Color				= p1ColSelect.value;
@@ -165,7 +169,8 @@ export const PingPong3DSettingRoute: Routes = {
 				// 入力値を読み取る
 				setWinningScore(winningScore);
 				setBallSpeed(ballSpeed);
-				setCountdownInterval(countdown);
+				// setCountdownInterval(countdown);
+				gameData.selectedCountdownSpeed = countdown;
 				gameData.selectedStageIndex = stage;
 				
 				gameData.paddles.player1.length = p1Length;
