@@ -1,4 +1,4 @@
-// src/game-main.ts　ゲーム本体
+// src/game-main.ts ゲーム本体
 
 import { Vector3, Color4 } from "@babylonjs/core";
 import { initDOMRefs, canvas, engine, scene } from "./core/data";

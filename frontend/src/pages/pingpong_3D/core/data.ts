@@ -1,4 +1,8 @@
 // src/core/data.ts
+/**
+ * ゲーム全体で共有する Babylon の実行コンテキスト。
+ * 設定値ではなく、DOM 初期化後に生成されるオブジェクトへの参照を持つ。
+ */
 import { Engine, Scene} from "@babylonjs/core";
 
 export let canvas: HTMLCanvasElement;

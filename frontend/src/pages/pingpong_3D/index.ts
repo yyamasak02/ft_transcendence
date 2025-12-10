@@ -1,4 +1,4 @@
-// pingpong_3D/index.ts　ルーティングと設定画面
+// pingpong_3D/index.ts ルーティングと設定画面
 import type { Routes } from "@/types/routes";
 import * as PingPong3DGame from "./game-main";
 import { PingPong3DGameView } from "./game-view";

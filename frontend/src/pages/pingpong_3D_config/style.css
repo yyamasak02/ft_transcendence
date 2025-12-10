@@ -18,7 +18,7 @@
 }
 
 .pp3d-config label {
-	min-width: 150px;;
+	min-width: 150px;
 }
 
 .pp3d-config input,
@@ -47,7 +47,7 @@
 }
 
 .on-overflow {
-	overflow: hidden;;
+	overflow: hidden;
 }
 
 .pp-preview-container {

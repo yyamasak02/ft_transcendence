@@ -1,4 +1,4 @@
-// pingpong_3D_config/index.ts　ルーティングと設定画面
+// pingpong_3D_config/index.ts ルーティングと設定画面
 import type { Component } from "@/types/component";
 import type { Routes } from "@/types/routes";
 import { navigate } from "@/router/router";
@@ -136,7 +136,7 @@ export const PingPong3DSettingRoute: Routes = {
 				const p2Len			= Number(p2LenInput.value);
 				const p2Col			= p2ColSelect.value;
 				const stageIdx	= Number(stageSelect.value);
-				preview!.updatePreview(p1Len, p1Col, p2Len, p2Col, stageIdx);
+				preview.updatePreview(p1Len, p1Col, p2Len, p2Col, stageIdx);
 			};
 
 			// 入力更新時にプレビューを更新する
