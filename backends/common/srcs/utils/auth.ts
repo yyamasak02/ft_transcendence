@@ -165,3 +165,56 @@ export async function verifyUserCredentials(
 
   return user;
 }
+
+type GoogleTokenInfoResponse = {
+  aud: string;
+  sub: string;
+  email?: string;
+  email_verified?: string | boolean;
+  name?: string;
+  picture?: string;
+};
+
+export type GoogleProfile = {
+  sub: string;
+  email?: string;
+  name?: string;
+  picture?: string;
+  emailVerified: boolean;
+};
+
+export async function verifyGoogleIdToken(
+  idToken: string,
+  clientId: string,
+): Promise<GoogleProfile | null> {
+  try {
+    const url = new URL("https://oauth2.googleapis.com/tokeninfo");
+    url.searchParams.set("id_token", idToken);
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      return null;
+    }
+
+    const payload = (await res.json()) as GoogleTokenInfoResponse;
+
+    if (!payload.sub || payload.aud !== clientId) {
+      return null;
+    }
+
+    const emailVerified =
+      typeof payload.email_verified === "string"
+        ? payload.email_verified === "true"
+        : Boolean(payload.email_verified);
+
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture,
+      emailVerified,
+    };
+  } catch (error) {
+    return null;
+  }
+}

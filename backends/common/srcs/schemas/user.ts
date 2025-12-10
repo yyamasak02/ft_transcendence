@@ -28,6 +28,13 @@ export const loginSuccessSchema = Type.Object({
   longTermToken: Type.Optional(Type.String()),
 });
 
+export const googleLoginBodySchema = Type.Object({
+  idToken: Type.String({ minLength: 1 }),
+  longTerm: Type.Optional(Type.Boolean()),
+});
+
+export type GoogleLoginBody = Static<typeof googleLoginBodySchema>;
+
 export const userIdentifierSchema = Type.Object({
   puid: Type.String({ minLength: 1 }),
 });

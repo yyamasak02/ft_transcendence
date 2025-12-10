@@ -15,6 +15,7 @@ import {
   findUserByPuid,
   findUserByName,
   generatePuid,
+  verifyGoogleIdToken,
 } from "../../../utils/auth.js";
 import {
   deleteUserBodySchema,
@@ -34,6 +35,7 @@ import {
   userInformationResponseSchema,
   puidLookupQuerySchema,
   puidLookupResponseSchema,
+  googleLoginBodySchema,
 } from "../../../schemas/user.js";
 import type {
   DeleteUserBody,
@@ -46,6 +48,7 @@ import type {
   UserBlockBody,
   UserIdentifier,
   PuidLookupQuery,
+  GoogleLoginBody,
 } from "../../../schemas/user.js";
 
 export default async function (fastify: FastifyInstance) {
@@ -141,6 +144,109 @@ export default async function (fastify: FastifyInstance) {
 
       let longTermToken: string | undefined;
       if (longTerm) {
+        const issued = await issueLongTermToken(fastify, user.id);
+        longTermToken = issued.token;
+      }
+
+      return {
+        ...tokens,
+        ...(longTermToken ? { longTermToken } : {}),
+      };
+    },
+  );
+
+  f.post<{ Body: GoogleLoginBody }>(
+    "/user/google_login",
+    {
+      schema: {
+        tags: ["User"],
+        body: googleLoginBodySchema,
+        response: {
+          200: loginSuccessSchema,
+          401: errorResponseSchema,
+          409: errorResponseSchema,
+          500: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        reply.code(500);
+        return { message: "GOOGLE_CLIENT_ID is not configured." };
+      }
+
+      const googleProfile = await verifyGoogleIdToken(
+        request.body.idToken,
+        clientId,
+      );
+
+      if (!googleProfile) {
+        reply.code(401);
+        return { message: "Invalid Google ID token." };
+      }
+
+      // email が検証済みならそれを優先し、無ければ sub を使って衝突を避ける
+      const canonicalName =
+        googleProfile.email && googleProfile.emailVerified
+          ? googleProfile.email
+          : `google:${googleProfile.sub}`;
+
+      let user = await findUserByName(fastify, canonicalName);
+
+      if (!user) {
+        const placeholderPassword = "";
+        const placeholderSalt = "";
+
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const puid = generatePuid();
+          try {
+            await fastify.db.run(
+              "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
+              canonicalName,
+              placeholderPassword,
+              placeholderSalt,
+              puid,
+            );
+            break;
+          } catch (error) {
+            if (
+              error instanceof Error &&
+              /UNIQUE constraint failed: users\.name/.test(error.message)
+            ) {
+              reply.code(409);
+              return { message: "User already exists." };
+            }
+
+            if (
+              error instanceof Error &&
+              /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
+                error.message,
+              )
+            ) {
+              continue;
+            }
+
+            throw error;
+          }
+        }
+
+        user = await findUserByName(fastify, canonicalName);
+      }
+
+      if (!user) {
+        reply.code(500);
+        return { message: "Failed to provision user." };
+      }
+
+      const tokens = await issueTokens(fastify, {
+        id: user.id,
+        puid: user.puid,
+        name: user.name,
+      });
+
+      let longTermToken: string | undefined;
+      if (request.body.longTerm) {
         const issued = await issueLongTermToken(fastify, user.id);
         longTermToken = issued.token;
       }
