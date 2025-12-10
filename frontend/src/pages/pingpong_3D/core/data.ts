@@ -19,5 +19,4 @@ export function initDOMRefs() {
 
 	engine = new Engine(canvas, true);
   scene = new Scene(engine);
-  window.addEventListener("resize", () => { engine.resize(); });
 }

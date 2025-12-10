@@ -182,6 +182,10 @@ export const PingPong3DSettingRoute: Routes = {
 			});
     },
     onUnmount: () => {
+			if (preview) {
+				preview.dispose();
+				preview = null;
+			}
       document.body.classList.remove("pingpong-page");
       document.body.classList.remove("overflow-hidden");
       document.documentElement.classList.remove("overflow-hidden");

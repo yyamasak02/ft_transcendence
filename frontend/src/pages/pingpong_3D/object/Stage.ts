@@ -14,6 +14,7 @@ import { Ball } from "./Ball";
 import { createCourtMaterial } from "./materials/courtMaterial";
 import { setupCameraForMobile } from "./stageControl/cameraControl";
 import { createMainLight, createShadowLight, createGlowLayer } from "./stageControl/lightControl";
+import type { GameSettings } from "../core/gameSettings";
 
 // ============================================
 // Stage クラス
@@ -30,7 +31,9 @@ export class Stage {
 		canvas: HTMLCanvasElement,
 		paddle1: Paddle,
 		paddle2: Paddle,
-		ball: Ball) {
+		ball: Ball,
+		settings: GameSettings
+	) {
 		const { COURT_WIDTH, COURT_HEIGHT } = GAME_CONFIG;
 		
 		// Court
@@ -39,7 +42,7 @@ export class Stage {
 			{ width: COURT_WIDTH, height: COURT_HEIGHT },
 			scene
 		);
-		this.court.material = createCourtMaterial(scene);
+		this.court.material = createCourtMaterial(scene, settings);
 
 		// camera
 		this.camera = new ArcRotateCamera(

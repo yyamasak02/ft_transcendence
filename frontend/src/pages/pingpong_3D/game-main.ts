@@ -7,7 +7,7 @@ import { Ball } from "./object/Ball";
 import { Paddle, createPaddles } from "./object/Paddle";
 import { Stage } from "./object/Stage";
 import { checkPaddleCollision, countdownAndServe } from "./object/ballPaddleUtils";
-import { setupKeyboardListener, getPaddleInputs } from "./input/keyboard";
+import { setupKeyboardListener, cleanupKeyboardListener, getPaddleInputs } from "./input/keyboard";
 import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
 import type { GameState } from "./types/game";
@@ -71,7 +71,7 @@ export function startGame() {
 
 	// ball作成
 	const initialBallPos = new Vector3(0, 1, 0);
-	ball = new Ball(scene, initialBallPos);
+	ball = new Ball(scene, initialBallPos, settings.ballSpeed);
 	ball.stop();
 	ball.velocity = new Vector3(0, 0, 0);
 	ball.reset("center", paddle1, paddle2);
@@ -81,7 +81,7 @@ export function startGame() {
 	}, 0);
 	
 	// stage作成
-	stage = new Stage(scene, canvas, paddle1, paddle2, ball);
+	stage = new Stage(scene, canvas, paddle1, paddle2, ball, settings);
 	
 	// display作成
 	hud.setScore(p1Score, p2Score);
@@ -178,6 +178,9 @@ export function stopGame() {
 	p1Score = 0;
 	p2Score = 0;
 
+	// keyboardListenerの解除
+	cleanupKeyboardListener();
+
 	// hudの破棄
 	if (hud) {
 		if (hud.plane && !hud.plane.isDisposed()) hud.plane.dispose();
@@ -216,9 +219,9 @@ export function resetGame() {
 	if (hud) hud.setScore(0, 0);
 	// パドルを作り直す
 	if (paddle1 && paddle2) {
+		const { p1, p2 } = createPaddles(scene, settings);
 		paddle1.mesh.dispose();
 		paddle2.mesh.dispose();
-		const { p1, p2 } = createPaddles(scene, settings);
 		paddle1 = p1;
 		paddle2 = p2;
 	}

@@ -1,11 +1,9 @@
 // pingpong_3D/object/materials/courtMaterial.ts
 import { Scene, StandardMaterial, Color3 } from "@babylonjs/core";
-// import { gameData } from "../../core/data";
-import { loadSettings } from "../../core/gameSettings";
+import type { GameSettings } from "../../core/gameSettings";
 
-export function createCourtMaterial(scene: Scene) {
+export function createCourtMaterial(scene: Scene, settings: GameSettings) {
 	const mat = new StandardMaterial("courtMat", scene);
-	const settings = loadSettings()
 
 	switch (settings.selectedStageIndex) {
 		case 0:

@@ -18,7 +18,7 @@ export const PingPong3DGameRoute: Routes = {
 			const nav = document.getElementById("nav");
 			if (nav) nav.style.display = "none";
 			
-			// ゲーム最初期化
+			// ゲーム初期化
 			PingPong3DGame.stopGame();
 			PingPong3DGame.startGame();
 			
