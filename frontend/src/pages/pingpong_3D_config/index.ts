@@ -3,8 +3,7 @@ import type { Component } from "@/types/component";
 import type { Routes } from "@/types/routes";
 import { navigate } from "@/router/router";
 import "./style.css";
-import { setBallSpeed, setWinningScore } from "../pingpong_3D/core/constants3D";
-import { gameData } from "../pingpong_3D/core/data";
+import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
 
 let preview: PreviewScene | null = null;
@@ -167,16 +166,16 @@ export const PingPong3DSettingRoute: Routes = {
 				const p2Color				= p2ColSelect.value;
 
 				// 入力値を読み取る
-				setWinningScore(winningScore);
-				setBallSpeed(ballSpeed);
-				// setCountdownInterval(countdown);
-				gameData.selectedCountdownSpeed = countdown;
-				gameData.selectedStageIndex = stage;
-				
-				gameData.paddles.player1.length = p1Length;
-				gameData.paddles.player1.color = p1Color;
-				gameData.paddles.player2.length = p2Length;
-				gameData.paddles.player2.color = p2Color;
+				saveSettings({
+					winningScore,
+					ballSpeed,
+					selectedCountdownSpeed: countdown,
+					selectedStageIndex: stage,
+					player1Color: p1Color,
+					player1Length: p1Length,
+					player2Color: p2Color,
+					player2Length: p2Length
+					});
 
 				// ゲーム開始
 				navigate("/pingpong_3D");

@@ -1,14 +1,13 @@
 // pingpong_3D/object/ballPaddleUtils.ts　// game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GAME_CONFIG, getWinningScore } from "../core/constants3D";
-import type { Ball, ScoreResult } from "./Ball";
+import { GAME_CONFIG } from "../core/constants3D";
+import { loadSettings, type GameSettings } from "../core/gameSettings";
+import type { Ball } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";
-import { gameData } from "../core/data";
 import type { GameState } from "../types/game";
 
 const {
-	// PADDLE_LENGTH,
 	PADDLE_THICKNESS,
 	BALL_RADIUS,
 } = GAME_CONFIG;
@@ -79,6 +78,7 @@ export async function countdownAndServe(
 	paddle2: Paddle,
 	gameState: GameState,
 	hud: GameHUD,
+	settings: GameSettings
 ) {
 	gameState.isServing = true;
 	gameState.rallyActive = false;
@@ -86,7 +86,8 @@ export async function countdownAndServe(
 	ball.stop();
 	ball.reset(startFrom, paddle1, paddle2);
 
-	const countdownInterval = gameData.selectedCountdownSpeed;
+	// const countdownInterval = gameData.selectedCountdownSpeed;
+	const countdownInterval = settings.selectedCountdownSpeed;
 	hud.setCountdown("3");
 	await delay(countdownInterval);
 	hud.setCountdown("2");
@@ -99,48 +100,4 @@ export async function countdownAndServe(
 	
 	gameState.isServing = false;
 	gameState.rallyActive = true;
-}
-
-// ラリー & スコア
-export function handleScoreAndRally(
-	result: ScoreResult,
-	ball: Ball,
-	paddle1: Paddle,
-	paddle2: Paddle,
-	gameState: GameState,
-	hud: GameHUD,
-	endGame: (hud: GameHUD, winner: 1 | 2) => void
-): void {
-	if (!result) return;
-	
-	const scorer = result.scorer;
-
-	// ラリー停止
-	gameState.rallyActive = false;
-	
-	// スコア更新
-	if (scorer === 1) {
-		gameData.paddles.player1.score++;
-		gameState.rallyActive = false;
-		gameState.lastWinner = 1;
-	} else {
-		gameData.paddles.player2.score++;
-		gameState.rallyActive = false;
-		gameState.lastWinner = 2;
-	}
-	hud.setScore(gameData.paddles.player1.score, gameData.paddles.player2.score);
-	
-	// ゲーム終了判定
-	const winningScore = getWinningScore();
-	if (gameData.paddles.player1.score >= winningScore) {
-		endGame(hud, 1);
-		return;
-	}
-	if (gameData.paddles.player2.score >= winningScore) {
-		endGame(hud, 2);
-		return;
-	}
-	
-	// 次のサーブ
-	countdownAndServe(scorer, ball, paddle1, paddle2, gameState, hud);
 }

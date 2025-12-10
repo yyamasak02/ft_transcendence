@@ -1,6 +1,7 @@
 // pingpong_3D/object/Ball.ts
 import { Mesh, MeshBuilder, Vector3, Scene } from "@babylonjs/core";
-import { getBallSpeed, GAME_CONFIG } from "../core/constants3D"; 
+import { GAME_CONFIG } from "../core/constants3D";
+import { loadSettings } from "../core/gameSettings"; 
 import { Paddle } from "./Paddle"
 import { createBallMaterial } from "./materials/ballMaterial";
 
@@ -17,6 +18,9 @@ const {
 	PADDLE_THICKNESS,
 	BALL_RADIUS,
 } = GAME_CONFIG;
+
+const settings = loadSettings();
+const BALL_SPEED = settings.ballSpeed;
 
 // ============================================
 // Ball クラス
@@ -86,7 +90,8 @@ function updateBallImp(
 	}
 
 	// 移動処理
-	const dt = (deltaTime / 1000) * getBallSpeed(); // ballスピードを決める部分
+	// const dt = (deltaTime / 1000) * getBallSpeed(); // ballスピードを決める部分
+	const dt = (deltaTime / 1000) * BALL_SPEED; // ballスピードを決める部分
 	ball.mesh.position.x += ball.velocity.x * dt;
 	ball.mesh.position.z += ball.velocity.z * dt;
 	// paddle1

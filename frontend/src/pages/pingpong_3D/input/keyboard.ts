@@ -1,14 +1,20 @@
 // pingpong_3D/input/keyboard.ts
-import { gameData, engine } from "../core/data";
+import { engine } from "../core/data";
 import type { PaddleInput } from "../object/Paddle";
 
+const keysPressed: Record<string, boolean> = {};
+let isSetup = false;
+
 export function setupKeyboardListener() {
+	if (isSetup) return;
+
+	isSetup = true;
 	document.addEventListener("keydown", (e) => {
-		gameData.keysPressed[e.key] = true;
+		keysPressed[e.key] = true;
 	});
 
 	document.addEventListener("keyup", (e) => {
-		gameData.keysPressed[e.key] = false;
+		keysPressed[e.key] = false;
 	});
 	
 	// スマホ用画面のリサイズ
@@ -21,12 +27,12 @@ export function setupKeyboardListener() {
 export function getPaddleInputs(): { p1: PaddleInput; p2: PaddleInput } {
 	return {
 		p1: {
-			up: gameData.keysPressed["w"],
-			down: gameData.keysPressed["s"],
+			up: keysPressed["w"],
+			down: keysPressed["s"],
 		},
 		p2: {
-			up: gameData.keysPressed["ArrowUp"],
-			down: gameData.keysPressed["ArrowDown"],
+			up: keysPressed["ArrowUp"],
+			down: keysPressed["ArrowDown"],
 		},
 	};
 }

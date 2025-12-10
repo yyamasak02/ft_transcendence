@@ -1,20 +1,18 @@
 // src/game-main.ts　ゲーム本体
 
 import { Vector3, Color4 } from "@babylonjs/core";
-import { initDOMRefs, gameData, canvas, engine, scene } from "./core/data";
-import { GAME_CONFIG } from "./core/constants3D";
+import { initDOMRefs, canvas, engine, scene } from "./core/data";
+import { loadSettings } from "./core/gameSettings";
 import { Ball } from "./object/Ball";
-import { Paddle } from "./object/Paddle";
+import { Paddle, createPaddles } from "./object/Paddle";
 import { Stage } from "./object/Stage";
-import { createPaddleMaterial } from "./object/materials/paddleMaterial";
 import { checkPaddleCollision, countdownAndServe } from "./object/ballPaddleUtils";
 import { setupKeyboardListener, getPaddleInputs } from "./input/keyboard";
 import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
-import { handleScoreAndRally } from "./object/ballPaddleUtils";
 import type { GameState } from "./types/game";
 
-const { COURT_WIDTH } = GAME_CONFIG;
+let settings = loadSettings();
 let isRunning = false;
 let isPaused = false;
 
@@ -23,6 +21,8 @@ let paddle1: Paddle | null = null;
 let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
+let p1Score = 0;
+let p2Score = 0;
 
 export const gameState: GameState = {
 	phase: "menu",
@@ -30,6 +30,8 @@ export const gameState: GameState = {
 	isServing: false,
 	lastWinner: null,
 };
+
+export function reloadSettings() { settings = loadSettings(); }
 
 // ============================================
 // ゲーム本体
@@ -40,9 +42,10 @@ export function startGame() {
 		console.log("startGame called but game is already running");
 		return;
 	}
-
+	
 	// ===== 各種初期化 ========================
-
+	
+	reloadSettings();
 	isRunning = true;
   initDOMRefs();
 	const canvasEl = document.getElementById("gameCanvas3D");
@@ -56,39 +59,32 @@ export function startGame() {
 	
 	gameState.phase = "game";
 	gameState.rallyActive = false;
-	gameData.paddles.player1.score = 0;
-	gameData.paddles.player2.score = 0;
-	
+	p1Score = 0;
+	p2Score = 0;
+
   scene.clearColor = new Color4(0, 0, 0, 0.5);
 
-  // Player1
-	const p1Length = gameData.paddles.player1.length;
-	const p1Color = gameData.paddles.player1.color;
-	paddle1 = new Paddle(scene, new Vector3(COURT_WIDTH / 2 - 1, 1, 0), p1Length);
-	paddle1.mesh.material = createPaddleMaterial("p1", p1Color, scene);
-  // Player2
-	const p2Length = gameData.paddles.player2.length;
-	const p2Color = gameData.paddles.player2.color;
-	paddle2 = new Paddle(scene, new Vector3(-(COURT_WIDTH / 2 - 1), 1, 0), p2Length);
-	paddle2.mesh.material = createPaddleMaterial("p2", p2Color, scene);
+	// paddle作成
+	const { p1, p2 } = createPaddles(scene, settings);
+	paddle1 = p1;
+	paddle2 = p2;
 
-	// Ball
+	// ball作成
 	const initialBallPos = new Vector3(0, 1, 0);
 	ball = new Ball(scene, initialBallPos);
-	// ball = gameBall;
 	ball.stop();
 	ball.velocity = new Vector3(0, 0, 0);
 	ball.reset("center", paddle1, paddle2);
 	setTimeout(() => {
 		if (!scene || scene.isDisposed || !hud || !ball || !paddle1 || !paddle2) return;
-		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud);
+		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud, settings);
 	}, 0);
 	
-	// Stage
+	// stage作成
 	stage = new Stage(scene, canvas, paddle1, paddle2, ball);
 	
-	// Display
-	hud.setScore(gameData.paddles.player1.score, gameData.paddles.player2.score);
+	// display作成
+	hud.setScore(p1Score, p2Score);
 
   // ===== 描画ループ開始 ========================
 
@@ -103,7 +99,7 @@ export function startGame() {
 				paddle2.update(deltaTime, p2);
 				// ラリー &　スコア
 				const result = ball.update(deltaTime, paddle1, paddle2, gameState,checkPaddleCollision);
-				if (hud) handleScoreAndRally(result, ball, paddle1, paddle2, gameState, hud, endGame);
+				if (result && hud) onScore(result.scorer, ball, paddle1, paddle2, hud, gameState);
 			}
 		}
     scene.render();
@@ -114,6 +110,39 @@ export function startGame() {
 // ============================================
 // 内部実装部
 // ============================================
+
+// スコア更新部分
+export function onScore(
+	scorer: 1 | 2,
+	ball: Ball,	
+	paddle1: Paddle,
+	paddle2: Paddle,
+	hud: GameHUD,
+	gameState: GameState
+) {
+	reloadSettings();
+	const winningScore = settings.winningScore;
+
+	if (scorer === 1) {
+		p1Score++;
+		gameState.lastWinner = 1;
+	} else {
+		p2Score++;
+		gameState.lastWinner = 2;
+	}
+	hud.setScore(p1Score, p2Score);
+
+	if (p1Score >= winningScore) {
+		endGame(hud, 1);
+		return;
+	}
+	if (p2Score >= winningScore) {
+		endGame(hud, 2);
+		return;
+	}
+
+	countdownAndServe(gameState.lastWinner, ball, paddle1, paddle2, gameState, hud, settings);
+}
 
 // ゲーム終了
 export function endGame(hub: GameHUD, winner: 1 | 2) {
@@ -146,8 +175,8 @@ export function stopGame() {
 	gameState.isServing = false;
 	gameState.lastWinner = null;
 
-	gameData.paddles.player1.score = 0;
-	gameData.paddles.player2.score = 0;
+	p1Score = 0;
+	p2Score = 0;
 
 	// hudの破棄
 	if (hud) {
@@ -173,27 +202,25 @@ export function resetGame() {
 	console.log("resetGame called");
 
 	if (!isRunning || !scene || scene.isDisposed) return;
-	
+
+	reloadSettings();
 	isPaused = false;
 	gameState.phase = "game";
 	gameState.rallyActive = false;
 	gameState.isServing = false;
 	gameState.lastWinner = null;
-	gameData.paddles.player1.score = 0;
-	gameData.paddles.player2.score = 0;
+	p1Score = 0;
+	p2Score = 0;
 
 	// スコアを戻す
 	if (hud) hud.setScore(0, 0);
 	// パドルを作り直す
-	if (paddle1) {
-		paddle1.mesh.position = new Vector3(COURT_WIDTH / 2 - 1, 1, 0);
-		const p1Color = gameData.paddles.player1.color;
-		paddle1.mesh.material = createPaddleMaterial("p1", p1Color, scene);
-	}
-	if (paddle2) {
-		paddle2.mesh.position = new Vector3(-(COURT_WIDTH / 2 - 1), 1, 0);
-		const p2Color = gameData.paddles.player2.color;
-		paddle2.mesh.material = createPaddleMaterial("p2", p2Color, scene);
+	if (paddle1 && paddle2) {
+		paddle1.mesh.dispose();
+		paddle2.mesh.dispose();
+		const { p1, p2 } = createPaddles(scene, settings);
+		paddle1 = p1;
+		paddle2 = p2;
 	}
 	// ボールをセンターへ
 	if (ball && paddle1 && paddle2) {
@@ -203,7 +230,7 @@ export function resetGame() {
 	}
 	// センターからカウントダウンスタート
 	if (hud && ball && paddle1 && paddle2) {
-		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud);
+		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud, settings);
 	}
 }
 

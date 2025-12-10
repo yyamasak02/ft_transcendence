@@ -17,16 +17,3 @@ export function initDOMRefs() {
   scene = new Scene(engine);
   window.addEventListener("resize", () => { engine.resize(); });
 }
-
-// gameData
-export const gameData = {
-	selectedCountdownSpeed: 0,
-  player1CharIndex: 0,
-  player2CharIndex: 0,
-  selectedStageIndex: 0,
-	paddles: {
-		player1: { score: 0, length: 8, color: "#00ff00" },
-		player2: { score: 0, length: 8, color: "#ff0000" }
-	},
-  keysPressed: {} as { [key: string]: boolean },
-};

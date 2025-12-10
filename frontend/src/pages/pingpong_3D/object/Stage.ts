@@ -14,7 +14,6 @@ import { Ball } from "./Ball";
 import { createCourtMaterial } from "./materials/courtMaterial";
 import { setupCameraForMobile } from "./stageControl/cameraControl";
 import { createMainLight, createShadowLight, createGlowLayer } from "./stageControl/lightControl";
-import { resetCamera } from "../game-main";
 
 // ============================================
 // Stage クラス
