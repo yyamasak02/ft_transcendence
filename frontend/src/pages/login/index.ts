@@ -1,6 +1,8 @@
 import type { Route } from "@/types/routes";
 
-// TODO ログイン機能を実装する
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
+const API_BASE = "/api/common";
+
 class LoginComponent {
   render = () => {
     return `
@@ -48,15 +50,86 @@ class LoginComponent {
                     Enter
                 </button>
                 </form>
+                <div class="mt-6 border-t border-gray-600 pt-4">
+                  <div id="google-btn" class="flex justify-center"></div>
+                  <p id="google-msg" class="text-xs text-green-300 mt-3 whitespace-pre-wrap"></p>
+                </div>
             </div>
             </div>
         `;
   };
 }
 
+const setGoogleMsg = (message: string) => {
+  const el = document.querySelector<HTMLParagraphElement>("#google-msg");
+  if (el) el.textContent = message;
+};
+
+const loadGsi = () =>
+  new Promise<typeof globalThis.google | null>((resolve, reject) => {
+    if (globalThis.google?.accounts?.id) {
+      resolve(globalThis.google);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(globalThis.google ?? null);
+    script.onerror = () => reject(new Error("Failed to load Google Identity Services"));
+    document.head.appendChild(script);
+  });
+
+const handleGoogleCredential = async (credential: string) => {
+  setGoogleMsg("Googleログインを処理中...");
+  try {
+    const res = await fetch(`${API_BASE}/user/google_login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken: credential, longTerm: true }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setGoogleMsg(body?.message ?? `Google login failed (status ${res.status})`);
+      return;
+    }
+    setGoogleMsg("Googleログインに成功しました。");
+  } catch (error) {
+    setGoogleMsg(`Googleログイン中にエラーが発生しました: ${error}`);
+  }
+};
+
+const setupGoogleLogin = async () => {
+  if (!GOOGLE_CLIENT_ID) {
+    setGoogleMsg("環境変数 VITE_GOOGLE_CLIENT_ID が設定されていません。");
+    return;
+  }
+  const google = await loadGsi().catch((err) => {
+    setGoogleMsg(`Googleスクリプトの読み込みに失敗しました: ${err}`);
+    return null;
+  });
+  if (!google?.accounts?.id) return;
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: ({ credential }) => {
+      if (credential) handleGoogleCredential(credential);
+    },
+  });
+  google.accounts.id.renderButton(document.getElementById("google-btn"), {
+    theme: "outline",
+    size: "large",
+    type: "standard",
+    text: "continue_with",
+  });
+  google.accounts.id.prompt();
+};
+
 export const LoginRoute: Record<string, Route> = {
   "/login": {
     linkLabel: "Login",
     content: new LoginComponent().render(),
+    onMount: setupGoogleLogin,
+    head: { title: "Login" },
   },
 };
