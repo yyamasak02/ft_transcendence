@@ -45,17 +45,21 @@ export const PingPong3DGameRoute: Routes = {
 				navigate("/pingpong_3D_config");
 			});
 			btnPause?.addEventListener("click", () => {
+				// if (PingPong3DGame.gameState.uiLocked) return;
 				PingPong3DGame.pauseGame();
 			});
 			btnResume?.addEventListener("click", () => {
+				// if (PingPong3DGame.gameState.uiLocked) return;
 				PingPong3DGame.resumeGame();
 			});
 			btnReset?.addEventListener("click", () => {
+				if (PingPong3DGame.gameState.resetLocked) return;
 				PingPong3DGame.resetGame();
-			})
+			});
 			btnCameraReset?.addEventListener("click", () => {
+				// if (PingPong3DGame.gameState.uiLocked) return;
 				PingPong3DGame.resetCamera();
-			})
+			});
 		},
 		onUnmount: () => {
 			document.body.classList.remove("game-body");

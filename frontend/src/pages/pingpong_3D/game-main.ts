@@ -29,6 +29,8 @@ export const gameState: GameState = {
 	rallyActive: true,
 	isServing: false,
 	lastWinner: null,
+	resetLocked: false,
+	countdownID: 0,
 };
 
 export function reloadSettings() { settings = loadSettings(); }
@@ -44,6 +46,8 @@ export function startGame() {
 	}
 	
 	// ===== 各種初期化 ========================
+	
+	gameState.resetLocked = false;
 	
 	reloadSettings();
 	isRunning = true;
@@ -77,7 +81,7 @@ export function startGame() {
 	ball.reset("center", paddle1, paddle2);
 	setTimeout(() => {
 		if (!scene || scene.isDisposed || !hud || !ball || !paddle1 || !paddle2) return;
-		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud, settings);
+		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud, settings, UILockController);
 	}, 0);
 	
 	// stage作成
@@ -141,13 +145,18 @@ export function onScore(
 		return;
 	}
 
-	countdownAndServe(gameState.lastWinner, ball, paddle1, paddle2, gameState, hud, settings);
+	countdownAndServe(gameState.lastWinner, ball, paddle1, paddle2, 
+									  gameState, hud, settings, UILockController);
 }
 
 // ゲーム終了
 export function endGame(hub: GameHUD, winner: 1 | 2) {
 	console.log("Game Over");
+
+	gameState.countdownID++;
 	gameState.phase = "gameover";
+	UILockController.lock();
+
 	isRunning = false;
 	isPaused = false;
 
@@ -204,7 +213,9 @@ export function stopGame() {
 export function resetGame() {
 	console.log("resetGame called");
 
-	if (!isRunning || !scene || scene.isDisposed) return;
+	if (!isRunning || !scene || scene.isDisposed || gameState.resetLocked ) return;
+
+	gameState.countdownID++;
 
 	reloadSettings();
 	isPaused = false;
@@ -233,8 +244,31 @@ export function resetGame() {
 	}
 	// センターからカウントダウンスタート
 	if (hud && ball && paddle1 && paddle2) {
-		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud, settings);
+		countdownAndServe("center", ball, paddle1, paddle2, gameState, hud, settings, UILockController);
 	}
+}
+
+// リセット無効化
+const UILockController = {
+	lock() {
+		gameState.resetLocked = true;
+		updateUIButtons();
+	},
+	unlock() { 
+		gameState.resetLocked = false; 
+		updateUIButtons(); 
+	},
+};
+
+function updateUIButtons() {
+	const gameRoot = document.getElementById("pingpong-3d-root") as HTMLElement | null;
+	if (!gameRoot) return;
+	const btnReset = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-reset");
+	if (!btnReset) return;
+
+	const locked = gameState.resetLocked;
+	btnReset.disabled = locked;
+	btnReset.classList.toggle("btn-disabled", locked);	
 }
 
 // ゲーム一時停止

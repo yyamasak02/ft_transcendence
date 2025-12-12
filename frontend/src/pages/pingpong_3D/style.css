@@ -39,4 +39,25 @@ html, body {
 	border: 1px solid #ccc;
 	background: #f77001;
 	cursor: pointer;
+
+	transition:
+		box-shadow 0.15s ease,
+		border-color 0.15s ease,
+		transform 0.1s ease,
+		background-color 0.15s ease;
+}
+
+#btn-3d-reset.btn-disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+button:not(.btn-disabled):hover {
+	border-color: #00e5ff;
+	box-shadow: 
+		0 0 6px rgba(0, 229, 255, 0.8),
+		0 0 12px rgba(0, 229, 255, 0.5);
+	background: rgba(30, 30, 30, 0.95);
+	transform: translateY(-1px);
 }

@@ -12,6 +12,11 @@ const {
 	BALL_RADIUS,
 } = GAME_CONFIG;
 
+export type UILockController = {
+	lock: () => void;
+	unlock: () => void; 
+};
+
 // 衝突判定
 export function checkPaddleCollision(ballMesh: Mesh, paddle: Paddle): boolean {
 	const r = BALL_RADIUS;
@@ -70,6 +75,25 @@ function delay(ms: number): Promise<void> {
 	});
 }
 
+async function delayWithPause(ms: number, gameState: GameState, isCanceled: () => boolean): Promise<boolean> {
+	let elapsed = 0;
+	const tick = 50;
+
+	while (elapsed < ms) {
+		if (isCanceled()) return true;
+		if (gameState.phase !== "pause") elapsed += tick;
+		await delay(tick);
+	}
+	return false;
+}
+
+function cancelCountdown(gameState: GameState, hud: GameHUD, ui: UILockController) {
+	hud.clearCountdown();
+	gameState.isServing = false;
+	gameState.rallyActive = false;
+	ui.unlock();
+}
+
 // カウントダウン & サーブ
 export async function countdownAndServe(
 	startFrom: "center" | 1 | 2,
@@ -78,26 +102,45 @@ export async function countdownAndServe(
 	paddle2: Paddle,
 	gameState: GameState,
 	hud: GameHUD,
-	settings: GameSettings
+	settings: GameSettings,
+	ui: UILockController
 ) {
+	const countdownID = ++gameState.countdownID;
+	
 	gameState.isServing = true;
 	gameState.rallyActive = false;
 
+	ui.lock();
+	
 	ball.stop();
 	ball.reset(startFrom, paddle1, paddle2);
-
-	// const countdownInterval = gameData.selectedCountdownSpeed;
-	const countdownInterval = settings.selectedCountdownSpeed;
+	
+	const interval = settings.selectedCountdownSpeed;
+	const canceled = () => countdownID !== gameState.countdownID;
+	
 	hud.setCountdown("3");
-	await delay(countdownInterval);
+	if (await delayWithPause(interval, gameState, canceled)) {
+		cancelCountdown(gameState, hud, ui);
+		return;
+	}
+	
 	hud.setCountdown("2");
-	await delay(countdownInterval);
+	if (await delayWithPause(interval, gameState, canceled)) {
+		cancelCountdown(gameState, hud, ui);
+		return;
+	}
+	
 	hud.setCountdown("1");
-	await delay(countdownInterval);
+	if (await delayWithPause(interval, gameState, canceled)) {
+		cancelCountdown(gameState, hud, ui);
+		return;
+	}
+
 	hud.clearCountdown();
-	
-	ball.velocity = randomServeVelocity(startFrom);
-	
 	gameState.isServing = false;
 	gameState.rallyActive = true;
+
+	ui.unlock();
+	
+	ball.velocity = randomServeVelocity(startFrom);
 }

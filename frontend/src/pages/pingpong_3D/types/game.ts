@@ -5,4 +5,6 @@ export type GameState = {
   rallyActive: boolean;
   isServing: boolean;
   lastWinner: 1 | 2 | null;
+	resetLocked: boolean;
+	countdownID: 0,
 };
