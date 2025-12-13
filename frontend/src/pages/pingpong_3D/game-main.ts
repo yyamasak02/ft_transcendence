@@ -51,6 +51,8 @@ export function startGame() {
 	
 	reloadSettings();
 	isRunning = true;
+	isPaused = false;
+	
   initDOMRefs();
 	const canvasEl = document.getElementById("gameCanvas3D");
 	if (canvasEl) {
@@ -58,15 +60,23 @@ export function startGame() {
 			console.log("canvas clicked!");
 		});
 	}
-	if (!hud) hud = new GameHUD(scene);
+	
+	hud = new GameHUD(scene);
 	setupKeyboardListener();
 	
 	gameState.phase = "game";
 	gameState.rallyActive = false;
+	gameState.isServing = false;
+	gameState.lastWinner = null;
+	gameState.countdownID = 0;
+	gameState.resetLocked = false;
+
 	p1Score = 0;
 	p2Score = 0;
 
-  scene.clearColor = new Color4(0, 0, 0, 0.5);
+	updateUIButtons();
+
+  scene.clearColor = new Color4(0, 0, 0, 0.5); // 背景色
 
 	// paddle作成
 	const { p1, p2 } = createPaddles(scene, settings);
@@ -115,7 +125,7 @@ export function startGame() {
 // 内部実装部
 // ============================================
 
-// スコア更新部分
+// スコア更新
 export function onScore(
 	scorer: 1 | 2,
 	ball: Ball,	
@@ -150,25 +160,41 @@ export function onScore(
 }
 
 // ゲーム終了
-export function endGame(hub: GameHUD, winner: 1 | 2) {
+export function endGame(hud: GameHUD, winner: 1 | 2) {
 	console.log("Game Over");
 
 	gameState.countdownID++;
 	gameState.phase = "gameover";
+	gameState.isServing = false;
+	gameState.rallyActive = false;
 	UILockController.lock();
 
 	isRunning = false;
 	isPaused = false;
 
-	hub.showGameOver(winner === 1 ? "Player1" : "Player2");
+	hud.clearCountdown();
+	hud.showGameOver(winner === 1 ? "Player1" : "Player2");
 	if (ball) ball.stop();
 	
-	engine.stopRenderLoop();
-	setTimeout(() => {
-		if (scene && !scene.isDisposed) scene.dispose();
-		if (engine) engine.dispose();
-		navigate("/pingpong_3D_config");
-	}, 3000);
+	setTimeout(cleanupAndGoHome, 3000);
+}
+
+// 後始末用関数
+function cleanupAndGoHome() {
+	cleanupKeyboardListener();
+
+	if (hud) {
+		if (hud.plane && !hud.plane.isDisposed) hud.plane.dispose();
+	}
+	hud = null;
+
+	if (scene && !scene.isDisposed) scene.dispose();
+	if (engine) {
+		engine.stopRenderLoop();
+		engine.dispose();
+	}
+
+	navigate("/");
 }
 
 //　ゲーム強制終了
