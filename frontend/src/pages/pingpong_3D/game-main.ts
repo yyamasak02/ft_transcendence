@@ -22,7 +22,7 @@ let paddle1: Paddle | null = null;
 let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
-let gameStage: Stage | null = null;
+let zoomIntervalID: number | null = null;
 let p1Score = 0;
 let p2Score = 0;
 
@@ -98,7 +98,6 @@ export function startGame() {
 	
 	// stage作成
 	stage = new Stage(scene, canvas, paddle1, paddle2, ball, settings);
-	gameStage = stage;
 
 	// display作成
 	hud.setScore(p1Score, p2Score);
@@ -187,13 +186,13 @@ export function endGame(hud: GameHUD, winner: 1 | 2) {
 
 async function endGameDirection(winner: 1 | 2)
 {
-	if (!scene || !gameStage || !gameStage.camera || !ball)
+	if (!scene || !stage || !stage.camera || !ball)
 		return ;
 
 	createWinEffect(scene, winner);
-	await cutIn(gameStage.camera, ball.mesh.position);
+	await cutIn(stage.camera, ball.mesh.position);
 	const TARGET_RADIUS = 150;
-	zoomOut(gameStage.camera, TARGET_RADIUS, 10000);
+	zoomOut(stage.camera, TARGET_RADIUS, 10000);
 }
 
 // カットイン
@@ -218,12 +217,18 @@ async function cutIn(camera: ArcRotateCamera, ballPosition: Vector3)
 // ズームアウト
 function zoomOut(camera: ArcRotateCamera, targetRadius: number, duration: number)
 {
+	if (zoomIntervalID !== null)
+	{
+		clearInterval(zoomIntervalID);
+		zoomIntervalID = null;
+	}
+
 	const startRadius = camera.radius;
 	const startAlpha = camera.alpha;
 	const startTime = Date.now();
 	const totalRotation = Math.PI * 3; 
 
-	const zoomInterval = setInterval(() => {
+	zoomIntervalID = window.setInterval(() => {
 		const elapsed = Date.now() - startTime;
 		const t = Math.min(1, elapsed / duration);
 		const easeOutT = 1 - Math.pow(1 - t, 3);
@@ -233,9 +238,11 @@ function zoomOut(camera: ArcRotateCamera, targetRadius: number, duration: number
 		camera.alpha = startAlpha + (totalRotation * easeOutT);
 		camera.beta = (Math.PI / 5) + (Math.PI / 10 * easeOutT);
 
-		if (t === 1) {
-			clearInterval(zoomInterval);
-			console.log("Cinematic Zoom-out with Rotation finished.");
+		if (t === 1)
+		{
+			clearInterval(zoomIntervalID!);
+			zoomIntervalID = null;
+			console.log("Zoom out finished.");
 		}
 	}, 1000 / 60);
 }
