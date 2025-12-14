@@ -1,4 +1,8 @@
 // src/core/data.ts
+/**
+ * ゲーム全体で共有する Babylon の実行コンテキスト。
+ * 設定値ではなく、DOM 初期化後に生成されるオブジェクトへの参照を持つ。
+ */
 import { Engine, Scene} from "@babylonjs/core";
 
 export let canvas: HTMLCanvasElement;
@@ -15,17 +19,4 @@ export function initDOMRefs() {
 
 	engine = new Engine(canvas, true);
   scene = new Scene(engine);
-  window.addEventListener("resize", () => { engine.resize(); });
 }
-
-// gameData
-export const gameData = {
-  player1CharIndex: 0,
-  player2CharIndex: 0,
-  selectedStageIndex: 0,
-	paddles: {
-		player1: { score: 0, length: 8, color: "#00ff00" },
-		player2: { score: 0, length: 8, color: "#ff0000" }
-	},
-  keysPressed: {} as { [key: string]: boolean },
-};

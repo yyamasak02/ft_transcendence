@@ -71,15 +71,17 @@ export class GameHUD {
 		if (!this.scoreText) return;
 		this.scoreText.text = `${p1} - ${p2}`;
 	}
+
 	setCountdown(text: string) {
-		console.log("HUD setCountdown called:", text);
 		if (!this.countdownText) return;
-			this.countdownText.text = text;
+		this.countdownText.text = text;
 	}
+
 	clearCountdown() { 
 		if (!this.countdownText) return;
-			this.countdownText.text = "";
+		this.countdownText.text = "";
 	}
+
 	showGameOver(winner: "Player1" | "Player2") { 
 		if (!this.infoText) return;
 			this.infoText.text = `${winner} Wins!`; 

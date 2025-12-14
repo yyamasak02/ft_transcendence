@@ -11,6 +11,9 @@ import {
 	Mesh,
 } from "@babylonjs/core";
 
+// ============================================
+// PreviewScene クラス
+// ============================================
 export class PreviewScene {
 	engine: Engine;
 	scene: Scene;
@@ -84,6 +87,16 @@ export class PreviewScene {
 				this.groundMat.diffuseColor = new Color3(0.1, 0.1, 0.2);
 				this.groundMat.emissiveColor = new Color3(0.0, 0.1, 0.35);
 				break;
+		}
+	}
+
+	dispose() {
+		if (this.scene && !this.scene.isDisposed) {
+			this.scene.dispose();
+		}
+		if (this.engine) {
+			this.engine.stopRenderLoop();
+			this.engine.dispose();
 		}
 	}
 }

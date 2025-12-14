@@ -1,6 +1,7 @@
 // pingpong_3D/object/Ball.ts
 import { Mesh, MeshBuilder, Vector3, Scene } from "@babylonjs/core";
-import { getBallSpeed, GAME_CONFIG } from "../core/constants3D"; 
+import { GAME_CONFIG } from "../core/constants3D";
+// import { loadSettings } from "../core/gameSettings"; 
 import { Paddle } from "./Paddle"
 import { createBallMaterial } from "./materials/ballMaterial";
 
@@ -18,6 +19,9 @@ const {
 	BALL_RADIUS,
 } = GAME_CONFIG;
 
+// const settings = loadSettings();
+// const BALL_SPEED = settings.ballSpeed;
+
 // ============================================
 // Ball クラス
 // ============================================
@@ -25,12 +29,14 @@ const {
 export class Ball {
 	mesh: Mesh;
 	velocity: Vector3;
+	private baseSpeed: number;
 
-	constructor(scene: Scene, initialPosition: Vector3) {
+	constructor(scene: Scene, initialPosition: Vector3, baseSpeed: number) {
+		this.baseSpeed = baseSpeed;
 		this.mesh = MeshBuilder.CreateSphere("ball", { diameter: 2 }, scene);
 		this.mesh.visibility = 0;
 		this.mesh.position.copyFrom(initialPosition);
-		this.velocity = new Vector3(0.15, 0, 0.25);
+		this.velocity = new Vector3(1, 0, 0);
 		this.mesh.material = createBallMaterial(scene);
 	}
 
@@ -46,7 +52,7 @@ export class Ball {
 		gameState: GameState,
 		checkPaddleCollision: (ballMesh: Mesh, paddle: Paddle) => boolean
 		): ScoreResult { 
-		return updateBallImp(this, deltaTime, paddle1, paddle2, gameState, checkPaddleCollision); 
+		return updateBallImp(this, deltaTime, paddle1, paddle2, gameState, this.baseSpeed, checkPaddleCollision); 
 	}
 	
 	// ballとpaddleの衝突角度によって反射の強さを変える
@@ -67,9 +73,9 @@ function updateBallImp(
 	paddle1: Paddle,
 	paddle2: Paddle,
 	gameState: GameState,
+	baseSpeed: number,
 	checkPaddleCollision: (ballMesh: Mesh, paddle: Paddle) => boolean
 ): ScoreResult {
-	console.log("update ball called");
 	if (!ball || !paddle1 || !paddle2) return null;
 
 	// カウントダウン中はパドルに追従
@@ -86,7 +92,8 @@ function updateBallImp(
 	}
 
 	// 移動処理
-	const dt = (deltaTime / 1000) * getBallSpeed(); // ballスピードを決める部分
+	// const dt = (deltaTime / 1000) * getBallSpeed(); // ballスピードを決める部分
+	const dt = (deltaTime / 1000) * baseSpeed; // ballスピードを決める部分
 	ball.mesh.position.x += ball.velocity.x * dt;
 	ball.mesh.position.z += ball.velocity.z * dt;
 	// paddle1
@@ -110,53 +117,45 @@ function updateBallImp(
 	const halfWidth = COURT_WIDTH / 2;
 	if (ball.mesh.position.x > halfWidth + 1) return { scorer: 2 };
 	if (ball.mesh.position.x < -halfWidth - 1) return { scorer: 1};
-	console.log("update ball done");
 	return null;
 }
 
 // ballとpaddleの衝突角度によって反射の強さを変える /////////////////
 function reflectBallImp(ball: Ball, paddle: Paddle, isLeftPaddle: boolean) {
-	console.log("reflect ball called");
 	const mesh = ball.mesh;
 	const vel	 = ball.velocity;
 	
 	// paddleの中心からどれだけ離れているか
 	const offsetZ = (mesh.position.z - paddle.mesh.position.z) / (paddle.length / 2);
-	const hitCenterRate = 1 - Math.min(Math.abs(offsetZ), 1);
+	const clamped = Math.max(-1, Math.min(1, offsetZ));
+	const hitCenterRate = 1 - Math.abs(clamped);
+	const power = 0.8 + hitCenterRate * 0.3; // 跳ね返りの強さを0.25~0.4で調整
 
-	// z方向(上下)の速度に反映
-	vel.z = offsetZ * 0.6; // TODO 0.6を後で調整
-	// x方向(左右)の反転方向を決める
+	// 方向ベクトル再構築
+	const dirX = isLeftPaddle ? 1 : -1;
+	vel.x = dirX;
+	vel.z = clamped;
+
+	// ゼロベクトル防止
+	if (vel.lengthSquared() === 0) {
+		vel.x = dirX;
+		vel.z = 0;
+	}
+
+	// 正規化->強さ適用
+	vel.normalize();
+	vel.scaleInPlace(power);
+
+	// めり込み防止
 	if (isLeftPaddle) {
-		vel.x = Math.abs(vel.x);
 		mesh.position.x = paddle.mesh.position.x + (PADDLE_THICKNESS / 2 + BALL_RADIUS + 0.1);
 	} else {
-		vel.x = -Math.abs(vel.x);
 		mesh.position.x = paddle.mesh.position.x - (PADDLE_THICKNESS / 2 + BALL_RADIUS + 0.1);
 	}
-	
-	// スピードの変化をつける
-	const baseSpeedUp = 1.02;
-	const extraSpeedUp = 0.10;
-	const speedUp = baseSpeedUp + extraSpeedUp * hitCenterRate;
-	const maxSpeed = 1.5;
-	vel.x *= speedUp;
-	vel.z *= speedUp;
-	const currentSpeed = Math.sqrt(vel.x ** 2 + vel.z ** 2);
-	
-	// スピード上限
-	if (currentSpeed > maxSpeed) {
-		const scale = maxSpeed / currentSpeed;
-		vel.x *= scale;
-		vel.z *= scale;
-	}
-	console.log("ball reflect done");
 }
 
 // プレイ開始時のball positionと射出角度 //////////////////////////
-function resetBallImp(ball: Ball, startFrom: 1 | 2 | "center", paddle1: Paddle, paddle2: Paddle) {
-	console.log("reset ball called");
-	
+function resetBallImp(ball: Ball, startFrom: 1 | 2 | "center", paddle1: Paddle, paddle2: Paddle) {	
 	let x = 0;
 	let z = 0;
 
@@ -178,5 +177,4 @@ function resetBallImp(ball: Ball, startFrom: 1 | 2 | "center", paddle1: Paddle, 
 	ball.mesh.position.y = 1;
 	ball.mesh.position.z = z;
 	ball.appear();
-	console.log("ball reset done");
 }

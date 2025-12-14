@@ -1,17 +1,21 @@
-// pingpong_3D/object/ballPaddleUtils.ts　// game-main.ts用のutility関数
+// pingpong_3D/object/ballPaddleUtils.ts // game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GAME_CONFIG, getCountdownInterval, getWinningScore } from "../core/constants3D";
-import type { Ball, ScoreResult } from "./Ball";
+import { GAME_CONFIG } from "../core/constants3D";
+import type { GameSettings } from "../core/gameSettings";
+import type { Ball } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";
-import { gameData } from "../core/data";
 import type { GameState } from "../types/game";
 
 const {
-	// PADDLE_LENGTH,
 	PADDLE_THICKNESS,
 	BALL_RADIUS,
 } = GAME_CONFIG;
+
+export type UILockController = {
+	lock: () => void;
+	unlock: () => void; 
+};
 
 // 衝突判定
 export function checkPaddleCollision(ballMesh: Mesh, paddle: Paddle): boolean {
@@ -71,6 +75,25 @@ function delay(ms: number): Promise<void> {
 	});
 }
 
+async function delayWithPause(ms: number, gameState: GameState, isCanceled: () => boolean): Promise<boolean> {
+	let elapsed = 0;
+	const tick = 50;
+
+	while (elapsed < ms) {
+		if (isCanceled()) return true;
+		if (gameState.phase !== "pause") elapsed += tick;
+		await delay(tick);
+	}
+	return false;
+}
+
+function cancelCountdown(gameState: GameState, hud: GameHUD, ui: UILockController) {
+	hud.clearCountdown();
+	gameState.isServing = false;
+	gameState.rallyActive = false;
+	ui.unlock();
+}
+
 // カウントダウン & サーブ
 export async function countdownAndServe(
 	startFrom: "center" | 1 | 2,
@@ -79,68 +102,45 @@ export async function countdownAndServe(
 	paddle2: Paddle,
 	gameState: GameState,
 	hud: GameHUD,
+	settings: GameSettings,
+	ui: UILockController
 ) {
+	const countdownID = ++gameState.countdownID;
+	
 	gameState.isServing = true;
 	gameState.rallyActive = false;
 
+	ui.lock();
+	
 	ball.stop();
 	ball.reset(startFrom, paddle1, paddle2);
-
-	const countdownInterval = getCountdownInterval();
+	
+	const interval = settings.selectedCountdownSpeed;
+	const canceled = () => countdownID !== gameState.countdownID;
+	
 	hud.setCountdown("3");
-	await delay(countdownInterval);
+	if (await delayWithPause(interval, gameState, canceled)) {
+		cancelCountdown(gameState, hud, ui);
+		return;
+	}
+	
 	hud.setCountdown("2");
-	await delay(countdownInterval);
+	if (await delayWithPause(interval, gameState, canceled)) {
+		cancelCountdown(gameState, hud, ui);
+		return;
+	}
+	
 	hud.setCountdown("1");
-	await delay(countdownInterval);
+	if (await delayWithPause(interval, gameState, canceled)) {
+		cancelCountdown(gameState, hud, ui);
+		return;
+	}
+
 	hud.clearCountdown();
-	
-	ball.velocity = randomServeVelocity(startFrom);
-	
 	gameState.isServing = false;
 	gameState.rallyActive = true;
-}
 
-// ラリー & スコア
-export function handleScoreAndRally(
-	result: ScoreResult,
-	ball: Ball,
-	paddle1: Paddle,
-	paddle2: Paddle,
-	gameState: GameState,
-	hud: GameHUD,
-	endGame: (hud: GameHUD, winner: 1 | 2) => void
-): void {
-	if (!result) return;
+	ui.unlock();
 	
-	const scorer = result.scorer;
-
-	// ラリー停止
-	gameState.rallyActive = false;
-	
-	// スコア更新
-	if (scorer === 1) {
-		gameData.paddles.player1.score++;
-		gameState.rallyActive = false;
-		gameState.lastWinner = 1;
-	} else {
-		gameData.paddles.player2.score++;
-		gameState.rallyActive = false;
-		gameState.lastWinner = 2;
-	}
-	hud.setScore(gameData.paddles.player1.score, gameData.paddles.player2.score);
-	
-	// ゲーム終了判定
-	const winningScore = getWinningScore();
-	if (gameData.paddles.player1.score >= winningScore) {
-		endGame(hud, 1);
-		return;
-	}
-	if (gameData.paddles.player2.score >= winningScore) {
-		endGame(hud, 2);
-		return;
-	}
-	
-	// 次のサーブ
-	countdownAndServe(scorer, ball, paddle1, paddle2, gameState, hud);
+	ball.velocity = randomServeVelocity(startFrom);
 }

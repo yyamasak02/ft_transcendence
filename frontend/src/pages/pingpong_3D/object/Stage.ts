@@ -14,6 +14,7 @@ import { Ball } from "./Ball";
 import { createCourtMaterial } from "./materials/courtMaterial";
 import { setupCameraForMobile } from "./stageControl/cameraControl";
 import { createMainLight, createShadowLight, createGlowLayer } from "./stageControl/lightControl";
+import type { GameSettings } from "../core/gameSettings";
 
 // ============================================
 // Stage クラス
@@ -30,7 +31,9 @@ export class Stage {
 		canvas: HTMLCanvasElement,
 		paddle1: Paddle,
 		paddle2: Paddle,
-		ball: Ball) {
+		ball: Ball,
+		settings: GameSettings
+	) {
 		const { COURT_WIDTH, COURT_HEIGHT } = GAME_CONFIG;
 		
 		// Court
@@ -39,7 +42,7 @@ export class Stage {
 			{ width: COURT_WIDTH, height: COURT_HEIGHT },
 			scene
 		);
-		this.court.material = createCourtMaterial(scene);
+		this.court.material = createCourtMaterial(scene, settings);
 
 		// camera
 		this.camera = new ArcRotateCamera(
@@ -59,22 +62,29 @@ export class Stage {
 		
 		// light
 		this.light = createMainLight(scene);
-
+		
 		// GlowLayer
 		createGlowLayer(scene);
-
+		
 		// Shadow
 		const dirLight = createShadowLight(scene);
 		this.shadowGen = new ShadowGenerator(1024, dirLight);
-
+		
 		this.shadowGen.useBlurExponentialShadowMap = true;
 		this.shadowGen.blurKernel = 32;
-
+		
 		this.shadowGen.addShadowCaster(paddle1.mesh);
 		this.shadowGen.addShadowCaster(paddle2.mesh);
 		this.shadowGen.addShadowCaster(ball.mesh);
 		this.court.receiveShadows = true;
-
+		
 		console.log("Stage initialized");
+	}
+	
+	public resetCamera(): void {
+		this.camera.alpha = Math.PI / 2;
+		this.camera.beta = Math.PI / 5;
+		this.camera.radius = 80;
+		this.camera.setTarget(new Vector3(0, 0, 0));
 	}
 }
