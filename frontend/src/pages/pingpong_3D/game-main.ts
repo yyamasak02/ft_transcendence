@@ -1,6 +1,6 @@
 // src/game-main.ts ゲーム本体
 
-import { Vector3, Color4 } from "@babylonjs/core";
+import { Vector3, Color4, ArcRotateCamera } from "@babylonjs/core";
 import { initDOMRefs, canvas, engine, scene } from "./core/data";
 import { loadSettings } from "./core/gameSettings";
 import { Ball } from "./object/Ball";
@@ -197,7 +197,7 @@ async function endGameDirection(winner: 1 | 2)
 }
 
 // カットイン
-async function cutIn(camera: any, ballPosition: Vector3)
+async function cutIn(camera: ArcRotateCamera, ballPosition: Vector3)
 {
 	const CUT_IN_DELAY = 500;
 	const configs = [
@@ -216,7 +216,7 @@ async function cutIn(camera: any, ballPosition: Vector3)
 }
 
 // ズームアウト
-function zoomOut(camera: any, targetRadius: number, duration: number)
+function zoomOut(camera: ArcRotateCamera, targetRadius: number, duration: number)
 {
 	const startRadius = camera.radius;
 	const startAlpha = camera.alpha;
