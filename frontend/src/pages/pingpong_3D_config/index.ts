@@ -5,6 +5,7 @@ import { navigate } from "@/router/router";
 import "./style.css";
 import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
+import { word } from "@/i18n";
 
 let preview: PreviewScene | null = null;
 
@@ -14,68 +15,68 @@ class PingPongComponent implements Component {
 		return `
 			<div id="pp3d-config-root" class="pp3d-config">
 				<div class="pp3d-config">
-					<h2>Ping Pong 3D Settings</h2>
+					<h2>${word("pingpong3d_config")}</h2>
 
 					<div class="pp3d-config-row">
-						<label>Score to Win:</label>
+						<label>${word("score_to_win")}</label>
 						<input id="winning-score" type="number" min="1" max="20" value="5" />
 					</div>
 
 					<div class="pp3d-config-row">
-						<label>Ball Speed:</label>
+						<label>${word("ball_speed")}</label>
 						<input id="ball-speed" type="range" min="10" max="100" step="10" value="50" />
 					</div>
 					
 				<div class="pp3d-config-row">
-					<label>CountSpeed:</label>
+					<label>${word("count_speed")}</label>
 					<select id="countdown-interval">
-						<option value="500">fast (✕2)</option>
-						<option value="1000" selected>normal</option>
-						<option value="2000">slow (✕0.5)</option>
+						<option value="500">${word("fast")}</option>
+						<option value="1000" selected>${word("normal")}</option>
+						<option value="2000">${word("slow")}</option>
 					</select>
 				</div>
 					
 					<div class="pp3d-config-row">
-						<label>Stage:</label>
+						<label>${word("stage")}</label>
 						<select id="stage-select">
-							<option value="0">Classic Court</option>
-							<option value="1">Shadow Court</option>
-							<option value="2">Warp Court</option>
+							<option value="0">${word("classic")}</option>
+							<option value="1">${word("shadow")}</option>
+							<option value="2">${word("warp")}</option>
 						</select>
 					</div>
 
 					<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">Player 1 Color: </label>
+							<label class="pp3d-label">${word("color1")}</label>
 							<select id="paddle1-color" class="pp3d-color-select">
-								<option value="blue">Blue</option>
-								<option value="green">Green</option>
-								<option value="red">Red</option>
-								<option value="yellow">Yellow</option>
-								<option value="white">White</option>
-								<option value="black">Black</option>
-								<option value="pink">Pink</option>
+								<option value="blue">${word("blue")}</option>
+								<option value="green">${word("green")}</option>
+								<option value="red">${word("red")}</option>
+								<option value="yellow">${word("yellow")}</option>
+								<option value="white">${word("white")}</option>
+								<option value="black">${word("black")}</option>
+								<option value="pink">${word("pink")}</option>
 							</select>
 
 							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">Paddle Length: </label>
+								<label class="pp3d-sub-label">${word("length")}</label>
 								<input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
 							</div>
 						</div>
 
 						<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">Paddle 2 Color: </label>
+							<label class="pp3d-label">${word("color2")}</label>
 							<select id="paddle2-color" class="pp3d-color-select">
-								<option value="green">Green</option>
-								<option value="blue">Blue</option>
-								<option value="red">Red</option>
-								<option value="yellow">Yellow</option>
-								<option value="white">White</option>
-								<option value="black">Black</option>
-								<option value="pink">Pink</option>
+							<option value="green">${word("green")}</option>
+							<option value="blue">${word("blue")}</option>
+								<option value="red">${word("red")}</option>
+								<option value="yellow">${word("yellow")}</option>
+								<option value="white">${word("white")}</option>
+								<option value="black">${word("black")}</option>
+								<option value="pink">${word("pink")}</option>
 							</select>
 
 							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">Paddle Length: </label>
+								<label class="pp3d-sub-label">${word("length")}</label>
 								<input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
 							</div>
 						</div>
@@ -85,7 +86,7 @@ class PingPongComponent implements Component {
 					</div>
 
 					<div class="pp3d-config-row">
-						<button id="pingpong-start-btn">Start Game</button>
+						<button id="pingpong-start-btn">${word("start")}</button>
 					</div>
 
 				</div>
@@ -98,7 +99,7 @@ const pingPong3DSettingComponent = new PingPongComponent();
 
 export const PingPong3DSettingRoute: Routes = {
   "/pingpong_3D_config": {
-    linkLabel: "Setting PingPong 3D",
+    linkLabel: word("pingpong3d_config"),
     content: pingPong3DSettingComponent.render(),
     onMount: () => {
 			document.body.classList.add("pingpong-page");
@@ -191,7 +192,7 @@ export const PingPong3DSettingRoute: Routes = {
       document.documentElement.classList.remove("overflow-hidden");
     },
     head: {
-      title: "Ping Pong Game 3D Settings",
+      title: word("pingpong3d_config"),
     },
   },
 };

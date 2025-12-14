@@ -1,5 +1,6 @@
 import type { Routes } from "@/types/routes";
 import "./style.css";
+import { word } from "@/i18n";
 
 class WebSocketComponent {
   private animationId: number | null = null;
@@ -110,7 +111,7 @@ const wsComponent = new WebSocketComponent();
 
 export const WebSocketRoute: Routes = {
   "/websocket": {
-    linkLabel: "WebSocket",
+    linkLabel: word("websocket"),
     content: wsComponent.render(),
     onMount: () => {
       console.log("WebSocket page mounted");
