@@ -6,6 +6,7 @@ export const edo = {
 	pingpong3d_config: "立体描画支度",
 	login: "名乗り口",
 	websocket: "早馬",
+	home_return: "根城に戻る",
 	score_to_win: "勝ちに要る点:",
 	ball_speed: "玉の速さ:",
 	count_speed: "合図の間:",

@@ -6,6 +6,7 @@ export const ja = {
 	pingpong3d_config: "3Dピンポン設定",
 	login: "ログイン",
 	websocket: "ウェブソケット",
+	home_return: "ホームに戻る",
 	score_to_win: "勝利に必要な得点:",
 	ball_speed: "ボールスピード:",
 	count_speed: "カウントダウンの速さ:",

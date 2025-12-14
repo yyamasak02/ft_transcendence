@@ -7,7 +7,7 @@ const navRoot = document.querySelector<HTMLElement>("#nav")!;
 const appRoot = document.querySelector<HTMLElement>("#app")!;
 
 export function renderLayout(route: string) {
-	// mavbarを毎回作り直す
+	// navbarを毎回作り直す
 	navRoot.innerHTML = "";
 	navRoot.appendChild(renderNavbar());
 

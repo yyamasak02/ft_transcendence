@@ -94,7 +94,6 @@
 	border-color: #aaa;
 }
 
-/* 江戸にも会う余韻 */
 .login-submit:active {
 	transform: translateY(1px);
 }

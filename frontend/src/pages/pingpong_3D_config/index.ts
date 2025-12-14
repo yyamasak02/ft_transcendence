@@ -66,8 +66,8 @@ class PingPongComponent implements Component {
 						<div class="pp3d-config-row pp3d-inline-row">
 							<label class="pp3d-label">${word("color2")}</label>
 							<select id="paddle2-color" class="pp3d-color-select">
-							<option value="green">${word("green")}</option>
-							<option value="blue">${word("blue")}</option>
+								<option value="green">${word("green")}</option>
+								<option value="blue">${word("blue")}</option>
 								<option value="red">${word("red")}</option>
 								<option value="yellow">${word("yellow")}</option>
 								<option value="white">${word("white")}</option>
@@ -192,7 +192,7 @@ export const PingPong3DSettingRoute: Routes = {
       document.documentElement.classList.remove("overflow-hidden");
     },
     head: {
-      title: word("pingpong3d_config"),
+      title: "Setting PingPong 3D",
     },
   },
 };

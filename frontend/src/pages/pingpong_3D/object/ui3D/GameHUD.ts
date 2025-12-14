@@ -85,10 +85,10 @@ export class GameHUD {
 
 	showGameOver(winner: "Player1" | "Player2") { 
 		if (!this.infoText) return;
-		const str = (winner === "Player1" ? word("player1") : word("player2"));
-		this.infoText.text = `${str} ${word("wins")}`; 
+		const winnerName = (winner === "Player1" ? word("player1") : word("player2"));
+		this.infoText.text = `${winnerName} ${word("wins")}`; 
 	}
-	
+
 	clearGameOver() {
 		if (!this.infoText) return;
 			this.infoText.text = ""; 

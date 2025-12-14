@@ -37,9 +37,7 @@ const pingPongComponent = new PingPongComponent();
 
 export const PingPongRoute: Routes = {
   "/pingpong": {
-		// @ts-ignore
     linkLabel: () => word("pingpong"),
-		// @ts-ignore
 		content: () => pingPongComponent.render(),
     onMount: () => {
       console.log("Ping Pong page mounted");
@@ -56,7 +54,7 @@ export const PingPongRoute: Routes = {
       document.documentElement.classList.remove("overflow-hidden");
     },
     head: {
-      title: word("pingpong"),
+      title: "PingPong",
     },
   },
 };
