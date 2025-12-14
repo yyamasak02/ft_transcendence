@@ -1,6 +1,7 @@
 import type { Component } from "@/models/component";
 import type { Routes } from "@/models/routes";
 import { startPingPongGame } from "./game-main";
+import { word } from "@/i18n";
 
 class PingPongComponent implements Component {
   render = (): string => {
@@ -36,8 +37,10 @@ const pingPongComponent = new PingPongComponent();
 
 export const PingPongRoute: Routes = {
   "/pingpong": {
-    linkLabel: "Ping Pong",
-    content: pingPongComponent.render(),
+		// @ts-ignore
+    linkLabel: () => word("pingpong"),
+		// @ts-ignore
+		content: () => pingPongComponent.render(),
     onMount: () => {
       console.log("Ping Pong page mounted");
       document.body.classList.add("pingpong-page");
@@ -53,7 +56,7 @@ export const PingPongRoute: Routes = {
       document.documentElement.classList.remove("overflow-hidden");
     },
     head: {
-      title: "Ping Pong Game",
+      title: word("pingpong"),
     },
   },
 };

@@ -39,4 +39,10 @@ export const en = {
 	wins: "Wins!",
 	player1: "Player1",
 	player2: "Player2",
+	press_enter: "Press 'Enter' to Start",
+	local: "LOCAL BATTLE",
+	online: "ONLINE BATTLE",
+	select_game_mode: "SELECT GAME MODE",
+	select_method: "Use w/s or ↑/↓ to select",
+	confirm: "Press Enter to confirm",
 } as const;

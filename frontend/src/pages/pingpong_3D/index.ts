@@ -10,8 +10,8 @@ const gameView = new PingPong3DGameView();
 
 export const PingPong3DGameRoute: Routes = {
 	"/pingpong_3D": {
-		linkLabel: word("pingpong3d"),
-		content: gameView.render(),
+		linkLabel: () => word("pingpong3d"),
+		content: () => gameView.render(),
 		onMount: () => {
 			const app = document.getElementById("app");
 			if (app) app.classList.add("no-overflow");

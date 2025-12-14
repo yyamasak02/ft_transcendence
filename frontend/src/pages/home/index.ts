@@ -9,7 +9,7 @@ class HomeComponent {
 
 export const HomeRoute: Record<string, Route> = {
   "/": {
-    linkLabel: word("home"),
-    content: new HomeComponent().render(),
+    linkLabel: () => word("home"),
+    content: () => new HomeComponent().render(),
   },
 };

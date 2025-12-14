@@ -111,8 +111,8 @@ const wsComponent = new WebSocketComponent();
 
 export const WebSocketRoute: Routes = {
   "/websocket": {
-    linkLabel: word("websocket"),
-    content: wsComponent.render(),
+    linkLabel: () => word("websocket"),
+    content: () => wsComponent.render(),
     onMount: () => {
       console.log("WebSocket page mounted");
       document.body.classList.add("websocket-page", "overflow-hidden");

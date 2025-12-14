@@ -1,6 +1,7 @@
 // src/components/navbar.ts
 import { routes } from "@/router/routes";
 import { navigate } from "@/router/router";
+import { renderLangSwitcherDOM } from "./LangSwitcher";
 import "./navbar.css";
 
 // リンク要素の DocumentFragment を返す
@@ -14,8 +15,10 @@ export function renderNavbar(
     const linkElement = document.createElement("a");
 
     linkElement.href = route;
-    // linkElement.textContent = linkLabel;
-    linkElement.textContent = linkLabel ?? "";
+		const label = 
+			typeof linkLabel === "function" ? linkLabel() : linkLabel ?? "";
+
+    linkElement.textContent = label;
     linkElement.classList.add(...classNames);
 
     linkElement.addEventListener("click", (e) => {
@@ -25,6 +28,8 @@ export function renderNavbar(
 
     fragment.appendChild(linkElement);
   });
+	const LangSwitcher = renderLangSwitcherDOM();
+	fragment.appendChild(LangSwitcher);
 
   return fragment;
 }

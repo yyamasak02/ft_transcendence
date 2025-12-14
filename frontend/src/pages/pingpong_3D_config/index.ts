@@ -99,8 +99,8 @@ const pingPong3DSettingComponent = new PingPongComponent();
 
 export const PingPong3DSettingRoute: Routes = {
   "/pingpong_3D_config": {
-    linkLabel: word("pingpong3d_config"),
-    content: pingPong3DSettingComponent.render(),
+    linkLabel: () => word("pingpong3d_config"),
+    content: () => pingPong3DSettingComponent.render(),
     onMount: () => {
 			document.body.classList.add("pingpong-page");
 			document.body.classList.add("overflow-hidden");

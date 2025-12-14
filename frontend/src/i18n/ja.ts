@@ -39,4 +39,10 @@ export const ja = {
 	wins: "勝利!",
 	player1: "選手1",
 	player2: "選手2",
+	press_enter: "'Enter'を押すとスタートします",
+	local: "ローカルバトル",
+	online: "オンラインバトル",
+	select_game_mode: "ゲームモード選択",
+	select_method: "w/s 又は ↑/↓ キーで選べます",
+	confirm: "Enterを押すと決定します",
 } as const;

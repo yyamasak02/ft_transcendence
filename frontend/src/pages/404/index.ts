@@ -1,4 +1,5 @@
 import type { Component } from "@/types/component";
+import { word } from "@/i18n";
 
 export class NotFoundPage implements Component {
   render() {
@@ -8,7 +9,7 @@ export class NotFoundPage implements Component {
         <p class="mt-4 text-2xl">404 | Not Found</p>
         <a href="/" 
            class="mt-6 px-6 py-2 border border-green-400 rounded hover:bg-green-400 hover:text-black transition-colors">
-          ▶ ホームへ戻る
+          ${word("home")}
         </a>
       </div>
     `;
