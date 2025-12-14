@@ -11,7 +11,6 @@ import { setupKeyboardListener, cleanupKeyboardListener, getPaddleInputs } from 
 import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
 import type { GameState } from "./types/game";
-import { word } from "@/i18n";
 
 let settings = loadSettings();
 let isRunning = false;
