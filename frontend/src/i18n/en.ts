@@ -12,7 +12,7 @@ export const en = {
 	count_speed: "Count Speed:",
 	fast: "fast (x2)",
 	normal: "normal",
-	slow: "slow (/2)",
+	slow: "slow (x0.5)",
 	stage: "Stage:",
 	classic: "Classic Court",
 	shadow: "Shadow Court",
