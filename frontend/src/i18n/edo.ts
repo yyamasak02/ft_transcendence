@@ -3,7 +3,7 @@ export const edo = {
 	home: "根城",
 	pingpong: "平面描画-打ち合い",
 	pingpong3d: "立体描画-打ち合い",
-	pingpong3d_config: "立体描画支度",
+	pingpong3d_config: "立体描画-支度",
 	login: "名乗り口",
 	websocket: "早馬",
 	home_return: "根城に戻る",
