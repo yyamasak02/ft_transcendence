@@ -1,4 +1,5 @@
 import type { Route } from "@/types/routes";
+import { word } from "@/i18n";
 
 class HomeComponent {
   render = () => {
@@ -8,7 +9,7 @@ class HomeComponent {
 
 export const HomeRoute: Record<string, Route> = {
   "/": {
-    linkLabel: "Home",
-    content: new HomeComponent().render(),
+    linkLabel: () => word("home"),
+    content: () => new HomeComponent().render(),
   },
 };

@@ -1,4 +1,5 @@
 // pingpong_3D/object/ui3D/GameHUD.ts
+import { word } from "@/i18n";
 import { Scene, MeshBuilder, Vector3, Mesh } from "@babylonjs/core"
 import { AdvancedDynamicTexture, TextBlock, Control } from "@babylonjs/gui";
 
@@ -84,8 +85,10 @@ export class GameHUD {
 
 	showGameOver(winner: "Player1" | "Player2") { 
 		if (!this.infoText) return;
-			this.infoText.text = `${winner} Wins!`; 
-	}	
+		const winnerName = (winner === "Player1" ? word("player1") : word("player2"));
+		this.infoText.text = `${winnerName} ${word("wins")}`; 
+	}
+
 	clearGameOver() {
 		if (!this.infoText) return;
 			this.infoText.text = ""; 

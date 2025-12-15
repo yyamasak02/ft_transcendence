@@ -4,13 +4,14 @@ import * as PingPong3DGame from "./game-main";
 import { PingPong3DGameView } from "./game-view";
 import { navigate } from "@/router/router";
 import "./style.css";
+import { word } from "@/i18n";
 
 const gameView = new PingPong3DGameView();
 
 export const PingPong3DGameRoute: Routes = {
 	"/pingpong_3D": {
-		linkLabel: "PingPong 3D Play",
-		content: gameView.render(),
+		linkLabel: () => word("pingpong3d"),
+		content: () => gameView.render(),
 		onMount: () => {
 			const app = document.getElementById("app");
 			if (app) app.classList.add("no-overflow");
@@ -45,11 +46,9 @@ export const PingPong3DGameRoute: Routes = {
 				navigate("/pingpong_3D_config");
 			});
 			btnPause?.addEventListener("click", () => {
-				// if (PingPong3DGame.gameState.uiLocked) return;
 				PingPong3DGame.pauseGame();
 			});
 			btnResume?.addEventListener("click", () => {
-				// if (PingPong3DGame.gameState.uiLocked) return;
 				PingPong3DGame.resumeGame();
 			});
 			btnReset?.addEventListener("click", () => {
@@ -57,7 +56,6 @@ export const PingPong3DGameRoute: Routes = {
 				PingPong3DGame.resetGame();
 			});
 			btnCameraReset?.addEventListener("click", () => {
-				// if (PingPong3DGame.gameState.uiLocked) return;
 				PingPong3DGame.resetCamera();
 			});
 		},

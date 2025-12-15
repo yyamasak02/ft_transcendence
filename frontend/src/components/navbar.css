@@ -25,3 +25,18 @@ nav {
 .nav-link:active {
 	color: #ff9f00;
 }
+
+.lang-switcher {
+	display: inline-flex;
+	gap: 6px;
+	margin-left: 16px;
+}
+
+.lang-select {
+	background: #111;
+	color: #ddd;
+	border: 1px solid #555;
+	padding: 4px 8px;
+	font-size: 0.9rem;
+	cursor: pointer;
+}
