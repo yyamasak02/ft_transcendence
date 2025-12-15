@@ -17,7 +17,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/Dockerfile.dev
     image: ft_frontend
     container_name: ft_frontend
     ports:
@@ -31,11 +31,11 @@ services:
       - ./frontend/.env.local
     networks:
       - ft_network
-    command: npm run dev
+    command: ${FE_CMD:-npm run dev}
   be_common:
     build:
       context: ./backends/common
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/Dockerfile.dev
     image: ft_be_common
     container_name: ft_be_common
     volumes:
@@ -50,11 +50,11 @@ services:
       - 8080:80
     networks:
       - ft_network
-    command: npm run dev
+    command: ${BE_COM_CMD:-npm run dev}
   be_game:
     build:
       context: ./backends/game
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/Dockerfile.dev
     image: ft_be_game
     container_name: ft_be_game
     volumes:
@@ -69,11 +69,11 @@ services:
       - 8081:80
     networks:
       - ft_network
-    command: npm run dev
+    command: ${BE_GM_CMD:-npm run dev}
   be_text_chat:
     build:
       context: ./backends/text_chat
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/Dockerfile.dev
     image: ft_be_text_chat
     container_name: ft_be_text_chat
     volumes:
@@ -88,7 +88,7 @@ services:
       - 8082:80
     networks:
       - ft_network
-    command: npm run dev
+    command: ${BE_TC_CMD:-npm run dev}
 networks:
   ft_network:
     driver: bridge

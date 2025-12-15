@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import fp from "fastify-plugin";
 import serviceApp from "./app.js";
+import "./types/augmentations.js";
 
 async function main() {
   // fastify instance init
@@ -8,6 +9,7 @@ async function main() {
     logger: {
       level: "info",
     },
+    pluginTimeout: Number(process.env.PLUGIN_TIMEOUT ?? 60000),
   });
 
   // モジュールを登録する

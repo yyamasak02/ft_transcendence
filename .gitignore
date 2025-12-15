@@ -3,11 +3,8 @@ convertPDFtoHTML.py
 .env*
 !.env.local
 !.env.development
-node_modules
-.claude
-.db
-.DS_Store
-*.sqlite
-backends/common/db/
 docker-compose.local.yml
-backends/common/swagger/swagger.yml
+node_modules
+*.sqlite
+
+memo.*

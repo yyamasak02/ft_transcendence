@@ -8,4 +8,8 @@ RUN npm install
 COPY . .
 EXPOSE 5173
 
+RUN npm run build
+
 ENV TZ=Asia/Tokyo
+
+CMD ["sh", "-c", "npm run start"]

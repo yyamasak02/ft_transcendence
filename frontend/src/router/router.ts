@@ -1,27 +1,18 @@
-import { routes } from "./routes";
-import { NotFoundPage } from "@/pages/404";
+// src/router/router.ts
 
-const app = document.querySelector<HTMLElement>("#app")!;
+import { routes } from "./routes";
+import { renderLayout } from "@/layout/renderLayout";
 
 let currentRoute: string | null = null;
 
 const renderPage = (route: string) => {
   // 前のページの onUnmount を呼ぶ
   if (currentRoute && routes[currentRoute]?.onUnmount) {
-    routes[currentRoute].onUnmount();
+    routes[currentRoute].onUnmount?.();
   }
 
-  const r = routes[route];
-  if (!r) {
-    app.innerHTML = new NotFoundPage().render();
-    return;
-  }
-
-  app.innerHTML = r.content;
-  currentRoute = route;
-
-  r.onMount?.();
-  if (r.head?.title) document.title = r.head.title;
+	renderLayout(route);
+	currentRoute = route;
 };
 
 export const navigate = (path: string) => {
@@ -38,3 +29,7 @@ export const registerBrowserBackAndForth = () => {
 export const renderInitialPage = () => {
   renderPage(location.pathname);
 };
+
+export function rerender() {
+	renderPage(location.pathname);
+}
