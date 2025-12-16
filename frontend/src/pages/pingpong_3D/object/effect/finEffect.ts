@@ -70,7 +70,6 @@ export function createWinEffect(scene: Scene, winner: 1 | 2): void {
       const pos = new Vector3(x, emitterY, z);
       const ps = createFireColumn(scene, pos, winnerColor);
       activeParticleSystems.push(ps);
-      // createFireColumn(scene, pos, winnerColor);
     });
   });
 }
