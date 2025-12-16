@@ -1,5 +1,5 @@
 /* src/pages/login/style.css */
-.login-screen {
+.register-screen {
 	min-height: calc(100vh - 64px);
 	padding-top: 0;
 	display: flex;
@@ -10,7 +10,7 @@
 }
 
 /* メインボックス */
-.login-box {
+.register-box {
 	width: 380px;
 	padding: 32px;
 	background: #111;
@@ -19,7 +19,7 @@
 }
 
 /* タイトル */
-.login-title {
+.register-title {
 	text-align: center;
 	color: #e6e6e6;
 	font-size: 2.2rem;
@@ -28,11 +28,11 @@
 	font-weight: 700;
 }
 
-.login-field {
+.register-field {
 	margin-bottom: 18px;
 }
 
-.login-field label {
+.register-field label {
 	display: block;
 	margin-bottom: 6px;
 	font-size: 0.85rem;
@@ -41,7 +41,7 @@
 	color: #aaa;
 }
 
-.login-input {
+.register-input {
 	width: 100%;
 	padding: 10px 12px;
 	background: #1a1a1a;
@@ -52,30 +52,22 @@
 }
 
 /* 入力欄 */
-.login-input::placeholder {
+.register-input::placeholder {
 	color: #666;
 }
 
-.login-input:focus {
+.register-input:focus {
 	outline: none;
 	border-color: #888;
 	background: #202020;
 }
 
-.login-remember {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin: 10px 0 18px;
-	color: #ccc;
-}
-
-.login-form input[type="checkbox"] {
+.register-form input[type="checkbox"] {
 	accent-color: #888;
 }
 
 /* 送信ボタン */
-.login-submit {
+.register-submit {
 	width: 100%;
 	margin-top: 16px;
 	padding: 10px 0;
@@ -89,29 +81,28 @@
 	transition: all 0.2s ease;
 }
 
-.login-submit:hover {
+.register-submit:hover {
 	background: #444;
 	border-color: #aaa;
 }
 
-.login-submit:active {
+.register-submit:active {
 	transform: translateY(1px);
 }
 
-.login-footer {
-	margin-top: 18px;
-	text-align: center;
+.register-footer {
+  margin-top: 18px;
+  text-align: center;
 }
 
-.login-link {
-	color: #bbb;
-	text-decoration: none;
-	font-size: 0.9rem;
-	letter-spacing: 0.06em;
+.register-link {
+  color: #bbb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
 }
 
-.login-link:hover {
-	color: #eee;
-	text-decoration: underline;
+.register-link:hover {
+  color: #eee;
+  text-decoration: underline;
 }
-

@@ -35,6 +35,7 @@ export const edo = {
 	camera_reset: "映写機巻き戻し",
 	username: "名乗り",
 	password: "秘密の言葉",
+	password_confirm: "秘密の言葉をもう一度",
 	keep_login: "名乗りを覚えとけ",
 	enter: "これで決まりじゃ",
 	wins: "が勝ちじゃ!",
@@ -46,4 +47,8 @@ export const edo = {
 	select_game_mode: "戦い方を選べ",
 	select_method: "WやS あるいは ▲や▼ で選べるぞ",
 	confirm: "Enter(↩︎)を押せば決まりじゃ",
+	signup: "名を刻む",
+	register: "これで決まりじゃ",
+	to_signup: "名を刻みに行く",
+	to_login: "名乗り口に戻る",
 } as const;

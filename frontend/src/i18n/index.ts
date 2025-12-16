@@ -7,7 +7,8 @@ export const dict = { en, ja, edo} as const;
 export type Lang = "en" | "ja" | "edo";
 
 type I18nKey = keyof typeof en;
-let currentLang: Lang = "en";
+const LANG_KEY = "app_lang";
+let currentLang: Lang = (localStorage.getItem(LANG_KEY) as Lang) || "en";
 
 export function word(key: I18nKey): string {
 	return dict[currentLang][key];
@@ -15,6 +16,7 @@ export function word(key: I18nKey): string {
 
 export function setLang(lang: Lang) {
 	currentLang = lang;
+	localStorage.setItem(LANG_KEY, lang);
 }
 
 export function getLang(): Lang {

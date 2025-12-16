@@ -7,44 +7,54 @@ class LoginComponent {
   render = () => {
     return `
             <div class="login-screen">
-            <div class="login-box">
-                <h2 class="login-title">${word("login")}</h2>
-                <form action="#" method="POST" class="login-form">
-                <div class="login-field">
-                    <label for="email">${word("username")}</label>
-                    <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="your@example.com"
-                    required
-                    class="login-input"
-                    />
-                </div>
-                <div class="login-field">
-                    <label for="password">${word("password")}</label>
-                    <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="••••••••"
-                    required
-                    class="login-input"
-                    />
-                </div>
-                <div class="login-remember">
-                    <input
-                    type="checkbox"
-                    id="remember"
-                    name="remember"
-										/>
-                    <label for="remember">${word("keep_login")}</label>
-                </div>
-                <button type="submit" class="login-submit">
-                    ${word("enter")}
-                </button>
-                </form>
-            </div>
+							<div class="login-box">
+								<h2 class="login-title">${word("login")}</h2>
+
+								<form action="#" method="POST" class="login-form">
+									<div class="login-field">
+											<label for="email">${word("username")}</label>
+											<input
+											type="email"
+											id="email"
+											name="email"
+											placeholder="your@example.com"
+											required
+											class="login-input"
+											/>
+									</div>
+
+									<div class="login-field">
+											<label for="password">${word("password")}</label>
+											<input
+											type="password"
+											id="password"
+											name="password"
+											placeholder="••••••••"
+											required
+											class="login-input"
+											/>
+									</div>
+
+									<div class="login-remember">
+											<input
+											type="checkbox"
+											id="remember"
+											name="remember"
+											/>
+											<label for="remember">${word("keep_login")}</label>
+									</div>
+
+									<button type="submit" class="login-submit">
+											${word("enter")}
+									</button>
+
+									<div class="login-footer">
+										<a class="login-link" href="/register" data-nav>
+											${word("to_signup")}
+										</a>
+									</div>
+								</form>
+							</div>
             </div>
         `;
   };

@@ -35,6 +35,7 @@ export const en = {
 	camera_reset: "Camera Reset",
 	username: "Username",
 	password: "Password",
+	password_confirm: "confirm Password",
 	keep_login: "Keep Login",
 	enter: "Enter",
 	wins: "Wins!",
@@ -46,4 +47,8 @@ export const en = {
 	select_game_mode: "SELECT GAME MODE",
 	select_method: "Use w/s or ↑/↓ to select",
 	confirm: "Press Enter to confirm",
+	signup: "Sign Up",
+	register: "Create an account",
+	to_signup: "Create an account",
+	to_login: "to Login page",
 } as const;
