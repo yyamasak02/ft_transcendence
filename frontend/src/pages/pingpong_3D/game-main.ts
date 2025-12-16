@@ -12,6 +12,7 @@ import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
 import type { GameState } from "./types/game";
 import { createWinEffect } from "./object/effect/finEffect";
+import { cutIn, zoomOut } from "./object/effect/cameraWork";
 
 let settings = loadSettings();
 let isRunning = false;
@@ -22,7 +23,6 @@ let paddle1: Paddle | null = null;
 let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
-let zoomIntervalID: number | null = null;
 let p1Score = 0;
 let p2Score = 0;
 
@@ -161,8 +161,6 @@ export function onScore(
 									  gameState, hud, settings, UILockController);
 }
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 // ゲーム終了
 export function endGame(hud: GameHUD, winner: 1 | 2) {
 	console.log("Game Over");
@@ -193,58 +191,6 @@ async function endGameDirection(winner: 1 | 2)
 	await cutIn(stage.camera, ball.mesh.position);
 	const TARGET_RADIUS = 150;
 	zoomOut(stage.camera, TARGET_RADIUS, 10000);
-}
-
-// カットイン
-async function cutIn(camera: ArcRotateCamera, ballPosition: Vector3)
-{
-	const CUT_IN_DELAY = 500;
-	const configs = [
-		{ alpha: Math.PI / 2, beta: Math.PI / 2.5, radius: 15 },
-		{ alpha: camera.alpha, beta: 0.1, radius: 10 },
-		{ alpha: Math.PI / 4, beta: Math.PI / 4, radius: 20 },
-	];
-
-	for (const config of configs) {
-		camera.setTarget(ballPosition.clone());
-		camera.alpha = config.alpha;
-		camera.beta = config.beta;
-		camera.radius = config.radius;
-		await delay(CUT_IN_DELAY);
-	}
-}
-
-// ズームアウト
-function zoomOut(camera: ArcRotateCamera, targetRadius: number, duration: number)
-{
-	if (zoomIntervalID !== null)
-	{
-		clearInterval(zoomIntervalID);
-		zoomIntervalID = null;
-	}
-
-	const startRadius = camera.radius;
-	const startAlpha = camera.alpha;
-	const startTime = Date.now();
-	const totalRotation = Math.PI * 3; 
-
-	zoomIntervalID = window.setInterval(() => {
-		const elapsed = Date.now() - startTime;
-		const t = Math.min(1, elapsed / duration);
-		const easeOutT = 1 - Math.pow(1 - t, 3);
-
-		camera.setTarget(Vector3.Zero());
-		camera.radius = startRadius + (targetRadius - startRadius) * easeOutT;
-		camera.alpha = startAlpha + (totalRotation * easeOutT);
-		camera.beta = (Math.PI / 5) + (Math.PI / 10 * easeOutT);
-
-		if (t === 1)
-		{
-			clearInterval(zoomIntervalID!);
-			zoomIntervalID = null;
-			console.log("Zoom out finished.");
-		}
-	}, 1000 / 60);
 }
 
 // 後始末用関数
