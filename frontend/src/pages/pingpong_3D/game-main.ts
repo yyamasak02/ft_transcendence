@@ -19,7 +19,7 @@ import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
 import type { GameState } from "./core/game";
 import { createWinEffect } from "./object/effect/finEffect";
-import { cutIn, zoomOut } from "./object/effect/cameraWork";
+import { cutIn, zoomOut, stopZoomOut } from "./object/effect/cameraWork";
 
 let settings = loadSettings();
 let isRunning = false;
@@ -30,6 +30,7 @@ let paddle1: Paddle | null = null;
 let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
+let zoomIntervalID: number | null = null;
 let p1Score = 0;
 let p2Score = 0;
 
@@ -216,16 +217,22 @@ export function endGame(hud: GameHUD, winner: 1 | 2) {
 }
 
 async function endGameDirection(winner: 1 | 2) {
-  if (!scene || !stage || !stage.camera || !ball) return;
+  if (!scene || !stage || !stage.camera || !ball) {
+    return;
+  }
 
+  const TARGET_RADIUS = 150;
+  const ZOOM_OUT_DURATION_MS = 10000;
   createWinEffect(scene, winner);
   await cutIn(stage.camera, ball.mesh.position);
-  const TARGET_RADIUS = 150;
-  zoomOut(stage.camera, TARGET_RADIUS, 10000);
+  stopZoomOut(zoomIntervalID);
+  zoomOut(stage.camera, TARGET_RADIUS, ZOOM_OUT_DURATION_MS);
 }
 
 // 後始末用関数
 function cleanupAndGoHome() {
+  stopZoomOut(zoomIntervalID);
+  zoomIntervalID = null;
   cleanupKeyboardListener();
 
   if (hud) {
