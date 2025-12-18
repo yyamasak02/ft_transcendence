@@ -1,11 +1,13 @@
 /* Tailwind classes are now used directly in the components */
 /* This file can be kept for any custom navbar styles if needed */
 
-nav {
+#nav {
 	display: flex;
+	align-items: center;
+	justify-content: center;
 	gap: 18px;
 	padding: 16px 24px;
-	background: rgba(f, 0, 0, 0.6);
+	background: rgba(0, 0, 0, 0.6);
 	backdrop-filter: blur(6px);
 }
 

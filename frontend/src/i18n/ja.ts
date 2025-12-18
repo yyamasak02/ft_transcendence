@@ -35,6 +35,7 @@ export const ja = {
 	camera_reset: "カメラ リセット",
 	username: "ユーザー名",
 	password: "パスワード",
+	password_confirm: "パスワード再入力",
 	keep_login: "ログイン保持",
 	enter: "決定",
 	wins: "勝利!",
@@ -46,4 +47,8 @@ export const ja = {
 	select_game_mode: "ゲームモード選択",
 	select_method: "w/s 又は ↑/↓ キーで選べます",
 	confirm: "Enterを押すと決定します",
+	signup: "新規登録",
+	register: "登録",
+	to_signup: "新規登録へ",
+	to_login: "ログインページへ",
 } as const;

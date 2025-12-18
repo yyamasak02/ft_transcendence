@@ -1,27 +1,40 @@
 /* pingpong_3D/style.css */
+@import "https://unpkg.com/open-props";
+@import "https://unpkg.com/open-props/normalize.min.css";
+@import "https://unpkg.com/open-props/buttons.min.css";
 
-html, body {
-	width: 100%;
-	height: 100%;
+.game-body {
+	background-color: #000;
+	color: #fff;
+	font-family: 'Bebas Neue', monospace;
+	height: 100vh;
+	overflow: hidden;
 }
 
-#gameCanvas3D {
+.game-body #gameCanvas3D {
 	width: 100%;
 	height: 100%;
+	max-width: 100%;
+	max-height: 100%;
 	display: block;
+	box-sizing: border-box;
+	border: none;
+	background: transparent;
+	cursor: default;
+
 	touch-action: none;
-	position: relative !important;
-	z-index: 9999 !important;
-	pointer-events: auto !important;
+	position: relative;
+	z-index: 9999;
+	pointer-events: auto;
 }
 
-#game-container-3d {
+.game-body #game-container-3d {
 	position: relative;
 	width: 100vw;
 	height: 100vh;
 }
 
-#game-ui-3d {
+.game-body #game-ui-3d {
 	position: absolute;
 	top: 20px;
 	left: 20px;
@@ -30,7 +43,7 @@ html, body {
 	z-index: 10000;
 }
 
-#game-ui-3d button {
+.game-body #game-ui-3d button {
 	background: #fff;
 	color: #000;
 	padding: 4px 10px;
@@ -47,13 +60,13 @@ html, body {
 		background-color 0.15s ease;
 }
 
-#btn-3d-reset.btn-disabled {
+.game-body #btn-3d-reset.btn-disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
 	pointer-events: none;
 }
 
-button:not(.btn-disabled):hover {
+.game-body #game-ui-3d button:not(.btn-disabled):hover {
 	border-color: #00e5ff;
 	box-shadow: 
 		0 0 6px rgba(0, 229, 255, 0.8),
