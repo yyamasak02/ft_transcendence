@@ -18,9 +18,9 @@ export function useConnect({
 
   function cleanup() {
     if (ws) {
+      ws = null;
+      signal_status = SignalStatus.NO_CONNECTION;
     }
-    ws = null;
-    signal_status = SignalStatus.NO_CONNECTION;
     if (heartbeatInterval) {
       clearInterval(heartbeatInterval);
       heartbeatInterval = null;
@@ -57,7 +57,7 @@ export function useConnect({
     }
   }
   async function disconnect() {
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (ws && WebSocket.OPEN == ws.readyState) {
       console.log("Client initiating disconnection...");
       ws.close();
     } else {
