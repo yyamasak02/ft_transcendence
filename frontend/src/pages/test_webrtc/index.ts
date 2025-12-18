@@ -24,7 +24,7 @@ export class TestWebRTCPage implements Component {
           type="text"
           id="host_room_id"
           name="host_room_id"
-          disabled
+          readonly
           class="mt-1 w-full px-3 py-2 bg-black text-green-300 border border-green-400 focus:outline-none"
         />
       </div>
@@ -68,7 +68,7 @@ export class TestWebRTCPage implements Component {
 
   private handleServerMessage = (message: Stomp) => {
     if (EventTypes.CREATED_ROOM === message.event_type) {
-      this.hostRoomIdElement.value = message.payload.newUuid;
+      this.hostRoomIdElement.value = message.payload.newRoomId;
     }
   };
 

@@ -1,44 +1,8 @@
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyInstance } from "fastify";
 import { Type } from "@sinclair/typebox";
-import { v4 as uuidv4 } from "uuid";
-import room from "../../../plugins/app/room.js";
-import { WebSocket } from "@fastify/websocket";
-
-const RoomStatus = {
-  WAITING: "00",
-  CONNECTED: "01",
-} as const;
-
-const ActionTypes = {
-  CREATE: "00",
-  JOIN: "01",
-  HEART_BEAT: "02",
-} as const;
-
-const EventTypes = {
-  CREATED_ROOM: "00",
-  JOINED_ROOM: "01",
-  HEALTH_CHECK: "02",
-} as const;
-
-interface Connect {
-  hostId: string;
-  hostSocket: WebSocket | null;
-  opponentId: string | null;
-  opponentSocket: WebSocket | null;
-  status: (typeof RoomStatus)[keyof typeof RoomStatus];
-}
-
-interface Stomp {
-  event_type: (typeof EventTypes)[keyof typeof EventTypes];
-  payload: any;
-}
-
-type JoinQuery = {
-  action: (typeof ActionTypes)[keyof typeof ActionTypes];
-  joinRoomId?: string;
-};
+import { ActionTypes, RoomStatus, EventTypes } from "../../../types/consts.js";
+import { JoinQuery, Stomp } from "../../../types/api_type.js";
 
 const querySchema = Type.Object({
   action: Type.String(),
@@ -58,56 +22,36 @@ export default async function (fastify: FastifyInstance) {
       // マッチ中のリクエスト管理
       // health check
       const { action, joinRoomId } = req.query as JoinQuery;
-      console.log(
-        "request: ",
-        action,
-        joinRoomId,
-        ActionTypes.CREATE === action,
-      );
-
       if (ActionTypes.CREATE === action) {
-        const newUuid = uuidv4();
-        const newRoom: Connect = {
-          hostId: "a",
-          hostSocket: socket,
-          opponentId: null,
-          opponentSocket: null,
-          status: RoomStatus.WAITING,
-        };
-        fastify.rooms.set(newUuid, newRoom);
-        fastify.socketToRoom.set(socket, newUuid);
+        const newRoomId = fastify.roomManager.addRoom("a", socket);
         const response: Stomp = {
           event_type: EventTypes.CREATED_ROOM,
-          payload: { newUuid: newUuid },
+          payload: { newRoomId: newRoomId },
         };
         socket.send(JSON.stringify(response));
       } else if (ActionTypes.JOIN === action && joinRoomId) {
-        const room = fastify.rooms.get(joinRoomId);
-        if (
-          !room ||
-          room.status !== RoomStatus.WAITING ||
-          room.opponentId !== null
-        ) {
+        const roomInfo = fastify.roomManager.findRoomInfoByRoomId(joinRoomId);
+        if (!roomInfo || RoomStatus.WAITING !== roomInfo?.status) {
           socket.close(1000, "Join failed");
           return;
         }
         // 値設定
-        room.opponentId = "b";
-        room.opponentSocket = socket;
-        room.status = RoomStatus.CONNECTED;
+        fastify.roomManager.addUser(joinRoomId, "b", socket);
+        fastify.roomManager.setRoomStatus(joinRoomId, RoomStatus.OCCUPIED);
 
-        // 接続したというレスポンスを返す
-        fastify.socketToRoom.set(socket, joinRoomId);
-        const hostResponse: Stomp = {
-          event_type: EventTypes.JOINED_ROOM,
-          payload: { opponentId: room.opponentId, hostFlag: true },
+        const responseRoomInfo = {
+          status: roomInfo.status,
+          hostUserId: roomInfo.hostUserId,
+          users: Array.from(roomInfo.users.values()).map((user) => ({
+            userId: user.userId,
+            isHost: user.isHost,
+          })),
         };
-        const opponentResponse: Stomp = {
+        const response: Stomp = {
           event_type: EventTypes.JOINED_ROOM,
-          payload: { opponentId: room.opponentId, hostFlag: false },
+          payload: { responseRoomInfo },
         };
-        room.hostSocket.send(JSON.stringify(hostResponse));
-        room.opponentSocket.send(JSON.stringify(opponentResponse));
+        fastify.roomManager.notifyAll(joinRoomId, JSON.stringify(response));
       }
       socket.on("message", (message) => {
         const data = JSON.parse(message.toString());
@@ -122,15 +66,7 @@ export default async function (fastify: FastifyInstance) {
       });
       // 切断動作は適当にしている
       socket.on("close", () => {
-        const uuid = fastify.socketToRoom.get(socket);
-        if (uuid) {
-          const tmp = fastify.rooms.get(uuid);
-          if (tmp) {
-            fastify.socketToRoom.delete(tmp.hostSocket);
-            fastify.socketToRoom.delete(tmp.opponentSocket);
-          }
-          fastify.rooms.delete(uuid);
-        }
+        fastify.roomManager.deleteUser(socket);
       });
     },
   );
