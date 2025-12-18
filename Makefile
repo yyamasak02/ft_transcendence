@@ -67,6 +67,4 @@ status:
 	@docker network ls | grep ft_transcendence
 
 #rebuild
-re:
-	make clean
-	make up
+re: clean up
