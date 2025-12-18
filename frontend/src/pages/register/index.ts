@@ -11,7 +11,7 @@ class RegisterComponent {
 							<div class="register-box">
 								<h2 class="register-title">${word("signup")}</h2>
 
-								<form action="#" method="POST" class="register-form">
+								<form class="register-form" id="register_form">
 									<div class="register-field">
 											<label for="email">${word("username")}</label>
 											<input
@@ -40,8 +40,8 @@ class RegisterComponent {
 											<label for="password">${word("password_confirm")}</label>
 											<input
 											type="password"
-											id="password"
-											name="password"
+											id="password_confirm"
+											name="password_confirm"
 											placeholder="••••••••"
 											required
 											class="register-input"

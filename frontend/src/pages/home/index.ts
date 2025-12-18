@@ -3,7 +3,7 @@ import { word } from "@/i18n";
 
 class HomeComponent {
   render = () => {
-    return "<h1>ft_transcendence</h1>";
+    return `<h1>ft_transcendence</h1>`;
   };
 }
 

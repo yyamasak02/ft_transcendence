@@ -35,7 +35,7 @@ export const en = {
 	camera_reset: "Camera Reset",
 	username: "Username",
 	password: "Password",
-	password_confirm: "confirm Password",
+	password_confirm: "Confirm Password",
 	keep_login: "Keep Login",
 	enter: "Enter",
 	wins: "Wins!",

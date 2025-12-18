@@ -1,4 +1,4 @@
-/* src/pages/login/style.css */
+/* src/pages/register/style.css */
 .login-screen {
 	min-height: calc(100vh - 64px);
 	padding-top: 0;
@@ -99,19 +99,18 @@
 }
 
 .login-footer {
-	margin-top: 18px;
-	text-align: center;
+  margin-top: 18px;
+  text-align: center;
 }
 
 .login-link {
-	color: #bbb;
-	text-decoration: none;
-	font-size: 0.9rem;
-	letter-spacing: 0.06em;
+  color: #bbb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
 }
 
 .login-link:hover {
-	color: #eee;
-	text-decoration: underline;
+  color: #eee;
+  text-decoration: underline;
 }
-
