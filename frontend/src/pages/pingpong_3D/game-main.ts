@@ -18,7 +18,7 @@ import {
 import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
 import type { GameState } from "./core/game";
-import { createWinEffect } from "./object/effect/finEffect";
+import { createWinEffect, disposeWinEffect } from "./object/effect/finEffect";
 import { cutIn, zoomOut, stopZoomOut } from "./object/effect/cameraWork";
 
 let settings = loadSettings();
@@ -30,7 +30,7 @@ let paddle1: Paddle | null = null;
 let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
-let zoomIntervalID: number | null = null;
+// let zoomIntervalID: number | null = null;
 let p1Score = 0;
 let p2Score = 0;
 
@@ -225,14 +225,14 @@ async function endGameDirection(winner: 1 | 2) {
   const ZOOM_OUT_DURATION_MS = 10000;
   createWinEffect(scene, winner);
   await cutIn(stage.camera, ball.mesh.position);
-  stopZoomOut(zoomIntervalID);
+  stopZoomOut();
   zoomOut(stage.camera, TARGET_RADIUS, ZOOM_OUT_DURATION_MS);
 }
 
 // 後始末用関数
 function cleanupAndGoHome() {
-  stopZoomOut(zoomIntervalID);
-  zoomIntervalID = null;
+  stopZoomOut();
+  disposeWinEffect();
   cleanupKeyboardListener();
 
   if (hud) {
@@ -267,6 +267,8 @@ export function stopGame() {
 
   // keyboardListenerの解除
   cleanupKeyboardListener();
+  stopZoomOut();
+  disposeWinEffect();
 
   // hudの破棄
   if (hud) {

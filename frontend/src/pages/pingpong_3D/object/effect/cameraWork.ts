@@ -27,17 +27,14 @@ export function zoomOut(
   targetRadius: number,
   duration: number,
 ) {
-  if (zoomIntervalID !== null) {
-    clearInterval(zoomIntervalID);
-    zoomIntervalID = null;
-  }
+  stopZoomOut();
 
   const startRadius = camera.radius;
   const startAlpha = camera.alpha;
   const startTime = Date.now();
   const TOTAL_ROTATION = Math.PI * 3;
 
-  const intervalID = window.setInterval(() => {
+  zoomIntervalID = window.setInterval(() => {
     const elapsed = Date.now() - startTime;
     const t = Math.min(1, elapsed / duration);
     const easeOutT = 1 - Math.pow(1 - t, 3);
@@ -48,16 +45,15 @@ export function zoomOut(
     camera.beta = Math.PI / 5 + (Math.PI / 10) * easeOutT;
 
     if (t === 1) {
-      clearInterval(intervalID);
-      zoomIntervalID = null;
+      stopZoomOut();
       console.log("Zoom out finished.");
     }
   }, 1000 / 60);
-  return intervalID;
 }
 
-export function stopZoomOut(id: number | null) {
-  if (id !== null) {
-    clearInterval(id);
+export function stopZoomOut() {
+  if (zoomIntervalID !== null) {
+    clearInterval(zoomIntervalID);
+    zoomIntervalID = null;
   }
 }
