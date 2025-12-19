@@ -2,7 +2,7 @@
 
 .pp3d-config {
 	color: #fff;
-	font-size: 18px;
+	font-size: 20px;
 }
 
 .pp3d-config-row {
@@ -41,6 +41,11 @@
 	cursor: pointer;
 	box-shadow: 0 0 12px rgba(255, 204, 0 , 0.7);
 }
+
+/* .pp3d-config-row--button {
+	justify-content: center;
+	margin-top: 25px;
+} */
 
 .pp3d-config button:hover {
 	background-color: #f00;

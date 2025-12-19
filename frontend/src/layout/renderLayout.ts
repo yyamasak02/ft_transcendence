@@ -6,17 +6,35 @@ import { NotFoundPage } from "@/pages/404";
 const navRoot = document.querySelector<HTMLElement>("#nav")!;
 const appRoot = document.querySelector<HTMLElement>("#app")!;
 
-export function renderLayout(route: string) {
-	// navbarを毎回作り直す
-	navRoot.innerHTML = "";
-	navRoot.appendChild(renderNavbar());
+const AUTH_ROUTES = ["/login", "/register"];
+// center配置にするルート
+const CENTER_ROUTES = ["/", "/pingpong", "/pingpong_3D_config", "/websocket"];
 
+export function renderLayout(route: string) {	
 	const r = routes[route];
 	if (!r) {
+		navRoot.innerHTML = "";
 		appRoot.innerHTML = new NotFoundPage().render();
 		return;
 	}
+	
+	const isAuthPage = AUTH_ROUTES.includes(route);
+	const isCenterPage = CENTER_ROUTES.includes(route);
+	
+	// navbar
+	navRoot.innerHTML = "";
+	if (!isAuthPage) navRoot.appendChild(renderNavbar());
+	
+	// content
+	const content = typeof r.content === "function" ? r.content() : r.content;
 
-	appRoot.innerHTML = typeof r.content === "function" ? r.content() : r.content;
+	if (isAuthPage) {
+		appRoot.innerHTML = `<div class="auth-screen">${content}</div>`;
+	} else if (isCenterPage) {
+		appRoot.innerHTML = `<div class="center-screen">${content}</div>`;
+	} else {
+		appRoot.innerHTML = content;
+	}
+
 	r.onMount?.();
 }

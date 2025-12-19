@@ -11,9 +11,9 @@ let preview: PreviewScene | null = null;
 
 // ゲーム設定画面
 class PingPongComponent implements Component {
-  render(): string {
-    return `
-			<div id="pp3d-config-root" class="pp3d-config">
+	render(): string {
+		return `
+			<div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
 				<div class="pp3d-config">
 					<h2>${word("pingpong3d_config")}</h2>
 					<div class="pp3d-config-row">
