@@ -33,7 +33,6 @@ let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
 let aiController: AIController | null = null;
-// let zoomIntervalID: number | null = null;
 let p1Score = 0;
 let p2Score = 0;
 let p2Input: PaddleInput;

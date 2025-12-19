@@ -23,11 +23,8 @@ export class AIController {
 
       // 見逃し
       let missRate = 0;
-      if (this.difficulty === "Easy") {
-        missRate = 0.1;
-      } else if (this.difficulty === "Normal") {
-        missRate = 0.01;
-      }
+      if (this.difficulty === "Easy") missRate = 0.1;
+      else if (this.difficulty === "Normal") missRate = 0.01;
       if (Math.random() > missRate) {
         this.targetPos = this.calculatePredictedZ(ball, paddle);
         this.lastActionTime = now;
@@ -36,11 +33,8 @@ export class AIController {
 
     // 反応速度
     let delay = 0;
-    if (this.difficulty === "Easy") {
-      delay = 200;
-    } else if (this.difficulty === "Normal") {
-      delay = 50;
-    }
+    if (this.difficulty === "Easy") delay = 200;
+    else if (this.difficulty === "Normal") delay = 50;
     if (now - this.lastActionTime > delay) {
       this.delayedTargetPos = this.targetPos;
     }
@@ -69,6 +63,15 @@ export class AIController {
     while (predictedZ > bound || predictedZ < -bound) {
       if (predictedZ > bound) predictedZ = 2 * bound - predictedZ;
       else if (predictedZ < -bound) predictedZ = -2 * bound - predictedZ;
+    }
+
+    // 角度をつけて打ち返す
+    let weight = 0;
+    if (this.difficulty === "Hard" && Math.random() < 0.9) {
+      const randomFactor = Math.random() * (0.9 - 0.75) + 0.75;
+      const edge = (paddle.length / 2) * randomFactor;
+      weight = predictedZ > 0 ? -edge : edge;
+      return predictedZ + weight;
     }
 
     // 予測ミス
