@@ -13,7 +13,7 @@ export class ballTrack {
   private scene: Scene;
   constructor(scene: Scene, ballMesh: Mesh) {
     this.scene = scene;
-    this.particleSystem = new ParticleSystem("futureTrail", 1000, scene);
+    this.particleSystem = new ParticleSystem("futureTrail", 300, scene);
     this.particleSystem.particleTexture = new Texture(
       "textures/flare.png",
       scene,
@@ -51,8 +51,8 @@ export class ballTrack {
     sparkSystem.colorDead = new Color4(1.0, 1.0, 1.0, 0.0);
     sparkSystem.minSize = 0.4;
     sparkSystem.maxSize = 0.6;
-    sparkSystem.minLifeTime = 10;
-    sparkSystem.maxLifeTime = 15;
+    sparkSystem.minLifeTime = 7;
+    sparkSystem.maxLifeTime = 10;
     sparkSystem.emitRate = 1000;
     sparkSystem.direction1 = new Vector3(-3, -3, -3);
     sparkSystem.direction2 = new Vector3(3, 3, 3);

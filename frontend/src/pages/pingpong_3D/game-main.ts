@@ -5,6 +5,7 @@ import { initDOMRefs, canvas, engine, scene } from "./core/data";
 import { loadSettings } from "./core/gameSettings";
 import { Ball } from "./object/Ball";
 import { Paddle, createPaddles } from "./object/Paddle";
+import type { PaddleInput } from "./object/Paddle";
 import { Stage } from "./object/Stage";
 import {
   checkPaddleCollision,
@@ -20,6 +21,7 @@ import { navigate } from "@/router/router";
 import type { GameState } from "./core/game";
 import { createWinEffect, disposeWinEffect } from "./object/effect/finEffect";
 import { cutIn, zoomOut, stopZoomOut } from "./object/effect/cameraWork";
+import { AIController } from "./object/AI/AI";
 
 let settings = loadSettings();
 let isRunning = false;
@@ -30,9 +32,11 @@ let paddle1: Paddle | null = null;
 let paddle2: Paddle | null = null;
 let stage: Stage | null = null;
 let hud: GameHUD | null = null;
+let aiController: AIController | null = null;
 // let zoomIntervalID: number | null = null;
 let p1Score = 0;
 let p2Score = 0;
+let p2Input: PaddleInput;
 
 export const gameState: GameState = {
   phase: "menu",
@@ -65,6 +69,11 @@ export function startGame() {
   isRunning = true;
   isPaused = false;
 
+  if (settings.player2Type !== "Player") {
+    aiController = new AIController(settings.player2Type);
+  } else {
+    aiController = null;
+  }
   initDOMRefs();
   const canvasEl = document.getElementById("gameCanvas3D");
   if (canvasEl) {
@@ -130,9 +139,14 @@ export function startGame() {
     if (paddle1 && paddle2 && ball) {
       if (gameState.phase === "game" && !isPaused) {
         // paddleの動き
-        const { p1, p2 } = getPaddleInputs();
-        paddle1.update(deltaTime, p1);
-        paddle2.update(deltaTime, p2);
+        const allInputs = getPaddleInputs();
+        paddle1.update(deltaTime, allInputs.p1);
+        if (aiController) {
+          p2Input = aiController.getInputs(ball, paddle2);
+        } else {
+          p2Input = allInputs.p2;
+        }
+        paddle2.update(deltaTime, p2Input);
         // ラリー &　スコア
         const result = ball.update(
           deltaTime,
