@@ -27,6 +27,7 @@
     "@babylonjs/gui-editor": "^8.39.0",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^24.3.1",
+    "js-yaml": "^4.1.1",
     "tailwindcss": "^4.1.13"
   }
 }
