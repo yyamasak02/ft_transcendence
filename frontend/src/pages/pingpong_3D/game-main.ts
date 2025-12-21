@@ -35,7 +35,7 @@ let hud: GameHUD | null = null;
 let aiController: AIController | null = null;
 let p1Score = 0;
 let p2Score = 0;
-let p2Input: PaddleInput;
+let p2Input: PaddleInput = { up: false, down: false };
 
 export const gameState: GameState = {
   phase: "menu",

@@ -52,7 +52,7 @@ export const en = {
 	to_signup: "Create an account",
 	to_login: "to Login page",
   player2Type: "Opponent",
-  easyLv: "easy",
-  normalLv: "normal",
-  hardLv: "hard",
+  easyLv: "Easy",
+  normalLv: "Normal",
+  hardLv: "Hard",
 } as const;

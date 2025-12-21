@@ -6,6 +6,7 @@ import "./style.css";
 import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
 import { word } from "@/i18n";
+import type { PlayerType } from "../pingpong_3D/core/gameSettings";
 
 let preview: PreviewScene | null = null;
 
@@ -208,7 +209,7 @@ export const PingPong3DSettingRoute: Routes = {
         const p1Color = p1ColSelect.value;
         const p2Length = Number(p2LenInput.value);
         const p2Color = p2ColSelect.value;
-        const p2Type = p2TypeSelect.value as any;
+        const p2Type = p2TypeSelect.value as PlayerType;
 
         // 入力値を読み取る
         saveSettings({
