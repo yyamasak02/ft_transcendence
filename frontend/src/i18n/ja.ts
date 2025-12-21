@@ -51,4 +51,8 @@ export const ja = {
 	register: "登録",
 	to_signup: "新規登録へ",
 	to_login: "ログインページへ",
+  player2Type: "対戦相手",
+  easyLv: "AI(弱い)",
+  normalLv: "AI(普通)",
+  hardLv: "AI(強い)",
 } as const;

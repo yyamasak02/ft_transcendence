@@ -51,4 +51,8 @@ export const en = {
 	register: "Create an account",
 	to_signup: "Create an account",
 	to_login: "to Login page",
+  player2Type: "Opponent",
+  easyLv: "Easy",
+  normalLv: "Normal",
+  hardLv: "Hard",
 } as const;

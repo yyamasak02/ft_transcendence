@@ -51,4 +51,8 @@ export const edo = {
 	register: "これで決まりじゃ",
 	to_signup: "名を刻みに行く",
 	to_login: "名乗り口に戻る",
+  player2Type: "敵方",
+  easyLv: "軍師(足軽)",
+  normalLv: "軍師(武士)",
+  hardLv: "軍師(将軍)",
 } as const;
