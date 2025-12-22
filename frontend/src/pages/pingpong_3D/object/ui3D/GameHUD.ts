@@ -1,6 +1,6 @@
 // pingpong_3D/object/ui3D/GameHUD.ts
 import { word } from "@/i18n";
-import { Scene, MeshBuilder, Vector3, Mesh } from "@babylonjs/core";
+import { Scene, MeshBuilder, Vector3, Mesh, Observer } from "@babylonjs/core";
 import {
   AdvancedDynamicTexture,
   Control,
@@ -36,7 +36,8 @@ export class GameHUD {
   private maxFloatingTexts = 6;
   private lastSpawnTime = 0;
   private spawnInterval = 2500;
-  private animationObserver: any = null;
+  private animationObserver: Observer<Scene> | null = null;
+  private slideInObserver: Observer<Scene> | null = null;
   private isNextPing: boolean = true;
 
   constructor(scene: Scene) {
@@ -231,14 +232,24 @@ export class GameHUD {
     const duration = 60;
     let frame = 0;
     const scene = this.plane.getScene();
-    const observer = scene.onBeforeRenderObservable.add(() => {
+
+    // 既存のアニメーションがあれば解除
+    if (this.slideInObserver) {
+      scene.onBeforeRenderObservable.remove(this.slideInObserver);
+    }
+
+    this.slideInObserver = scene.onBeforeRenderObservable.add(() => {
       frame++;
       const t = frame / duration;
       const ease = 1 - Math.pow(1 - t, 3);
       const currentPos = startLeft + (targetLeft - startLeft) * ease;
       this.resultPanel.leftInPixels = currentPos;
+
       if (frame >= duration) {
-        scene.onBeforeRenderObservable.remove(observer);
+        if (this.slideInObserver) {
+          scene.onBeforeRenderObservable.remove(this.slideInObserver);
+          this.slideInObserver = null;
+        }
       }
     });
   }
@@ -270,5 +281,38 @@ export class GameHUD {
   clearGameOver() {
     this.infoText.text = "";
     this.clearFinalResult();
+  }
+
+  public dispose() {
+    const scene = this.plane.getScene();
+
+    // Observer の解除
+    if (this.animationObserver) {
+      scene.onBeforeRenderObservable.remove(this.animationObserver);
+      this.animationObserver = null;
+    }
+    if (this.slideInObserver) {
+      scene.onBeforeRenderObservable.remove(this.slideInObserver);
+      this.slideInObserver = null;
+    }
+
+    // テキストの破棄
+    this.floatingTexts.forEach((ft) => {
+      if (ft.textBlock) ft.textBlock.dispose();
+    });
+    this.floatingTexts = [];
+
+    // GUI テクスチャの破棄
+    if (this.meshTexture) {
+      this.meshTexture.dispose();
+    }
+    if (this.screenTexture) {
+      this.screenTexture.dispose();
+    }
+
+    // メッシュの破棄
+    if (this.plane) {
+      this.plane.dispose();
+    }
   }
 }

@@ -132,6 +132,7 @@ export function startGame() {
     if (paddle1 && paddle2 && ball) {
       if (gameState.phase === "menu") {
         if (isEnterPressed()) {
+          gameState.phase = "starting";
           handleEnterToStart();
         }
       } else if (gameState.phase === "game" && !isPaused) {
@@ -280,7 +281,7 @@ function cleanupAndGoHome() {
   cleanupKeyboardListener();
 
   if (hud) {
-    if (hud.plane && !hud.plane.isDisposed) hud.plane.dispose();
+    hud.dispose();
   }
   hud = null;
 
@@ -316,7 +317,7 @@ export function stopGame() {
 
   // hudの破棄
   if (hud) {
-    if (hud.plane && !hud.plane.isDisposed) hud.plane.dispose();
+    hud.dispose();
     hud = null;
   }
   if (ball) {
