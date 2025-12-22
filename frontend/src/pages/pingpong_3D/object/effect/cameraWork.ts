@@ -2,6 +2,46 @@ import { ArcRotateCamera, Vector3 } from "@babylonjs/core";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 let zoomIntervalID: number | null = null;
+let transitionIntervalID: number | null = null;
+
+export function transitionToPlayView(
+  camera: ArcRotateCamera,
+  duration: number = 1500,
+): Promise<void> {
+  return new Promise((resolve) => {
+    stopZoomOut();
+    if (transitionIntervalID !== null) {
+      clearInterval(transitionIntervalID);
+    }
+    const targetAlpha = Math.PI / 2;
+    const targetBeta = Math.PI / 5;
+    const targetRadius = 80;
+
+    const startAlpha = camera.alpha;
+    const startBeta = camera.beta;
+    const startRadius = camera.radius;
+    const startTime = Date.now();
+
+    transitionIntervalID = window.setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+
+      camera.alpha = startAlpha + (targetAlpha - startAlpha) * ease;
+      camera.beta = startBeta + (targetBeta - startBeta) * ease;
+      camera.radius = startRadius + (targetRadius - startRadius) * ease;
+      camera.setTarget(Vector3.Zero());
+
+      if (t === 1) {
+        if (transitionIntervalID !== null) {
+          clearInterval(transitionIntervalID);
+          transitionIntervalID = null;
+        }
+        resolve();
+      }
+    }, 1000 / 60);
+  });
+}
 
 // カットイン
 export async function cutIn(camera: ArcRotateCamera, ballPosition: Vector3) {
@@ -55,5 +95,9 @@ export function stopZoomOut() {
   if (zoomIntervalID !== null) {
     clearInterval(zoomIntervalID);
     zoomIntervalID = null;
+  }
+  if (transitionIntervalID !== null) {
+    clearInterval(transitionIntervalID);
+    transitionIntervalID = null;
   }
 }

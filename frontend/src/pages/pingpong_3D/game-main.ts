@@ -15,12 +15,18 @@ import {
   setupKeyboardListener,
   cleanupKeyboardListener,
   getPaddleInputs,
+  isEnterPressed,
 } from "./input/keyboard";
 import { GameHUD } from "./object/ui3D/GameHUD";
 import { navigate } from "@/router/router";
 import type { GameState } from "./core/game";
 import { createWinEffect, disposeWinEffect } from "./object/effect/finEffect";
-import { cutIn, zoomOut, stopZoomOut } from "./object/effect/cameraWork";
+import {
+  cutIn,
+  zoomOut,
+  stopZoomOut,
+  transitionToPlayView,
+} from "./object/effect/cameraWork";
 import { AIController } from "./object/AI/AI";
 
 let settings = loadSettings();
@@ -74,17 +80,11 @@ export function startGame() {
     aiController = null;
   }
   initDOMRefs();
-  const canvasEl = document.getElementById("gameCanvas3D");
-  if (canvasEl) {
-    canvasEl.addEventListener("click", () => {
-      console.log("canvas clicked!");
-    });
-  }
 
   hud = new GameHUD(scene);
   setupKeyboardListener();
 
-  gameState.phase = "game";
+  gameState.phase = "menu";
   gameState.rallyActive = false;
   gameState.isServing = false;
   gameState.lastWinner = null;
@@ -109,26 +109,20 @@ export function startGame() {
   ball.stop();
   ball.velocity = new Vector3(0, 0, 0);
   ball.reset("center", paddle1, paddle2);
-  setTimeout(() => {
-    if (!scene || scene.isDisposed || !hud || !ball || !paddle1 || !paddle2)
-      return;
-    countdownAndServe(
-      "center",
-      ball,
-      paddle1,
-      paddle2,
-      gameState,
-      hud,
-      settings,
-      UILockController,
-    );
-  }, 0);
 
   // stage作成
   stage = new Stage(scene, canvas, paddle1, paddle2, ball, settings);
 
-  // display作成
+  if (stage.camera) {
+    stage.camera.alpha = -Math.PI / 4;
+    stage.camera.beta = Math.PI / 3;
+    stage.camera.radius = 450;
+  }
+
   hud.setScore(p1Score, p2Score);
+  hud.hideScore();
+  hud.showTitle();
+  hud.startFloatingTextAnimation(scene);
 
   // ===== 描画ループ開始 ========================
 
@@ -136,7 +130,11 @@ export function startGame() {
     const deltaTime = engine.getDeltaTime();
 
     if (paddle1 && paddle2 && ball) {
-      if (gameState.phase === "game" && !isPaused) {
+      if (gameState.phase === "menu") {
+        if (isEnterPressed()) {
+          handleEnterToStart();
+        }
+      } else if (gameState.phase === "game" && !isPaused) {
         // paddleの動き
         const allInputs = getPaddleInputs();
         paddle1.update(deltaTime, allInputs.p1);
@@ -160,6 +158,28 @@ export function startGame() {
     }
     scene.render();
   });
+}
+
+async function handleEnterToStart() {
+  if (!hud || !stage || !stage.camera || !ball || !paddle1 || !paddle2) return;
+
+  hud.clearTitle();
+  hud.stopFloatingTextAnimation(scene);
+
+  await transitionToPlayView(stage.camera, 1500);
+  hud.showScore();
+  gameState.phase = "game";
+
+  countdownAndServe(
+    "center",
+    ball,
+    paddle1,
+    paddle2,
+    gameState,
+    hud,
+    settings,
+    UILockController,
+  );
 }
 
 // ============================================
@@ -222,10 +242,21 @@ export function endGame(hud: GameHUD, winner: 1 | 2) {
   isPaused = false;
 
   hud.clearCountdown();
-  hud.showGameOver(winner === 1 ? "Player1" : "Player2");
+
+  //   hud.showGameOver(winner === 1 ? "Player1" : "Player2");
   if (ball) ball.stop();
 
   endGameDirection(winner);
+  hud.hideScore();
+  setTimeout(() => {
+    if (hud) {
+      hud.showFinalResult(
+        winner === 1 ? "Player1" : "Player2",
+        p1Score,
+        p2Score,
+      );
+    }
+  }, 5000);
   setTimeout(cleanupAndGoHome, 15000);
 }
 
@@ -285,7 +316,7 @@ export function stopGame() {
 
   // hudの破棄
   if (hud) {
-    if (hud.plane && !hud.plane.isDisposed()) hud.plane.dispose();
+    if (hud.plane && !hud.plane.isDisposed) hud.plane.dispose();
     hud = null;
   }
   if (ball) {
@@ -320,7 +351,11 @@ export function resetGame() {
   p2Score = 0;
 
   // スコアを戻す
-  if (hud) hud.setScore(0, 0);
+  if (hud) {
+    hud.setScore(0, 0);
+    hud.clearGameOver();
+    hud.clearTitle();
+  }
   // パドルを作り直す
   if (paddle1 && paddle2) {
     const { p1, p2 } = createPaddles(scene, settings);
