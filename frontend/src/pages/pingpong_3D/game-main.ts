@@ -407,12 +407,67 @@ function updateUIButtons() {
     "pingpong-3d-root",
   ) as HTMLElement | null;
   if (!gameRoot) return;
-  const btnReset = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-reset");
-  if (!btnReset) return;
+  // 暗幕
+  const overlay = gameRoot.querySelector<HTMLElement>("#pause-overlay");
 
-  const locked = gameState.resetLocked;
-  btnReset.disabled = locked;
-  btnReset.classList.toggle("btn-disabled", locked);
+  // 左上UI
+  const btnHomeNav =
+    gameRoot.querySelector<HTMLButtonElement>("#btn-3d-home-nav");
+  const btnSettingsNav = gameRoot.querySelector<HTMLButtonElement>(
+    "#btn-3d-settings-nav",
+  );
+  const btnPause = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-pause");
+  const btnCameraReset = gameRoot.querySelector<HTMLButtonElement>(
+    "#btn-3d-camera-reset",
+  );
+
+  // 中央ポーズメニュー
+  const centralBtns =
+    gameRoot.querySelectorAll<HTMLButtonElement>(".central-btn");
+  const btnReset = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-reset");
+
+  const hide = (el: HTMLElement | null) => el && (el.style.display = "none");
+  const show = (el: HTMLElement | null) =>
+    el && (el.style.display = "inline-flex");
+
+  if (gameState.phase === "menu") {
+    if (overlay) overlay.style.display = "none";
+    centralBtns.forEach((btn) => hide(btn));
+
+    show(btnHomeNav);
+    show(btnSettingsNav);
+    hide(btnPause);
+    hide(btnCameraReset);
+  } else if (gameState.phase === "game" && !isPaused) {
+    if (overlay) overlay.style.display = "none";
+    centralBtns.forEach((btn) => hide(btn));
+
+    hide(btnHomeNav);
+    hide(btnSettingsNav);
+    show(btnPause);
+    show(btnCameraReset);
+  } else if (gameState.phase === "pause") {
+    if (overlay) overlay.style.display = "block";
+    centralBtns.forEach((btn) => show(btn));
+
+    hide(btnHomeNav);
+    hide(btnSettingsNav);
+    hide(btnPause);
+    show(btnCameraReset);
+  } else {
+    if (overlay) overlay.style.display = "none";
+    centralBtns.forEach((btn) => hide(btn));
+    hide(btnHomeNav);
+    hide(btnSettingsNav);
+    hide(btnPause);
+    hide(btnCameraReset);
+  }
+
+  if (btnReset) {
+    const locked = gameState.resetLocked;
+    btnReset.disabled = locked;
+    btnReset.classList.toggle("btn-disabled", locked);
+  }
 }
 
 // ゲーム一時停止
@@ -422,6 +477,7 @@ export function pauseGame() {
 
   isPaused = true;
   gameState.phase = "pause";
+  updateUIButtons();
 }
 
 // ゲーム再開
@@ -431,6 +487,7 @@ export function resumeGame() {
 
   isPaused = false;
   gameState.phase = "game";
+  updateUIButtons();
 }
 
 // カメラリセット
