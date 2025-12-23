@@ -57,6 +57,7 @@ export class GameHUD {
   private slideInObserver: Observer<Scene> | null = null;
   private isNextPing: boolean = true;
 
+  // 初期生成
   constructor(scene: Scene) {
     // 板を作る
     this.plane = MeshBuilder.CreatePlane(
@@ -142,6 +143,7 @@ export class GameHUD {
     this.resultPanel.addControl(this.resultScoreText);
   }
 
+  // PINGとPONGの背景演出
   startFloatingTextAnimation(scene: Scene) {
     if (this.animationObserver)
       scene.onBeforeRenderObservable.remove(this.animationObserver);
@@ -181,6 +183,7 @@ export class GameHUD {
     });
   }
 
+  // PINGとPONGのリスト追加
   private spawnFloatingText() {
     if (this.floatingTexts.length >= this.maxFloatingTexts) {
       const old = this.floatingTexts.shift();
@@ -211,6 +214,7 @@ export class GameHUD {
     });
   }
 
+  // リザルトの右からスライドする演出
   private animateSlideIn() {
     const startTime = Date.now();
     const scene = this.plane.getScene();
@@ -289,6 +293,7 @@ export class GameHUD {
     this.clearFinalResult();
   }
 
+  // PINGとPONGの停止
   stopFloatingTextAnimation(scene: Scene) {
     if (this.animationObserver) {
       scene.onBeforeRenderObservable.remove(this.animationObserver);
@@ -316,7 +321,6 @@ export class GameHUD {
 
     this.floatingTexts.forEach((ft) => ft.textBlock?.dispose());
     this.floatingTexts = [];
-
     this.meshTexture.dispose();
     this.screenTexture.dispose();
     this.plane.dispose();
