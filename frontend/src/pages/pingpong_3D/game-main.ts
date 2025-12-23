@@ -114,9 +114,13 @@ export function startGame() {
   stage = new Stage(scene, canvas, paddle1, paddle2, ball, settings);
 
   if (stage.camera) {
-    stage.camera.alpha = -Math.PI / 4;
-    stage.camera.beta = Math.PI / 3;
-    stage.camera.radius = 450;
+    const MENU_ALPHA = -Math.PI / 4;
+    const MENU_BETA = Math.PI / 3;
+    const MENU_RADIUS = 450;
+
+    stage.camera.alpha = MENU_ALPHA;
+    stage.camera.beta = MENU_BETA;
+    stage.camera.radius = MENU_RADIUS;
   }
 
   hud.setScore(p1Score, p2Score);

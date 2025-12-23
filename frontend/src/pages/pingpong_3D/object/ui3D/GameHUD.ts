@@ -19,6 +19,24 @@ interface FloatingText {
 // ============================================
 
 export class GameHUD {
+  // カメラ演出用の定数
+  public static readonly PLAY_VIEW_ALPHA = -Math.PI / 2;
+  public static readonly PLAY_VIEW_BETA = Math.PI / 2.2;
+  public static readonly PLAY_VIEW_RADIUS = 150;
+
+  // UI配置・アニメーション用の定数
+  private static readonly PANEL_START_LEFT_PX = 1200;
+  private static readonly PANEL_TARGET_LEFT_PX = -80;
+  private static readonly SLIDE_ANIM_DURATION_MS = 1000;
+
+  private static readonly TITLE_FONT_SIZE = 100;
+  private static readonly SCORE_FONT_SIZE = 64;
+  private static readonly COUNTDOWN_FONT_SIZE = 80;
+
+  private static readonly FLOATING_TEXT_SPAWN_INTERVAL_MS = 2500;
+  private static readonly FLOATING_TEXT_LIFETIME_SEC = 6;
+  private static readonly FLOATING_TEXT_INITIAL_LIFE_SEC = 8;
+
   readonly plane: Mesh;
   private meshTexture: AdvancedDynamicTexture;
   private screenTexture: AdvancedDynamicTexture;
@@ -35,7 +53,6 @@ export class GameHUD {
   private floatingTexts: FloatingText[] = [];
   private maxFloatingTexts = 6;
   private lastSpawnTime = 0;
-  private spawnInterval = 2500;
   private animationObserver: Observer<Scene> | null = null;
   private slideInObserver: Observer<Scene> | null = null;
   private isNextPing: boolean = true;
@@ -56,7 +73,7 @@ export class GameHUD {
 
     // スコア
     this.scoreText = new TextBlock("score", "0 - 0");
-    this.scoreText.fontSize = 64;
+    this.scoreText.fontSize = GameHUD.SCORE_FONT_SIZE;
     this.scoreText.color = "white";
     this.scoreText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
     this.scoreText.top = "-70px";
@@ -64,7 +81,7 @@ export class GameHUD {
 
     // カウントダウン
     this.countdownText = new TextBlock("countdown", "");
-    this.countdownText.fontSize = 80;
+    this.countdownText.fontSize = GameHUD.COUNTDOWN_FONT_SIZE;
     this.countdownText.color = "yellow";
     this.meshTexture.addControl(this.countdownText);
 
@@ -83,7 +100,7 @@ export class GameHUD {
     );
 
     this.titleText = new TextBlock("title", "");
-    this.titleText.fontSize = 100;
+    this.titleText.fontSize = GameHUD.TITLE_FONT_SIZE;
     this.titleText.color = "#b2dbf5ff";
     this.titleText.fontWeight = "bold";
     this.titleText.outlineWidth = 10;
@@ -96,7 +113,7 @@ export class GameHUD {
     this.resultPanel.width = "1000px";
     this.resultPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
     this.resultPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-    this.resultPanel.leftInPixels = 1200;
+    this.resultPanel.leftInPixels = GameHUD.PANEL_START_LEFT_PX;
     this.resultPanel.topInPixels = -80;
     this.resultPanel.isVisible = false;
     this.screenTexture.addControl(this.resultPanel);
@@ -139,7 +156,7 @@ export class GameHUD {
         this.titleText.outlineWidth = 5 + pulse * 10;
       }
 
-      if (now - this.lastSpawnTime > this.spawnInterval) {
+      if (now - this.lastSpawnTime > GameHUD.FLOATING_TEXT_SPAWN_INTERVAL_MS) {
         this.lastSpawnTime = now;
         this.spawnFloatingText();
       }
@@ -153,8 +170,8 @@ export class GameHUD {
 
         const ratio = ft.currentLife / ft.lifetime;
         const invRatio = 1.0 - ratio;
-
         const scale = 1.0 + invRatio * 4.0;
+
         ft.textBlock.scaleX = scale;
         ft.textBlock.scaleY = scale;
         ft.textBlock.alpha = ratio * 0.4;
@@ -189,19 +206,36 @@ export class GameHUD {
 
     this.floatingTexts.push({
       textBlock: text,
-      lifetime: 8,
-      currentLife: 6,
+      lifetime: GameHUD.FLOATING_TEXT_INITIAL_LIFE_SEC,
+      currentLife: GameHUD.FLOATING_TEXT_LIFETIME_SEC,
     });
   }
 
-  stopFloatingTextAnimation(scene: Scene) {
-    if (this.animationObserver) {
-      scene.onBeforeRenderObservable.remove(this.animationObserver);
-      this.animationObserver = null;
+  private animateSlideIn() {
+    const startTime = Date.now();
+    const scene = this.plane.getScene();
+
+    if (this.slideInObserver) {
+      scene.onBeforeRenderObservable.remove(this.slideInObserver);
     }
-    this.floatingTexts.forEach((ft) => ft.textBlock.dispose());
-    this.floatingTexts = [];
-    this.isNextPing = true;
+
+    this.slideInObserver = scene.onBeforeRenderObservable.add(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / GameHUD.SLIDE_ANIM_DURATION_MS, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentPos =
+        GameHUD.PANEL_START_LEFT_PX +
+        (GameHUD.PANEL_TARGET_LEFT_PX - GameHUD.PANEL_START_LEFT_PX) * ease;
+
+      this.resultPanel.leftInPixels = currentPos;
+
+      if (progress >= 1) {
+        if (this.slideInObserver) {
+          scene.onBeforeRenderObservable.remove(this.slideInObserver);
+          this.slideInObserver = null;
+        }
+      }
+    });
   }
 
   showTitle() {
@@ -226,37 +260,21 @@ export class GameHUD {
     this.animateSlideIn();
   }
 
-  private animateSlideIn() {
-    const startLeft = 1000;
-    const targetLeft = -80;
-    const duration = 60;
-    let frame = 0;
-    const scene = this.plane.getScene();
-
-    // 既存のアニメーションがあれば解除
-    if (this.slideInObserver) {
-      scene.onBeforeRenderObservable.remove(this.slideInObserver);
-    }
-
-    this.slideInObserver = scene.onBeforeRenderObservable.add(() => {
-      frame++;
-      const t = frame / duration;
-      const ease = 1 - Math.pow(1 - t, 3);
-      const currentPos = startLeft + (targetLeft - startLeft) * ease;
-      this.resultPanel.leftInPixels = currentPos;
-
-      if (frame >= duration) {
-        if (this.slideInObserver) {
-          scene.onBeforeRenderObservable.remove(this.slideInObserver);
-          this.slideInObserver = null;
-        }
-      }
-    });
-  }
-
   clearFinalResult() {
     this.resultPanel.isVisible = false;
-    this.resultPanel.leftInPixels = 1200;
+    this.resultPanel.leftInPixels = GameHUD.PANEL_START_LEFT_PX;
+  }
+
+  setScore(p1: number, p2: number) {
+    this.scoreText.text = `${p1} - ${p2}`;
+  }
+
+  setCountdown(text: string) {
+    this.countdownText.text = text;
+  }
+
+  clearCountdown() {
+    this.countdownText.text = "";
   }
 
   hideScore() {
@@ -265,22 +283,22 @@ export class GameHUD {
   showScore() {
     this.scoreText.isVisible = true;
   }
-  setScore(p1: number, p2: number) {
-    this.scoreText.text = `${p1} - ${p2}`;
-  }
-  setCountdown(text: string) {
-    this.countdownText.text = text;
-  }
-  clearCountdown() {
-    this.countdownText.text = "";
-  }
-  showGameOver(winner: "Player1" | "Player2") {
-    const winnerName = winner === "Player1" ? word("player1") : word("player2");
-    this.infoText.text = `${winnerName} ${word("wins")}`;
-  }
+
   clearGameOver() {
     this.infoText.text = "";
     this.clearFinalResult();
+  }
+
+  stopFloatingTextAnimation(scene: Scene) {
+    if (this.animationObserver) {
+      scene.onBeforeRenderObservable.remove(this.animationObserver);
+      this.animationObserver = null;
+    }
+    this.floatingTexts.forEach((ft) => {
+      if (ft.textBlock) ft.textBlock.dispose();
+    });
+    this.floatingTexts = [];
+    this.isNextPing = true;
   }
 
   public dispose() {
@@ -296,23 +314,11 @@ export class GameHUD {
       this.slideInObserver = null;
     }
 
-    // テキストの破棄
-    this.floatingTexts.forEach((ft) => {
-      if (ft.textBlock) ft.textBlock.dispose();
-    });
+    this.floatingTexts.forEach((ft) => ft.textBlock?.dispose());
     this.floatingTexts = [];
 
-    // GUI テクスチャの破棄
-    if (this.meshTexture) {
-      this.meshTexture.dispose();
-    }
-    if (this.screenTexture) {
-      this.screenTexture.dispose();
-    }
-
-    // メッシュの破棄
-    if (this.plane) {
-      this.plane.dispose();
-    }
+    this.meshTexture.dispose();
+    this.screenTexture.dispose();
+    this.plane.dispose();
   }
 }
