@@ -182,16 +182,26 @@ export function startGame() {
           p2Input = allInputs.p2;
         }
 
+        const onPaddleMove = () => {
+          if (stage && paddle1 && paddle2) {
+            stage.updateDestruction(paddle1, paddle2);
+          }
+        };
+
         const isRallyRush = settings.rallyRush;
-        paddle1.updateRallyPosition(gameState.rallyCount, isRallyRush);
-        paddle2.updateRallyPosition(gameState.rallyCount, isRallyRush);
+        paddle1.updateRallyPosition(
+          gameState.rallyCount,
+          isRallyRush,
+          onPaddleMove,
+        );
+        paddle2.updateRallyPosition(
+          gameState.rallyCount,
+          isRallyRush,
+          onPaddleMove,
+        );
 
         paddle1.update(deltaTime, allInputs.p1);
         paddle2.update(deltaTime, p2Input);
-
-        // if (stage) {
-        //     stage.updateDestruction(paddle1, paddle2);
-        // }
 
         const collisionWrapper = (ballMesh: Mesh, paddle: Paddle) => {
           const hit = checkPaddleCollision(ballMesh, paddle);
@@ -293,9 +303,9 @@ export function onScore(
     endGame(hud, 2);
     return;
   }
-  //   if (stage) {
-  //     stage.resetCourt();
-  //   }
+  if (stage) {
+    stage.resetCourt();
+  }
   countdownAndServe(
     gameState.lastWinner,
     ball,

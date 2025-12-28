@@ -18,7 +18,7 @@ const PADDLE_CONSTS = {
   RALLY: {
     LEVEL_STEP: 10,
     ADVANCE_PER_LEVEL: 1.5,
-    MAX_ADVANCE: 30.0,
+    MAX_ADVANCE: 25.0,
     UPDATE_THRESHOLD: 0.01,
   },
 
@@ -63,7 +63,11 @@ export class Paddle {
     updateImp(this, deltaTime, input);
   }
 
-  updateRallyPosition(rallyCount: number, isRallyRushEnabled: boolean) {
+  updateRallyPosition(
+    rallyCount: number,
+    isRallyRushEnabled: boolean,
+    onMove?: () => void,
+  ) {
     let targetX = this.initialPosition.x;
     const { LEVEL_STEP, ADVANCE_PER_LEVEL, MAX_ADVANCE, UPDATE_THRESHOLD } =
       PADDLE_CONSTS.RALLY;
@@ -78,8 +82,14 @@ export class Paddle {
       }
     }
 
+    // 位置が実際に変わった場合のみ更新＆通知
     if (Math.abs(this.mesh.position.x - targetX) > UPDATE_THRESHOLD) {
       this.mesh.position.x = targetX;
+
+      // ★ ここで「動いたよ！」と通知（崩落処理を実行）
+      if (onMove) {
+        onMove();
+      }
     }
   }
 }
