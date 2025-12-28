@@ -84,7 +84,31 @@ export const PingPong3DGameRoute: Routes = {
         ?.addEventListener("click", () => {
           PingPong3DGame.resetCamera();
         });
+
+      // HowToPlay (Help) ボタン
+      const btnHelp = gameRoot.querySelector("#btn-3d-help");
+      const helpOverlay = gameRoot.querySelector<HTMLElement>("#help-overlay");
+      const btnCloseHelp = gameRoot.querySelector("#btn-close-help");
+
+      btnHelp?.addEventListener("click", () => {
+        if (helpOverlay) {
+          helpOverlay.style.display = "flex";
+        }
+      });
+
+      btnCloseHelp?.addEventListener("click", () => {
+        if (helpOverlay) {
+          helpOverlay.style.display = "none";
+        }
+      });
+
+      helpOverlay?.addEventListener("click", (e) => {
+        if (e.target === helpOverlay) {
+          helpOverlay.style.display = "none";
+        }
+      });
     },
+
     onUnmount: () => {
       document.body.classList.remove("game-body");
       const nav = document.getElementById("nav");

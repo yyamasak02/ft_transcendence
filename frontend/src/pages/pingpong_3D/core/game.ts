@@ -7,4 +7,5 @@ export type GameState = {
   lastWinner: 1 | 2 | null;
   resetLocked: boolean;
   countdownID: 0;
+  rallyCount: number;
 };

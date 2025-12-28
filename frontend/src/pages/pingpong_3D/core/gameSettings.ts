@@ -4,7 +4,7 @@ export type PlayerType = "Player" | "Easy" | "Normal" | "Hard";
 
 export type GameSettings = {
   winningScore: number;
-  ballSpeed: number;
+  rallyRush: boolean;
   selectedCountdownSpeed: number;
   selectedStageIndex: number;
   player1Color: string;
@@ -15,8 +15,8 @@ export type GameSettings = {
 };
 
 const DEFAULT_SETTINGS: GameSettings = {
-  winningScore: 5,
-  ballSpeed: 50,
+  winningScore: 3,
+  rallyRush: true,
   selectedCountdownSpeed: 1000,
   selectedStageIndex: 0,
   player1Color: "blue",
@@ -49,9 +49,6 @@ export function loadSettings(): GameSettings {
       settings.winningScore < 1
     ) {
       settings.winningScore = DEFAULT_SETTINGS.winningScore;
-    }
-    if (typeof settings.ballSpeed !== "number" || settings.ballSpeed <= 0) {
-      settings.ballSpeed = DEFAULT_SETTINGS.ballSpeed;
     }
 
     return settings;
