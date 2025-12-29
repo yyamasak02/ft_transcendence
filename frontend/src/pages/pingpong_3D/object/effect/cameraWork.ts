@@ -1,0 +1,103 @@
+import { ArcRotateCamera, Vector3 } from "@babylonjs/core";
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+let zoomIntervalID: number | null = null;
+let transitionIntervalID: number | null = null;
+
+export function transitionToPlayView(
+  camera: ArcRotateCamera,
+  duration: number = 1500,
+): Promise<void> {
+  return new Promise((resolve) => {
+    stopZoomOut();
+    if (transitionIntervalID !== null) {
+      clearInterval(transitionIntervalID);
+    }
+    const targetAlpha = Math.PI / 2;
+    const targetBeta = Math.PI / 5;
+    const targetRadius = 80;
+
+    const startAlpha = camera.alpha;
+    const startBeta = camera.beta;
+    const startRadius = camera.radius;
+    const startTime = Date.now();
+
+    transitionIntervalID = window.setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+
+      camera.alpha = startAlpha + (targetAlpha - startAlpha) * ease;
+      camera.beta = startBeta + (targetBeta - startBeta) * ease;
+      camera.radius = startRadius + (targetRadius - startRadius) * ease;
+      camera.setTarget(Vector3.Zero());
+
+      if (t === 1) {
+        if (transitionIntervalID !== null) {
+          clearInterval(transitionIntervalID);
+          transitionIntervalID = null;
+        }
+        resolve();
+      }
+    }, 1000 / 60);
+  });
+}
+
+// カットイン
+export async function cutIn(camera: ArcRotateCamera, ballPosition: Vector3) {
+  const CUT_IN_DELAY = 500;
+  const configs = [
+    { alpha: Math.PI / 2, beta: Math.PI / 2.5, radius: 15 },
+    { alpha: camera.alpha, beta: 0.1, radius: 10 },
+    { alpha: Math.PI / 4, beta: Math.PI / 4, radius: 20 },
+  ];
+
+  for (const config of configs) {
+    camera.setTarget(ballPosition.clone());
+    camera.alpha = config.alpha;
+    camera.beta = config.beta;
+    camera.radius = config.radius;
+    await delay(CUT_IN_DELAY);
+  }
+}
+
+// ズームアウト
+export function zoomOut(
+  camera: ArcRotateCamera,
+  targetRadius: number,
+  duration: number,
+) {
+  stopZoomOut();
+
+  const startRadius = camera.radius;
+  const startAlpha = camera.alpha;
+  const startTime = Date.now();
+  const TOTAL_ROTATION = Math.PI * 3;
+
+  zoomIntervalID = window.setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const t = Math.min(1, elapsed / duration);
+    const easeOutT = 1 - Math.pow(1 - t, 3);
+
+    camera.setTarget(Vector3.Zero());
+    camera.radius = startRadius + (targetRadius - startRadius) * easeOutT;
+    camera.alpha = startAlpha + TOTAL_ROTATION * easeOutT;
+    camera.beta = Math.PI / 5 + (Math.PI / 10) * easeOutT;
+
+    if (t === 1) {
+      stopZoomOut();
+      console.log("Zoom out finished.");
+    }
+  }, 1000 / 60);
+}
+
+export function stopZoomOut() {
+  if (zoomIntervalID !== null) {
+    clearInterval(zoomIntervalID);
+    zoomIntervalID = null;
+  }
+  if (transitionIntervalID !== null) {
+    clearInterval(transitionIntervalID);
+    transitionIntervalID = null;
+  }
+}

@@ -1,11 +1,11 @@
 // pingpong_3D/object/materials/courtMaterial.ts
 import { Scene, StandardMaterial, Color3 } from "@babylonjs/core";
-import { gameData } from "../../core/data";
+import type { GameSettings } from "../../core/gameSettings";
 
-export function createCourtMaterial(scene: Scene) {
+export function createCourtMaterial(scene: Scene, settings: GameSettings) {
 	const mat = new StandardMaterial("courtMat", scene);
 
-	switch (gameData.selectedStageIndex) {
+	switch (settings.selectedStageIndex) {
 		case 0:
 			mat.diffuseColor = new Color3(0.0, 0.05, 0.2);
 			mat.emissiveColor = new Color3(0.0, 0.2, 0.7);

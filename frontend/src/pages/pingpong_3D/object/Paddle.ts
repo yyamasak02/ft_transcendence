@@ -1,6 +1,8 @@
 // pingpong_3D/object/Paddle.ts
 import { Mesh, MeshBuilder, Vector3, Scene,} from "@babylonjs/core";
 import { GAME_CONFIG } from "../core/constants3D";
+import type { GameSettings } from "../core/gameSettings";
+import { createPaddleMaterial } from "./materials/paddleMaterial";
 
 export type PaddleInput = {
 	up: boolean;
@@ -36,6 +38,21 @@ export class Paddle {
 
 	move(dz: number) { this.mesh.position.z += dz; }
 	update(deltaTime: number, input: PaddleInput) { updateImp(this, deltaTime, input); }
+}
+
+export function createPaddles(scene: Scene, settings: GameSettings) {
+	const width = GAME_CONFIG.COURT_WIDTH;	
+	const p1Color = settings.player1Color;
+	const p1Length = settings.player1Length;
+	const p2Color = settings.player2Color;
+	const p2Length = settings.player2Length;
+
+	const p1 = new Paddle(scene, new Vector3(width / 2 - 1, 1, 0), p1Length);
+	p1.mesh.material = createPaddleMaterial("p1", p1Color, scene);
+	const p2 = new Paddle(scene, new Vector3(-(width / 2 - 1), 1, 0), p2Length);
+	p2.mesh.material = createPaddleMaterial("p2", p2Color, scene);
+
+	return { p1, p2 };
 }
 
 // ============================================
