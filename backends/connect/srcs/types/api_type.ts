@@ -9,4 +9,5 @@ export interface Stomp {
 export type JoinQuery = {
   action: (typeof ActionTypes)[keyof typeof ActionTypes];
   joinRoomId?: string;
+  userId: string;
 };

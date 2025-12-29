@@ -1,6 +1,6 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
-import { useConnect } from "./hooks/connectHook";
+import { wsService } from "./ws";
 import { ActionTypes, EventTypes } from "./consts/consts";
 import type { Stomp } from "./consts/consts";
 
@@ -101,34 +101,62 @@ export class TestWebRTCPage implements Component {
     this.closeButton = this.containerElement.querySelector(
       "#close_button",
     ) as HTMLButtonElement;
-    const { connect, disconnect } = useConnect({
+    wsService.configure({
       onMessageReceived: this.handleServerMessage,
       onSocketClosed: this.cleanMessage,
     });
+
+    // CREATE
     if (this.holdButton) {
       this.holdButton.addEventListener("click", () => {
-        connect({ action: ActionTypes.CREATE, joinRoomId: null });
+        wsService.connect({
+          action: ActionTypes.CREATE,
+          joinRoomId: null,
+        });
       });
     }
+
+    // CLOSE（ホスト側）
     if (this.holdCloseButton) {
-      this.holdCloseButton.addEventListener("click", () => disconnect());
-      console.log("Hello");
+      this.holdCloseButton.addEventListener("click", () => {
+        wsService.disconnect();
+        console.log("Hello");
+      });
     }
+
+    // JOIN
     if (this.submitButton) {
       this.submitButton.addEventListener("click", () => {
         this.joinRoomIdElement?.setCustomValidity("");
+
         if (!this.joinRoomIdElement?.checkValidity()) {
           this.joinRoomIdElement?.setCustomValidity("必須であ～る.");
           this.joinRoomIdElement?.reportValidity();
           return;
         }
-        // TODO IDが一致する場合
+
         const joinRoomId = this.joinRoomIdElement?.value ?? "";
-        connect({ action: ActionTypes.JOIN, joinRoomId: joinRoomId });
+
+        wsService.connect({
+          action: ActionTypes.JOIN,
+          joinRoomId,
+        });
       });
     }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      wsService.send({
+        action: ActionTypes.KEY_SIGNAL,
+        key: e.key,
+      });
+    });
+
+    // CLOSE（共通）
     if (this.closeButton) {
-      this.closeButton.addEventListener("click", () => disconnect());
+      this.closeButton.addEventListener("click", () => {
+        wsService.disconnect();
+      });
     }
   };
 }

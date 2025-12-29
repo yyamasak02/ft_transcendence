@@ -4,6 +4,7 @@ import { WebSocket } from "@fastify/websocket";
 import { RoomStatus } from "../../types/consts.js";
 import { RoomInfo, UserInfo } from "../../types/room_type.js";
 import { v4 as uuidv4 } from "uuid";
+import { GameState } from "../../game/GameState.js";
 export class RoomManager {
   private _rooms = new Map<string, RoomInfo>();
   private _socketToUserInfo = new Map<WebSocket, UserInfo>();
@@ -20,6 +21,7 @@ export class RoomManager {
       joinRoomId: roomId,
     };
     const roomInfo: RoomInfo = {
+      roomId: roomId,
       status: RoomStatus.WAITING,
       hostUserId: userId,
       users: new Map<string, UserInfo>(),
@@ -89,6 +91,21 @@ export class RoomManager {
     const roomInfo = this._rooms.get(roomId);
     if (!roomInfo) return;
     roomInfo.users.forEach((userInfo) => userInfo.socket.send(message));
+  }
+
+  startGame(roomId: string) {
+    const roomInfo = this._rooms.get(roomId);
+    if (!roomInfo) return;
+    roomInfo.game = new GameState(
+      [...roomInfo.users.values()].map((u) => u.userId),
+    );
+    return roomInfo.game.getGameStateInfo();
+  }
+
+  updateGame(roomId: string, userId: string, key: string) {
+    const roomInfo = this._rooms.get(roomId);
+    if (!roomInfo || !roomInfo.game) return;
+    return roomInfo.game.update(userId, key);
   }
 }
 
