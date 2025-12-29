@@ -58,4 +58,5 @@ export const ja = {
   how_to_play: "遊び方",
   collapse_mode: "崩落モード:",
   collapse_explanation: "10ラリー毎にステージが崩落する",
+  further: "もっと前へ!!!",
 } as const;

@@ -58,4 +58,5 @@ export const en = {
   how_to_play: "How to play",
   collapse_mode: "Collapse mode:",
   collapse_explanation: "A stage collapses every 10 rallies",
+  further: "further forward!!!",
 } as const;

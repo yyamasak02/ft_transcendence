@@ -31,7 +31,7 @@ const SLIDES: BannerSlide[] = [
     link: "https://42tokyo.jp/",
   },
   {
-    id: 3,
+    id: 4,
     src: "../../event4.png",
     alt: "event4",
     link: "https://42tokyo.jp/",
@@ -109,9 +109,23 @@ class HomeComponent {
     nextBtn?.addEventListener("click", this.handleNext);
 
     indicators.forEach((ind) => {
-      ind.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-        const index = Number(target.getAttribute("data-index"));
+      ind.addEventListener("click", (e: Event) => {
+        const target = e.currentTarget;
+
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+
+        const dataIndex = target.getAttribute("data-index");
+        if (dataIndex === null) {
+          return;
+        }
+
+        const index = Number(dataIndex);
+        if (Number.isNaN(index)) {
+          return;
+        }
+
         this.handleManualSwitch(index);
       });
     });

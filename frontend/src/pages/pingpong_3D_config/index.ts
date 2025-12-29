@@ -88,9 +88,9 @@ class PingPongComponent implements Component {
 
                     <div class="pp3d-config-row">
                         <label>${word("collapse_mode")}</label>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input id="rally-rush-toggle" type="checkbox" checked style="width: 24px; height: 24px; cursor: pointer; accent-color: #fc0;" />
-                            <span style="font-size: 0.8em; color: #ccc;">${word("collapse_explanation")}</span>
+                        <div class="pp3d-toggle-container">
+                            <input id="rally-rush-toggle" type="checkbox" checked class="pp3d-toggle-input" />
+                            <span class="pp3d-toggle-text">${word("collapse_explanation")}</span>
                         </div>
                     </div>
 

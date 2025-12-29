@@ -298,7 +298,7 @@ export class GameHUD {
       elapsed += dt;
       const t = Math.min(elapsed / DURATION, 1.0);
 
-      let scale = 1.0;
+      let scale: number;
       if (t < PEAK_RATIO) {
         const tPhase = t / PEAK_RATIO;
         scale = 1.0 + (MAX_SCALE - 1.0) * tPhase;

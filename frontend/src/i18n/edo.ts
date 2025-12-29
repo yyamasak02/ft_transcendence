@@ -58,4 +58,5 @@ export const edo = {
   how_to_play: "興じ方",
   collapse_mode: "土俵際:",
   collapse_explanation: "前進する他、助かるすべなし",
+  further: "進め!!!",
 } as const;

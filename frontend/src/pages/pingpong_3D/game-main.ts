@@ -29,6 +29,15 @@ import {
 } from "./object/effect/cameraWork";
 import { AIController } from "./object/AI/AI";
 import { GAME_CONFIG } from "./core/constants3D";
+import { word } from "@/i18n";
+
+const MAIN_CONSTS = {
+  RALLY_DEBOUNCE_MS: 100,
+  RALLY_NOTIFICATION: {
+    INTERVAL: 10,
+    MAX_LEVEL: 4,
+  },
+} as const;
 
 let settings = loadSettings();
 let isRunning = false;
@@ -207,20 +216,22 @@ export function startGame() {
           const hit = checkPaddleCollision(ballMesh, paddle);
           const now = Date.now();
 
-          if (hit && now - lastRallyTime > 100) {
+          if (hit && now - lastRallyTime > MAIN_CONSTS.RALLY_DEBOUNCE_MS) {
             lastRallyTime = now;
             gameState.rallyCount++;
 
             if (hud) hud.setRallyCount(gameState.rallyCount);
 
+            const { INTERVAL, MAX_LEVEL } = MAIN_CONSTS.RALLY_NOTIFICATION;
+
             if (
               isRallyRush &&
               gameState.rallyCount > 0 &&
-              gameState.rallyCount % 10 === 0
+              gameState.rallyCount % INTERVAL === 0
             ) {
-              const level = gameState.rallyCount / 10;
-              if (level <= 4 && hud) {
-                hud.showNotification("further forward!!!");
+              const level = gameState.rallyCount / INTERVAL;
+              if (level <= MAX_LEVEL && hud) {
+                hud.showNotification(word("further"));
               }
             }
           }

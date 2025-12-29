@@ -38,6 +38,10 @@ export function loadSettings(): GameSettings {
     const parsed = JSON.parse(raw);
     const settings: GameSettings = { ...DEFAULT_SETTINGS, ...parsed };
 
+    if (typeof settings.rallyRush !== "boolean") {
+      settings.rallyRush = DEFAULT_SETTINGS.rallyRush;
+    }
+
     if (!VALID_PLAYER_TYPES.includes(settings.player2Type)) {
       console.warn(
         `Invalid player2Type detected: ${settings.player2Type}. Resetting to default.`,
@@ -56,6 +60,7 @@ export function loadSettings(): GameSettings {
     console.error(
       "Failed to parse settings from localStorage. Using defaults.",
     );
+    localStorage.removeItem(STORAGE_KEY);
     return { ...DEFAULT_SETTINGS };
   }
 }
