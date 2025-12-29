@@ -10,11 +10,16 @@ import {
   hashPassword,
   verifyUserCredentials,
   issueLongTermToken,
+  issueTwoFactorToken,
   verifyLongTermToken,
   removeLongTermToken,
   findUserByPuid,
   findUserByName,
+  findUserByGoogleSub,
+  linkGoogleAccount,
   generatePuid,
+  verifyTotp,
+  generateTotpSecret,
   verifyGoogleIdToken,
 } from "../../../utils/auth.js";
 import {
@@ -22,7 +27,7 @@ import {
   destroyTokenBodySchema,
   errorResponseSchema,
   loginBodySchema,
-  loginSuccessSchema,
+  loginResponseSchema,
   refreshTokenBodySchema,
   refreshTokenResponseSchema,
   registerBodySchema,
@@ -36,6 +41,10 @@ import {
   puidLookupQuerySchema,
   puidLookupResponseSchema,
   googleLoginBodySchema,
+  googleRegisterBodySchema,
+  twoFactorEnableResponseSchema,
+  twoFactorVerifyBodySchema,
+  twoFactorStatusResponseSchema,
 } from "../../../schemas/user.js";
 import type {
   DeleteUserBody,
@@ -49,6 +58,8 @@ import type {
   UserIdentifier,
   PuidLookupQuery,
   GoogleLoginBody,
+  GoogleRegisterBody,
+  TwoFactorVerifyBody,
 } from "../../../schemas/user.js";
 
 export default async function (fastify: FastifyInstance) {
@@ -123,7 +134,7 @@ export default async function (fastify: FastifyInstance) {
         tags: ["User"],
         body: loginBodySchema,
         response: {
-          200: loginSuccessSchema,
+          200: loginResponseSchema,
           401: errorResponseSchema,
         },
       },
@@ -134,6 +145,19 @@ export default async function (fastify: FastifyInstance) {
       if (!user) {
         reply.code(401);
         return { message: "Invalid credentials." };
+      }
+
+      const twoFactor = await fastify.db.get<{
+        two_factor_enabled: number;
+        two_factor_secret: string | null;
+      }>(
+        "SELECT two_factor_enabled, two_factor_secret FROM users WHERE id = ?",
+        user.id,
+      );
+
+      if (twoFactor?.two_factor_enabled && twoFactor.two_factor_secret) {
+        const twoFactorToken = await issueTwoFactorToken(fastify, user.id);
+        return { twoFactorRequired: true, twoFactorToken };
       }
 
       const tokens = await issueTokens(fastify, {
@@ -162,7 +186,77 @@ export default async function (fastify: FastifyInstance) {
         tags: ["User"],
         body: googleLoginBodySchema,
         response: {
-          200: loginSuccessSchema,
+          200: loginResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+          409: errorResponseSchema,
+          500: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        reply.code(500);
+        return { message: "GOOGLE_CLIENT_ID is not configured." };
+      }
+
+      const googleProfile = await verifyGoogleIdToken(
+        request.body.idToken,
+        clientId,
+      );
+
+      if (!googleProfile) {
+        reply.code(401);
+        return { message: "Invalid Google ID token." };
+      }
+
+      const user = await findUserByGoogleSub(fastify, googleProfile.sub);
+      if (!user) {
+        reply.code(404);
+        return { message: "Google account not registered." };
+      }
+
+      const twoFactor = await fastify.db.get<{
+        two_factor_enabled: number;
+        two_factor_secret: string | null;
+      }>(
+        "SELECT two_factor_enabled, two_factor_secret FROM users WHERE id = ?",
+        user.id,
+      );
+
+      if (twoFactor?.two_factor_enabled && twoFactor.two_factor_secret) {
+        const twoFactorToken = await issueTwoFactorToken(fastify, user.id);
+        return { twoFactorRequired: true, twoFactorToken };
+      }
+
+      const tokens = await issueTokens(fastify, {
+        id: user.id,
+        puid: user.puid,
+        name: user.name,
+      });
+
+      let longTermToken: string | undefined;
+      if (request.body.longTerm) {
+        const issued = await issueLongTermToken(fastify, user.id);
+        longTermToken = issued.token;
+      }
+
+      return {
+        ...tokens,
+        ...(longTermToken ? { longTermToken } : {}),
+      };
+    },
+  );
+
+  f.post<{ Body: GoogleRegisterBody }>(
+    "/user/google_register",
+    {
+      schema: {
+        tags: ["User"],
+        body: googleRegisterBodySchema,
+        response: {
+          200: loginResponseSchema,
           401: errorResponseSchema,
           409: errorResponseSchema,
           500: errorResponseSchema,
@@ -186,64 +280,75 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Invalid Google ID token." };
       }
 
-      // email が検証済みならそれを優先し、無ければ sub を使って衝突を避ける
-      const canonicalName =
-        googleProfile.email && googleProfile.emailVerified
-          ? googleProfile.email
-          : `google:${googleProfile.sub}`;
-
-      let user = await findUserByName(fastify, canonicalName);
-
-      if (!user) {
-        const placeholderPassword = "";
-        const placeholderSalt = "";
-
-        for (let attempt = 0; attempt < 5; attempt++) {
-          const puid = generatePuid();
-          try {
-            await fastify.db.run(
-              "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
-              canonicalName,
-              placeholderPassword,
-              placeholderSalt,
-              puid,
-            );
-            break;
-          } catch (error) {
-            if (
-              error instanceof Error &&
-              /UNIQUE constraint failed: users\.name/.test(error.message)
-            ) {
-              reply.code(409);
-              return { message: "User already exists." };
-            }
-
-            if (
-              error instanceof Error &&
-              /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
-                error.message,
-              )
-            ) {
-              continue;
-            }
-
-            throw error;
-          }
-        }
-
-        user = await findUserByName(fastify, canonicalName);
+      const existing = await findUserByGoogleSub(fastify, googleProfile.sub);
+      if (existing) {
+        reply.code(409);
+        return { message: "Google account already registered." };
       }
+
+      const { name } = request.body;
+      const placeholderPassword = "";
+      const placeholderSalt = "";
+
+      let userId: number | null = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const puid = generatePuid();
+        try {
+          const result = await fastify.db.run(
+            "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
+            name,
+            placeholderPassword,
+            placeholderSalt,
+            puid,
+          );
+          userId = result.lastID ?? null;
+          break;
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            /UNIQUE constraint failed: users\.name/.test(error.message)
+          ) {
+            reply.code(409);
+            return { message: "User already exists." };
+          }
+
+          if (
+            error instanceof Error &&
+            /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
+              error.message,
+            )
+          ) {
+            continue;
+          }
+
+          throw error;
+        }
+      }
+
+      if (!userId) {
+        reply.code(500);
+        return { message: "Failed to provision user." };
+      }
+
+      await linkGoogleAccount(
+        fastify,
+        userId,
+        googleProfile.sub,
+        googleProfile.email,
+        googleProfile.emailVerified,
+      );
+
+      const user = await fastify.db.get<{ id: number; puid: string; name: string }>(
+        "SELECT id, puid, name FROM users WHERE id = ?",
+        userId,
+      );
 
       if (!user) {
         reply.code(500);
         return { message: "Failed to provision user." };
       }
 
-      const tokens = await issueTokens(fastify, {
-        id: user.id,
-        puid: user.puid,
-        name: user.name,
-      });
+      const tokens = await issueTokens(fastify, user);
 
       let longTermToken: string | undefined;
       if (request.body.longTerm) {
@@ -500,6 +605,122 @@ export default async function (fastify: FastifyInstance) {
 
       return {
         message: `User ${puid} deleted${reason ? ` for ${reason}` : ""}.`,
+      };
+    },
+  );
+
+  f.post(
+    "/user/enable_2fa",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        response: {
+          200: twoFactorEnableResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const secret = generateTotpSecret();
+      await fastify.db.run(
+        "UPDATE users SET two_factor_enabled = 1, two_factor_secret = ? WHERE id = ?",
+        secret,
+        request.user.userId,
+      );
+      return { token: secret };
+    },
+  );
+
+  f.get(
+    "/user/2fa_status",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        response: {
+          200: twoFactorStatusResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const row = await fastify.db.get<{
+        two_factor_enabled: number;
+        two_factor_secret: string | null;
+      }>(
+        "SELECT two_factor_enabled, two_factor_secret FROM users WHERE id = ?",
+        request.user.userId,
+      );
+      const enabled = Boolean(row?.two_factor_enabled && row?.two_factor_secret);
+      return { enabled };
+    },
+  );
+
+  f.post<{ Body: TwoFactorVerifyBody }>(
+    "/user/verify_2fa",
+    {
+      schema: {
+        tags: ["User"],
+        body: twoFactorVerifyBodySchema,
+        response: {
+          200: loginResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { twoFactorToken, code, longTerm } = request.body;
+      let payload: { userId: number; type?: string };
+      try {
+        payload = await fastify.jwt.verify(twoFactorToken);
+      } catch (error) {
+        reply.code(401);
+        return { message: "Invalid 2FA token." };
+      }
+
+      if (payload.type !== "2fa") {
+        reply.code(401);
+        return { message: "Invalid 2FA token." };
+      }
+
+      const user = await fastify.db.get<{
+        id: number;
+        puid: string;
+        name: string;
+        two_factor_enabled: number;
+        two_factor_secret: string | null;
+      }>(
+        "SELECT id, puid, name, two_factor_enabled, two_factor_secret FROM users WHERE id = ?",
+        payload.userId,
+      );
+
+      if (!user || !user.two_factor_enabled || !user.two_factor_secret) {
+        reply.code(400);
+        return { message: "2FA is not enabled." };
+      }
+
+      if (!verifyTotp(user.two_factor_secret, code)) {
+        reply.code(401);
+        return { message: "Invalid 2FA code." };
+      }
+
+      const tokens = await issueTokens(fastify, {
+        id: user.id,
+        puid: user.puid,
+        name: user.name,
+      });
+
+      let longTermToken: string | undefined;
+      if (longTerm) {
+        const issued = await issueLongTermToken(fastify, user.id);
+        longTermToken = issued.token;
+      }
+
+      return {
+        ...tokens,
+        ...(longTermToken ? { longTermToken } : {}),
       };
     },
   );

@@ -1,10 +1,11 @@
 import argon2 from "argon2";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import type { FastifyInstance } from "fastify";
-import type { AccessTokenPayload } from "../types/jwt.js";
+import type { AccessTokenPayload, TwoFactorTokenPayload } from "../types/jwt.js";
 
 export const ACCESS_TOKEN_EXPIRES_IN = "15m";
 export const LONG_TERM_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+export const TWO_FACTOR_TOKEN_EXPIRES_IN = "5m";
 
 export type StoredUser = {
   id: number;
@@ -45,6 +46,17 @@ export function generatePuid() {
   return createHash("sha256").update(entropy).digest("hex");
 }
 
+const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+export function generateTotpSecret(length = 24) {
+  const bytes = randomBytes(length);
+  let output = "";
+  for (const byte of bytes) {
+    output += BASE32_ALPHABET[byte % BASE32_ALPHABET.length];
+  }
+  return output;
+}
+
 export async function issueTokens(
   fastify: FastifyInstance,
   user: { id: number; puid: string; name: string },
@@ -59,6 +71,19 @@ export async function issueTokens(
     { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
   );
   return { accessToken };
+}
+
+export async function issueTwoFactorToken(
+  fastify: FastifyInstance,
+  userId: number,
+) {
+  return fastify.jwt.sign(
+    {
+      userId,
+      type: "2fa",
+    } satisfies TwoFactorTokenPayload,
+    { expiresIn: TWO_FACTOR_TOKEN_EXPIRES_IN },
+  );
 }
 
 export async function issueLongTermToken(
@@ -127,6 +152,36 @@ export async function findUserByName(
   );
 }
 
+export async function findUserByGoogleSub(
+  fastify: FastifyInstance,
+  googleSub: string,
+) {
+  return fastify.db.get<StoredUser>(
+    `SELECT users.id, users.puid, users.name, users.password, users.salt
+     FROM users
+     INNER JOIN google_accounts ON google_accounts.user_id = users.id
+     WHERE google_accounts.google_sub = ?`,
+    googleSub,
+  );
+}
+
+export async function linkGoogleAccount(
+  fastify: FastifyInstance,
+  userId: number,
+  googleSub: string,
+  email?: string,
+  emailVerified?: boolean,
+) {
+  await fastify.db.run(
+    `INSERT INTO google_accounts (user_id, google_sub, email, email_verified)
+     VALUES (?, ?, ?, ?)`,
+    userId,
+    googleSub,
+    email ?? null,
+    emailVerified ? 1 : 0,
+  );
+}
+
 export async function findUserByPuid(
   fastify: FastifyInstance,
   puid: string,
@@ -164,6 +219,49 @@ export async function verifyUserCredentials(
   }
 
   return user;
+}
+
+function decodeBase32(value: string) {
+  const cleaned = value.replace(/=+$/g, "").toUpperCase().replace(/[^A-Z2-7]/g, "");
+  let bits = "";
+  for (const char of cleaned) {
+    const index = BASE32_ALPHABET.indexOf(char);
+    if (index === -1) continue;
+    bits += index.toString(2).padStart(5, "0");
+  }
+  const bytes: number[] = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) {
+    bytes.push(parseInt(bits.slice(i, i + 8), 2));
+  }
+  return Buffer.from(bytes);
+}
+
+export function verifyTotp(
+  secret: string,
+  token: string,
+  window = 1,
+  stepSeconds = 30,
+  digits = 6,
+) {
+  const key = decodeBase32(secret);
+  if (!key.length) return false;
+  const now = Math.floor(Date.now() / 1000);
+  const counter = Math.floor(now / stepSeconds);
+  for (let offset = -window; offset <= window; offset += 1) {
+    const ctr = counter + offset;
+    const buf = Buffer.alloc(8);
+    buf.writeBigUInt64BE(BigInt(ctr));
+    const hmac = createHmac("sha1", key).update(buf).digest();
+    const index = hmac[hmac.length - 1] & 0x0f;
+    const code =
+      ((hmac[index] & 0x7f) << 24) |
+      ((hmac[index + 1] & 0xff) << 16) |
+      ((hmac[index + 2] & 0xff) << 8) |
+      (hmac[index + 3] & 0xff);
+    const otp = (code % 10 ** digits).toString().padStart(digits, "0");
+    if (otp === token) return true;
+  }
+  return false;
 }
 
 type GoogleTokenInfoResponse = {
