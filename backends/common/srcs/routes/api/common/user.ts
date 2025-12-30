@@ -66,6 +66,11 @@ import type { TwoFactorTokenPayload } from "../../../types/jwt.js";
 
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
+  const isSqliteConstraintError = (error: unknown) =>
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "SQLITE_CONSTRAINT";
   const isTwoFactorPayload = (value: unknown): value is TwoFactorTokenPayload =>
     typeof value === "object" &&
     value !== null &&
@@ -104,20 +109,15 @@ export default async function (fastify: FastifyInstance) {
           reply.code(201);
           return { message: "User registered." };
         } catch (error) {
-          if (
-            error instanceof Error &&
-            /UNIQUE constraint failed: users\.name/.test(error.message)
-          ) {
-            reply.code(409);
-            return { message: "User already exists." };
-          }
-
-          if (
-            error instanceof Error &&
-            /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
-              error.message,
-            )
-          ) {
+          if (isSqliteConstraintError(error)) {
+            const existing = await fastify.db.get(
+              "SELECT 1 FROM users WHERE name = ?",
+              name,
+            );
+            if (existing) {
+              reply.code(409);
+              return { message: "User already exists." };
+            }
             continue;
           }
 
@@ -211,6 +211,9 @@ export default async function (fastify: FastifyInstance) {
       const googleProfile = await verifyGoogleIdToken(
         request.body.idToken,
         clientId,
+        (error) => {
+          fastify.log.error({ err: error }, "Failed to verify Google ID token.");
+        },
       );
 
       if (!googleProfile) {
@@ -280,6 +283,9 @@ export default async function (fastify: FastifyInstance) {
       const googleProfile = await verifyGoogleIdToken(
         request.body.idToken,
         clientId,
+        (error) => {
+          fastify.log.error({ err: error }, "Failed to verify Google ID token.");
+        },
       );
 
       if (!googleProfile) {
@@ -312,20 +318,15 @@ export default async function (fastify: FastifyInstance) {
           userId = result.lastID ?? null;
           break;
         } catch (error) {
-          if (
-            error instanceof Error &&
-            /UNIQUE constraint failed: users\.name/.test(error.message)
-          ) {
-            reply.code(409);
-            return { message: "User already exists." };
-          }
-
-          if (
-            error instanceof Error &&
-            /UNIQUE constraint failed: (users\.puid|idx_users_puid)/.test(
-              error.message,
-            )
-          ) {
+          if (isSqliteConstraintError(error)) {
+            const existing = await fastify.db.get(
+              "SELECT 1 FROM users WHERE name = ?",
+              name,
+            );
+            if (existing) {
+              reply.code(409);
+              return { message: "User already exists." };
+            }
             continue;
           }
 

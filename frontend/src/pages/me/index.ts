@@ -1,7 +1,10 @@
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 import { navigate } from "@/router/router";
-import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
+import {
+  ACCESS_TOKEN_KEY,
+  LONG_TERM_TOKEN_KEY,
+} from "@/constants/auth";
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 
@@ -103,6 +106,7 @@ const setupTwoFactor = () => {
       if (!res.ok) return;
       if (body?.enabled) {
         button.disabled = true;
+        button.style.display = "none";
         setTwoFactorMsg(word("two_factor_already_enabled"));
       }
     })
@@ -138,6 +142,7 @@ const setupTwoFactor = () => {
       renderQr(buildOtpAuthUri(token, payload.name));
       setTwoFactorMsg(word("two_factor_enabled"));
       button.disabled = true;
+      button.style.display = "none";
     } catch (error) {
       setTwoFactorMsg(`${word("two_factor_failed")}: ${error}`);
     } finally {

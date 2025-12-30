@@ -252,6 +252,7 @@ const TOTP_HASH_ALGORITHM = "sha1";
 const TOTP_TRUNCATION_OFFSET_MASK = 0x0f;
 const TOTP_TRUNCATION_VALUE_MASK = 0x7f;
 const BYTE_MASK = 0xff;
+const GOOGLE_TOKENINFO_TIMEOUT_MS = 5000;
 
 export function verifyTotp(
   secret: string,
@@ -302,12 +303,18 @@ export type GoogleProfile = {
 export async function verifyGoogleIdToken(
   idToken: string,
   clientId: string,
+  logError?: (error: unknown) => void,
 ): Promise<GoogleProfile | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    GOOGLE_TOKENINFO_TIMEOUT_MS,
+  );
   try {
     const url = new URL("https://oauth2.googleapis.com/tokeninfo");
     url.searchParams.set("id_token", idToken);
 
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) {
       return null;
     }
@@ -331,6 +338,9 @@ export async function verifyGoogleIdToken(
       emailVerified,
     };
   } catch (error) {
+    if (logError) logError(error);
     return null;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
