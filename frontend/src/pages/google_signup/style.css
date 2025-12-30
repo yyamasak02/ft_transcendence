@@ -1,0 +1,126 @@
+/* src/pages/google_signup/style.css */
+.google-signup-screen {
+  min-height: calc(100vh - 64px);
+  padding-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1c1c1c, #0b0b0b);
+}
+
+.google-signup-box {
+  width: 380px;
+  padding: 32px;
+  background: #111;
+  border: 2px solid #444;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.google-signup-title {
+  text-align: center;
+  color: #e6e6e6;
+  font-size: 2rem;
+  letter-spacing: 0.16em;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.google-signup-desc {
+  text-align: center;
+  color: #b5b5b5;
+  font-size: 0.9rem;
+  margin-bottom: 22px;
+}
+
+.google-signup-field {
+  margin-bottom: 18px;
+}
+
+.google-signup-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08rem;
+  color: #aaa;
+}
+
+.google-signup-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  color: #eee;
+  font-size: 1rem;
+  border-radius: 6px;
+}
+
+.google-signup-input::placeholder {
+  color: #666;
+}
+
+.google-signup-input:focus {
+  outline: none;
+  border-color: #888;
+  background: #202020;
+}
+
+.google-signup-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 18px;
+  color: #ccc;
+}
+
+.google-signup-form input[type="checkbox"] {
+  accent-color: #888;
+}
+
+.google-signup-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 0;
+  background: #333;
+  color: #eee;
+  border: 1px solid #666;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.google-signup-submit:hover {
+  background: #444;
+  border-color: #aaa;
+}
+
+.google-signup-submit:active {
+  transform: translateY(1px);
+}
+
+.google-signup-footer {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.google-signup-link {
+  color: #bbb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.google-signup-link:hover {
+  color: #eee;
+  text-decoration: underline;
+}
+
+.google-signup-msg {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  text-align: center;
+  white-space: pre-wrap;
+}

@@ -4,3 +4,10 @@ export type AccessTokenPayload = {
   name: string;
   type: "access";
 };
+
+export type TwoFactorTokenPayload = {
+  userId: number;
+  type: "2fa";
+};
+
+export type AuthTokenPayload = AccessTokenPayload | TwoFactorTokenPayload;

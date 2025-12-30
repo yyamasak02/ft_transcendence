@@ -61,6 +61,23 @@ register_response="$(
 )"
 echo "Response: ${register_response}"
 
+log "同じユーザー名の登録が失敗することを確認"
+dup_body="$(mktemp)"
+set +e
+dup_status="$(
+  curl -sS -o "${dup_body}" -w "%{http_code}" \
+    -X POST \
+    "${BASE_URL}/user/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\":\"${USER_NAME}\",\"password\":\"${USER_PASSWORD}\"}"
+)"
+set -e
+echo "Duplicate response body: $(cat "${dup_body}")"
+rm -f "${dup_body}"
+if [[ "${dup_status}" -ne 409 ]]; then
+  fail "重複ユーザー名の登録が409になりませんでした (status: ${dup_status})。"
+fi
+
 log "ユーザー'${USER_NAME}'のPUIDを照会APIで取得中"
 encoded_name="$(urlencode "${USER_NAME}")"
 puid_lookup_response="$(

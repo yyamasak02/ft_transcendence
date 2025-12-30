@@ -6,7 +6,7 @@ import { NotFoundPage } from "@/pages/404";
 const navRoot = document.querySelector<HTMLElement>("#nav")!;
 const appRoot = document.querySelector<HTMLElement>("#app")!;
 
-const AUTH_ROUTES = ["/login", "/register"];
+const AUTH_ROUTES = ["/login", "/register", "/google-signup", "/two-factor"];
 // center配置にするルート
 const CENTER_ROUTES = ["/", "/pingpong", "/pingpong_3D_config", "/websocket"];
 

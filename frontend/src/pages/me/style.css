@@ -1,0 +1,90 @@
+/* src/pages/me/style.css */
+.me-page {
+  padding: 24px;
+  color: #fff;
+}
+
+.me-title {
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+}
+
+.me-section {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+}
+
+.me-section-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.me-section-desc {
+  margin: 0 0 12px;
+  color: #b5b5b5;
+  font-size: 0.85rem;
+}
+
+.me-2fa {
+  padding: 8px 14px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.me-2fa:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-qr {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.me-qr img {
+  display: block;
+  border: 6px solid #111;
+  background: #111;
+}
+
+.me-qr-token {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #333;
+  background: #101010;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.me-2fa-msg {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #d2d2d2;
+}
+
+.me-logout {
+  margin-top: 18px;
+  padding: 10px 16px;
+  background: #333;
+  color: #eee;
+  border: 1px solid #666;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.me-logout:hover {
+  background: #444;
+  border-color: #888;
+}

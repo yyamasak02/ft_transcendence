@@ -28,6 +28,47 @@ export const loginSuccessSchema = Type.Object({
   longTermToken: Type.Optional(Type.String()),
 });
 
+export const twoFactorRequiredSchema = Type.Object({
+  twoFactorRequired: Type.Literal(true),
+  twoFactorToken: Type.String({ minLength: 1 }),
+});
+
+export const loginResponseSchema = Type.Union([
+  loginSuccessSchema,
+  twoFactorRequiredSchema,
+]);
+
+export const googleLoginBodySchema = Type.Object({
+  idToken: Type.String({ minLength: 1 }),
+  longTerm: Type.Optional(Type.Boolean()),
+});
+
+export type GoogleLoginBody = Static<typeof googleLoginBodySchema>;
+
+export const googleRegisterBodySchema = Type.Object({
+  idToken: Type.String({ minLength: 1 }),
+  name: Type.String({ minLength: 1 }),
+  longTerm: Type.Optional(Type.Boolean()),
+});
+
+export type GoogleRegisterBody = Static<typeof googleRegisterBodySchema>;
+
+export const twoFactorEnableResponseSchema = Type.Object({
+  token: Type.String({ minLength: 1 }),
+});
+
+export const twoFactorStatusResponseSchema = Type.Object({
+  enabled: Type.Boolean(),
+});
+
+export const twoFactorVerifyBodySchema = Type.Object({
+  twoFactorToken: Type.String({ minLength: 1 }),
+  code: Type.String({ minLength: 1 }),
+  longTerm: Type.Optional(Type.Boolean()),
+});
+
+export type TwoFactorVerifyBody = Static<typeof twoFactorVerifyBodySchema>;
+
 export const userIdentifierSchema = Type.Object({
   puid: Type.String({ minLength: 1 }),
 });
