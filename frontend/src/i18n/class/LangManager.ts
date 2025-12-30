@@ -1,8 +1,8 @@
 // src/i18n/LangManager.ts
-import { en } from "./locale/en";
-import { ja } from "./locale/ja";
-import { edo } from "./locale/edo";
-import type { Lang, I18nKey, I18nDict } from "./lang";
+import { en } from "../locale/en";
+import { ja } from "../locale/ja";
+import { edo } from "../locale/edo";
+import type { Lang, I18nKey, I18nDict } from "../lang";
 
 const LANG_KEY = "app_lang";
 

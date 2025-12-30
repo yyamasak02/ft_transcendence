@@ -3,7 +3,7 @@ import type { Route } from "@/types/routes";
 import * as PingPong3DGame from "./game-main";
 import { PingPong3DGameView } from "./game-view";
 import { navigate } from "@/router";
-import "./style.css";
+
 import { word } from "@/i18n";
 
 const gameView = new PingPong3DGameView();

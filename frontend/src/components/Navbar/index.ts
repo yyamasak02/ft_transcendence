@@ -1,6 +1,6 @@
 import { navigate } from "@/router";
 import type { NavItem } from "./nav";
-import { routes } from "@/router/routes";
+import { routes } from "@/router/routers";
 
 import "./navbar.css";
 

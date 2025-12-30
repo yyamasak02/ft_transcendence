@@ -1,6 +1,6 @@
 // pingpong_3D/game-view.ts ゲーム画面のHTML
 import type { Component } from "@/types/component";
-import "./style.css";
+
 import { word, t } from "@/i18n";
 
 export class PingPong3DGameView implements Component {

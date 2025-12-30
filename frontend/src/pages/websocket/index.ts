@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import "./style.css";
+
 import { word } from "@/i18n";
 import type { Component } from "@/types/component";
 

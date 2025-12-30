@@ -1,6 +1,6 @@
 // src/pages/register/index.ts
 import type { Route } from "@/types/routes";
-import "./style.css";
+
 import { word, t } from "@/i18n";
 import type { Component } from "@/types/component";
 

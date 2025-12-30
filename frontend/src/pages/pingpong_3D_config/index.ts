@@ -2,7 +2,7 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { navigate } from "@/router";
-import "./style.css";
+
 import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
 import { word, t } from "@/i18n";

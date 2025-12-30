@@ -34,15 +34,6 @@
   height: 100vh;
 }
 
-.game-body #game-ui-3d {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  display: flex;
-  gap: 10px;
-  z-index: 10000;
-}
-
 .game-body #game-ui-3d button {
   background: #fff;
   color: #000;

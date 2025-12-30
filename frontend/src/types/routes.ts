@@ -38,6 +38,7 @@ export type RouteConfig = {
   component: Route;
   show_navbar: boolean;
   layout: string;
+  css_path: string;
 };
 
 export type Routes = Record<string, RouteConfig>;

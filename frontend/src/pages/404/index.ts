@@ -1,6 +1,6 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
+import { word, t } from "@/i18n";
 
 export class NotFoundComponent implements Component {
   render() {

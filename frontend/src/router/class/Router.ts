@@ -1,12 +1,14 @@
 // src/router/Router.ts
-import { routes } from "./routes";
+import { routes } from "../routers";
 import { buildLayout, renderRouteContent } from "@/layout/renderLayout";
 import { navBar } from "@/components/Navbar";
 import { langSwitcher } from "@/components/LangSwitcher";
 import { domRoots } from "@/layout/root";
+import { StyleManager } from "@/router/class/StyleManager";
 
 export class Router {
   private currentRoute: string | null = null;
+  private _styleManager: StyleManager = new StyleManager();
 
   constructor() {
     window.addEventListener("popstate", () => {
@@ -27,29 +29,30 @@ export class Router {
     this.render(location.pathname);
   }
 
-  private render(route: string) {
-    if (this.currentRoute && routes[this.currentRoute]?.component.onUnmount) {
-      routes[this.currentRoute].component.onUnmount?.();
+  private async render(route: string) {
+    domRoots.app.style.visibility = "hidden";
+    if (this.currentRoute) {
+      const prev = routes[this.currentRoute];
+      await prev?.component.onUnmount?.();
+      this._styleManager.unmount();
     }
 
-    // ルートの存在をここで精査し、なければ not_found にフォールバック
     const normalized = routes[route] ? route : "/not_found";
+    const nextRoute = routes[normalized];
 
+    if (nextRoute.css_path) {
+      await this._styleManager.mount(nextRoute.css_path);
+    }
     buildLayout(normalized);
-
-    // 共通UI（ナビ等）のマウント/アンマウントはRouterが制御
-    if (routes[normalized].show_navbar) {
+    if (nextRoute.show_navbar) {
       navBar.mount(domRoots.nav);
       langSwitcher.mount(domRoots.nav);
     } else {
       navBar.unmount();
     }
-
     renderRouteContent(normalized);
-
-    // After layout/content is rendered, run the new route's mount hook
-    const next = routes[normalized];
-    next?.component.onMount?.();
+    nextRoute.component.onMount?.();
+    domRoots.app.style.visibility = "visible";
     this.currentRoute = normalized;
   }
 }

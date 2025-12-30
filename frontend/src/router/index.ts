@@ -1,5 +1,5 @@
 // src/router/index.ts
-import { Router } from "./Router";
+import { Router } from "./class/Router";
 
 export const router = new Router();
 
