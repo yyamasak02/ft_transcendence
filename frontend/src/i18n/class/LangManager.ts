@@ -115,7 +115,7 @@ export class LangManager extends EventTarget {
     const ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
     for (const root of roots) {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-      let el: Element | null = root;
+      let el: Element | null;
       while ((el = walker.nextNode() as Element | null)) {
         if (!el) break;
         for (const attr of ATTRS) {
