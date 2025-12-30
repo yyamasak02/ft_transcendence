@@ -14,25 +14,25 @@ interface BannerSlide {
 const SLIDES: BannerSlide[] = [
   {
     id: 1,
-    src: "../../event1.png",
+    src: "../../public/banner/event1.png",
     alt: "event1",
     link: "#",
   },
   {
     id: 2,
-    src: "../../event2.png",
+    src: "../../public/banner/event2.png",
     alt: "event2",
     link: "https://42tokyo.jp/",
   },
   {
     id: 3,
-    src: "../../event3.png",
+    src: "../../public/banner/event3.png",
     alt: "event3",
     link: "https://42tokyo.jp/",
   },
   {
     id: 4,
-    src: "../../event4.png",
+    src: "../../public/banner/event4.png",
     alt: "event4",
     link: "https://42tokyo.jp/",
   },
