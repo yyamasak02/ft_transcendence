@@ -1,13 +1,14 @@
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 import { navigate } from "@/router/router";
+import {
+  TWO_FACTOR_LONG_TERM_KEY,
+  TWO_FACTOR_TOKEN_KEY,
+} from "@/constants/auth";
+import { storeTokens } from "@/utils/token-storage";
 import "./style.css";
 
 const API_BASE = "/api/common";
-const ACCESS_TOKEN_KEY = "accessToken";
-const LONG_TERM_TOKEN_KEY = "longTermToken";
-const TWO_FACTOR_TOKEN_KEY = "twoFactorToken";
-const TWO_FACTOR_LONG_TERM_KEY = "twoFactorLongTerm";
 
 class TwoFactorComponent {
   render = () => {
@@ -49,17 +50,6 @@ class TwoFactorComponent {
 const setTwoFactorMsg = (message: string) => {
   const el = document.querySelector<HTMLParagraphElement>("#two-factor-msg");
   if (el) el.textContent = message;
-};
-
-const storeTokens = (accessToken: string, longTermToken?: string) => {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  if (longTermToken) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(LONG_TERM_TOKEN_KEY, longTermToken);
-  } else {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(LONG_TERM_TOKEN_KEY);
-  }
 };
 
 const getTwoFactorToken = () => sessionStorage.getItem(TWO_FACTOR_TOKEN_KEY);

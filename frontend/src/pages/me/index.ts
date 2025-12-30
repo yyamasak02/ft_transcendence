@@ -1,7 +1,9 @@
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 import { navigate } from "@/router/router";
+import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import "./style.css";
+import { decodeJwtPayload } from "@/utils/jwt";
 
 class MeComponent {
   render = () => {
@@ -21,37 +23,29 @@ class MeComponent {
   };
 }
 
-const ACCESS_TOKEN_KEY = "accessToken";
-const LONG_TERM_TOKEN_KEY = "longTermToken";
-
-const decodeJwtPayload = (token: string) => {
-  const parts = token.split(".");
-  if (parts.length < 2) return null;
-  try {
-    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const payload = JSON.parse(atob(base64));
-    return payload as { puid?: string; name?: string };
-  } catch {
-    return null;
-  }
-};
-
 const setTwoFactorMsg = (message: string) => {
   const el = document.querySelector<HTMLParagraphElement>("#me-2fa-msg");
   if (el) el.textContent = message;
 };
 
+const QR_CODE_SIZE = 200;
+
 const renderQr = (data: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-qr");
   if (!container) return;
-  const size = 200;
   const src =
     "https://api.qrserver.com/v1/create-qr-code/?" +
-    `size=${size}x${size}&data=${encodeURIComponent(data)}`;
-  container.innerHTML = `
-    <img src="${src}" alt="2FA QR" width="${size}" height="${size}" />
-    <div class="me-qr-token">${data}</div>
-  `;
+    `size=${QR_CODE_SIZE}x${QR_CODE_SIZE}&data=${encodeURIComponent(data)}`;
+  container.innerHTML = "";
+  const img = document.createElement("img");
+  img.src = src;
+  img.alt = "2FA QR";
+  img.width = QR_CODE_SIZE;
+  img.height = QR_CODE_SIZE;
+  const tokenText = document.createElement("div");
+  tokenText.className = "me-qr-token";
+  tokenText.textContent = data;
+  container.append(img, tokenText);
 };
 
 const buildOtpAuthUri = (secret: string, name?: string) => {
@@ -128,7 +122,6 @@ const setupTwoFactor = () => {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-        body: "{}",
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -144,10 +137,13 @@ const setupTwoFactor = () => {
       }
       renderQr(buildOtpAuthUri(token, payload.name));
       setTwoFactorMsg(word("two_factor_enabled"));
+      button.disabled = true;
     } catch (error) {
       setTwoFactorMsg(`${word("two_factor_failed")}: ${error}`);
     } finally {
-      button.disabled = false;
+      if (!button.disabled) {
+        button.disabled = false;
+      }
     }
   });
 };
@@ -156,7 +152,11 @@ const setupLogout = () => {
   const button = document.querySelector<HTMLButtonElement>("#me-logout");
   if (!button) return;
   button.addEventListener("click", async () => {
-    await revokeLongTermToken();
+    try {
+      await revokeLongTermToken();
+    } catch (error) {
+      console.error("Failed to revoke long-term token during logout:", error);
+    }
     clearTokens();
     navigate("/");
   });

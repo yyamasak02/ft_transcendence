@@ -1,13 +1,18 @@
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 import { navigate } from "@/router/router";
+import {
+  GOOGLE_ID_TOKEN_KEY,
+  GOOGLE_LONG_TERM_KEY,
+} from "@/constants/auth";
+import {
+  MIN_USERNAME_LENGTH,
+  USERNAME_ROMAN_PATTERN,
+} from "@/constants/validation";
+import { storeTokens } from "@/utils/token-storage";
 import "./style.css";
 
 const API_BASE = "/api/common";
-const ACCESS_TOKEN_KEY = "accessToken";
-const LONG_TERM_TOKEN_KEY = "longTermToken";
-const GOOGLE_ID_TOKEN_KEY = "googleIdToken";
-const GOOGLE_LONG_TERM_KEY = "googleLongTerm";
 
 class GoogleSignupComponent {
   render = () => {
@@ -56,17 +61,6 @@ class GoogleSignupComponent {
 const setGoogleSignupMsg = (message: string) => {
   const el = document.querySelector<HTMLParagraphElement>("#google-signup-msg");
   if (el) el.textContent = message;
-};
-
-const storeTokens = (accessToken: string, longTermToken?: string) => {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  if (longTermToken) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(LONG_TERM_TOKEN_KEY, longTermToken);
-  } else {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(LONG_TERM_TOKEN_KEY);
-  }
 };
 
 const getPendingGoogleSignup = () => {
@@ -119,11 +113,15 @@ const setupGoogleSignupForm = () => {
     const longTerm = Boolean(formData.get("remember"));
 
     if (!name) {
-      setGoogleSignupMsg("ユーザー名を入力してください。");
+      setGoogleSignupMsg(word("username_required"));
       return;
     }
-    if (name.length < 5) {
-      setGoogleSignupMsg("ユーザー名は5文字以上で入力してください。");
+    if (name.length < MIN_USERNAME_LENGTH) {
+      setGoogleSignupMsg(word("username_min_length"));
+      return;
+    }
+    if (!USERNAME_ROMAN_PATTERN.test(name)) {
+      setGoogleSignupMsg(word("username_roman_only"));
       return;
     }
 
@@ -139,6 +137,10 @@ const setupGoogleSignupForm = () => {
         }),
       });
       const body = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setGoogleSignupMsg(word("username_taken"));
+        return;
+      }
       if (!res.ok) {
         setGoogleSignupMsg(
           body?.message ??
@@ -150,7 +152,7 @@ const setupGoogleSignupForm = () => {
       clearPendingGoogleSignup();
       navigate("/");
     } catch (error) {
-      setGoogleSignupMsg(`登録中にエラーが発生しました: ${error}`);
+      setGoogleSignupMsg(`${word("register_error")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }

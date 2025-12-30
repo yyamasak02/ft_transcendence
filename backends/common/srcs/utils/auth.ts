@@ -46,9 +46,13 @@ export function generatePuid() {
   return createHash("sha256").update(entropy).digest("hex");
 }
 
-const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+export const MAX_PUID_GENERATION_RETRIES = 5;
 
-export function generateTotpSecret(length = 24) {
+// RFC 4648 Base32 alphabet (A-Z, 2-7)
+const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+const DEFAULT_TOTP_SECRET_LENGTH = 24;
+
+export function generateTotpSecret(length = DEFAULT_TOTP_SECRET_LENGTH) {
   const bytes = randomBytes(length);
   let output = "";
   for (const byte of bytes) {
@@ -222,7 +226,12 @@ export async function verifyUserCredentials(
 }
 
 function decodeBase32(value: string) {
-  const cleaned = value.replace(/=+$/g, "").toUpperCase().replace(/[^A-Z2-7]/g, "");
+  const normalized = value.toUpperCase();
+  const trimmed = normalized.replace(/=+$/g, "");
+  if (!trimmed || /[^A-Z2-7]/.test(trimmed)) {
+    return null;
+  }
+  const cleaned = trimmed;
   let bits = "";
   for (const char of cleaned) {
     const index = BASE32_ALPHABET.indexOf(char);
@@ -236,14 +245,23 @@ function decodeBase32(value: string) {
   return Buffer.from(bytes);
 }
 
+const TOTP_WINDOW = 1;
+const TOTP_STEP_SECONDS = 30;
+const TOTP_DIGITS = 6;
+const TOTP_HASH_ALGORITHM = "sha1";
+const TOTP_TRUNCATION_OFFSET_MASK = 0x0f;
+const TOTP_TRUNCATION_VALUE_MASK = 0x7f;
+const BYTE_MASK = 0xff;
+
 export function verifyTotp(
   secret: string,
   token: string,
-  window = 1,
-  stepSeconds = 30,
-  digits = 6,
+  window = TOTP_WINDOW,
+  stepSeconds = TOTP_STEP_SECONDS,
+  digits = TOTP_DIGITS,
 ) {
   const key = decodeBase32(secret);
+  if (!key) return null;
   if (!key.length) return false;
   const now = Math.floor(Date.now() / 1000);
   const counter = Math.floor(now / stepSeconds);
@@ -251,13 +269,13 @@ export function verifyTotp(
     const ctr = counter + offset;
     const buf = Buffer.alloc(8);
     buf.writeBigUInt64BE(BigInt(ctr));
-    const hmac = createHmac("sha1", key).update(buf).digest();
-    const index = hmac[hmac.length - 1] & 0x0f;
+    const hmac = createHmac(TOTP_HASH_ALGORITHM, key).update(buf).digest();
+    const index = hmac[hmac.length - 1] & TOTP_TRUNCATION_OFFSET_MASK;
     const code =
-      ((hmac[index] & 0x7f) << 24) |
-      ((hmac[index + 1] & 0xff) << 16) |
-      ((hmac[index + 2] & 0xff) << 8) |
-      (hmac[index + 3] & 0xff);
+      ((hmac[index] & TOTP_TRUNCATION_VALUE_MASK) << 24) |
+      ((hmac[index + 1] & BYTE_MASK) << 16) |
+      ((hmac[index + 2] & BYTE_MASK) << 8) |
+      (hmac[index + 3] & BYTE_MASK);
     const otp = (code % 10 ** digits).toString().padStart(digits, "0");
     if (otp === token) return true;
   }

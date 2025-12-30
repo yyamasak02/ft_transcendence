@@ -2,14 +2,21 @@
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 import { navigate } from "@/router/router";
+import {
+  GOOGLE_ID_TOKEN_KEY,
+  GOOGLE_LONG_TERM_KEY,
+} from "@/constants/auth";
+import {
+  MIN_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH,
+  USERNAME_ROMAN_PATTERN,
+} from "@/constants/validation";
+import { storeTokens } from "@/utils/token-storage";
+import { loadGsi } from "@/utils/google-auth";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 const API_BASE = "/api/common";
-const ACCESS_TOKEN_KEY = "accessToken";
-const LONG_TERM_TOKEN_KEY = "longTermToken";
-const GOOGLE_ID_TOKEN_KEY = "googleIdToken";
-const GOOGLE_LONG_TERM_KEY = "googleLongTerm";
 
 // TODO 新規登録機能を実装する
 class RegisterComponent {
@@ -93,39 +100,13 @@ const setGoogleMsg = (message: string) => {
   if (el) el.textContent = message;
 };
 
-const storeTokens = (accessToken: string, longTermToken?: string) => {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  if (longTermToken) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(LONG_TERM_TOKEN_KEY, longTermToken);
-  } else {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(LONG_TERM_TOKEN_KEY);
-  }
-};
-
 const storePendingGoogleSignup = (idToken: string, longTerm: boolean) => {
   sessionStorage.setItem(GOOGLE_ID_TOKEN_KEY, idToken);
   sessionStorage.setItem(GOOGLE_LONG_TERM_KEY, longTerm ? "1" : "0");
 };
 
-const loadGsi = () =>
-  new Promise<typeof globalThis.google | null>((resolve, reject) => {
-    if (globalThis.google?.accounts?.id) {
-      resolve(globalThis.google);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(globalThis.google ?? null);
-    script.onerror = () => reject(new Error("Failed to load Google Identity Services"));
-    document.head.appendChild(script);
-  });
-
 const handleGoogleCredential = async (credential: string) => {
-  setGoogleMsg("Googleログインを処理中...");
+  setGoogleMsg(word("google_login_processing"));
   try {
     const res = await fetch(`${API_BASE}/user/google_login`, {
       method: "POST",
@@ -146,20 +127,20 @@ const handleGoogleCredential = async (credential: string) => {
       return;
     }
     storeTokens(body.accessToken, body.longTermToken);
-    setGoogleMsg("Googleログインに成功しました。");
+    setGoogleMsg(word("google_login_success"));
     navigate("/");
   } catch (error) {
-    setGoogleMsg(`Googleログイン中にエラーが発生しました: ${error}`);
+    setGoogleMsg(`${word("google_login_error")}: ${error}`);
   }
 };
 
 const setupGoogleRegister = async () => {
   if (!GOOGLE_CLIENT_ID) {
-    setGoogleMsg("環境変数 VITE_GOOGLE_CLIENT_ID が設定されていません。");
+    setGoogleMsg(word("google_client_id_missing"));
     return;
   }
   const google = await loadGsi().catch((err) => {
-    setGoogleMsg(`Googleスクリプトの読み込みに失敗しました: ${err}`);
+    setGoogleMsg(`${word("google_script_load_failed")}: ${err}`);
     return null;
   });
   if (!google?.accounts?.id) return;
@@ -204,19 +185,23 @@ const setupRegisterForm = () => {
     const confirm = String(formData.get("password_confirm") ?? "");
 
     if (!name || !password || !confirm) {
-      setRegisterMsg("すべての項目を入力してください。");
+      setRegisterMsg(word("register_required"));
       return;
     }
-    if (name.length < 5) {
-      setRegisterMsg("ユーザー名は5文字以上で入力してください。");
+    if (name.length < MIN_USERNAME_LENGTH) {
+      setRegisterMsg(word("username_min_length"));
       return;
     }
-    if (password.length < 8) {
-      setRegisterMsg("パスワードは8文字以上で入力してください。");
+    if (!USERNAME_ROMAN_PATTERN.test(name)) {
+      setRegisterMsg(word("username_roman_only"));
+      return;
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setRegisterMsg(word("password_min_length"));
       return;
     }
     if (password !== confirm) {
-      setRegisterMsg("パスワードが一致しません。");
+      setRegisterMsg(word("password_mismatch"));
       return;
     }
 
@@ -228,16 +213,20 @@ const setupRegisterForm = () => {
         body: JSON.stringify({ name, password }),
       });
       const body = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setRegisterMsg(word("username_taken"));
+        return;
+      }
       if (!res.ok) {
         setRegisterMsg(
           body?.message ?? `${word("register_failed")} (status ${res.status})`,
         );
         return;
       }
-      setRegisterMsg("登録が完了しました。ログインしてください。");
+      setRegisterMsg(word("register_success"));
       navigate("/login");
     } catch (error) {
-      setRegisterMsg(`登録中にエラーが発生しました: ${error}`);
+      setRegisterMsg(`${word("register_error")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }

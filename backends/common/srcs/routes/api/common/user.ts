@@ -18,6 +18,7 @@ import {
   findUserByGoogleSub,
   linkGoogleAccount,
   generatePuid,
+  MAX_PUID_GENERATION_RETRIES,
   verifyTotp,
   generateTotpSecret,
   verifyGoogleIdToken,
@@ -61,9 +62,15 @@ import type {
   GoogleRegisterBody,
   TwoFactorVerifyBody,
 } from "../../../schemas/user.js";
+import type { TwoFactorTokenPayload } from "../../../types/jwt.js";
 
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
+  const isTwoFactorPayload = (value: unknown): value is TwoFactorTokenPayload =>
+    typeof value === "object" &&
+    value !== null &&
+    (value as { type?: unknown }).type === "2fa" &&
+    typeof (value as { userId?: unknown }).userId === "number";
 
   f.post<{ Body: RegisterBody }>(
     "/user/register",
@@ -83,7 +90,7 @@ export default async function (fastify: FastifyInstance) {
       const salt = randomBytes(16).toString("hex");
       const hashedPassword = await hashPassword(password, salt);
 
-      for (let attempt = 0; attempt < 5; attempt++) {
+      for (let attempt = 0; attempt < MAX_PUID_GENERATION_RETRIES; attempt++) {
         const puid = generatePuid();
         try {
           await fastify.db.run(
@@ -287,8 +294,9 @@ export default async function (fastify: FastifyInstance) {
       }
 
       const { name } = request.body;
-      const placeholderPassword = "";
-      const placeholderSalt = "";
+      // Google 認証ユーザーはパスワード認証を行わないため、DB の NOT NULL 制約を満たすためのプレースホルダ値を使用する。
+      const placeholderPassword = "GOOGLE_AUTH_USER";
+      const placeholderSalt = "GOOGLE_AUTH_USER";
 
       let userId: number | null = null;
       for (let attempt = 0; attempt < 5; attempt++) {
@@ -326,6 +334,10 @@ export default async function (fastify: FastifyInstance) {
       }
 
       if (!userId) {
+        fastify.log.error(
+          { username: name },
+          "Failed to generate unique PUID after retries during Google registration.",
+        );
         reply.code(500);
         return { message: "Failed to provision user." };
       }
@@ -672,15 +684,15 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { twoFactorToken, code, longTerm } = request.body;
-      let payload: { userId: number; type?: string };
+      let payload: TwoFactorTokenPayload;
       try {
-        payload = await fastify.jwt.verify(twoFactorToken);
+        const verified = await fastify.jwt.verify(twoFactorToken);
+        if (!isTwoFactorPayload(verified)) {
+          reply.code(401);
+          return { message: "Invalid 2FA token." };
+        }
+        payload = verified;
       } catch (error) {
-        reply.code(401);
-        return { message: "Invalid 2FA token." };
-      }
-
-      if (payload.type !== "2fa") {
         reply.code(401);
         return { message: "Invalid 2FA token." };
       }
@@ -701,7 +713,16 @@ export default async function (fastify: FastifyInstance) {
         return { message: "2FA is not enabled." };
       }
 
-      if (!verifyTotp(user.two_factor_secret, code)) {
+      const totpValid = verifyTotp(user.two_factor_secret, code);
+      if (totpValid === null) {
+        fastify.log.error(
+          { userId: user.id },
+          "Invalid 2FA secret format.",
+        );
+        reply.code(500);
+        return { message: "Invalid 2FA configuration." };
+      }
+      if (!totpValid) {
         reply.code(401);
         return { message: "Invalid 2FA code." };
       }

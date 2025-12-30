@@ -3,20 +3,9 @@ import { routes } from "@/router/routes";
 import { navigate } from "@/router/router";
 import { renderLangSwitcherDOM } from "./LangSwitcher";
 import "./navbar.css";
+import { decodeJwtPayload } from "@/utils/jwt";
 
 const ACCESS_TOKEN_KEY = "accessToken";
-
-const decodeJwtPayload = (token: string) => {
-  const parts = token.split(".");
-  if (parts.length < 2) return null;
-  try {
-    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const payload = JSON.parse(atob(base64));
-    return payload as { name?: string };
-  } catch {
-    return null;
-  }
-};
 
 const getStoredAccessToken = () =>
   sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
