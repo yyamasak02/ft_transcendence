@@ -1,10 +1,10 @@
 import type { Route } from "@/types/routes";
+import type { Component } from "@/types/component";
 import { word } from "@/i18n";
 import "./style.css";
 
-
 // TODO ログイン機能を実装する
-class LoginComponent {
+class LoginComponent implements Component {
   render = () => {
     return `
 						<div class="login-screen">
@@ -73,9 +73,7 @@ class LoginComponent {
   };
 }
 
-export const LoginRoute: Record<string, Route> = {
-  "/login": {
-    linkLabel: () => word("login"),
-    content: () => new LoginComponent().render(),
-  },
+export const LoginRoute: Route = {
+  linkLabel: () => word("login"),
+  content: () => new LoginComponent().render(),
 };

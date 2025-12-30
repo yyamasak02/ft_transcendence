@@ -2,9 +2,10 @@
 import type { Route } from "@/types/routes";
 import "./style.css";
 import { word } from "@/i18n";
+import type { Component } from "@/types/component";
 
 // TODO 新規登録機能を実装する
-class RegisterComponent {
+class RegisterComponent implements Component {
   render = () => {
     return `
             <div class="register-screen">
@@ -64,9 +65,7 @@ class RegisterComponent {
   };
 }
 
-export const RegisterRoute: Record<string, Route> = {
-  "/register": {
-    linkLabel: () => word("signup"),
-    content: () => new RegisterComponent().render(),
-  },
+export const RegisterRoute: Route = {
+  linkLabel: () => word("signup"),
+  content: () => new RegisterComponent().render(),
 };

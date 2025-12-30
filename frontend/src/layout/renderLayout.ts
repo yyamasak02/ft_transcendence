@@ -1,40 +1,47 @@
-// src/layout/renderLayout.ts layout専用の描画関数
-import { renderNavbar } from "@/components/navbar";
+// src/layout/renderLayout.ts
 import { routes } from "@/router/routes";
-import { NotFoundPage } from "@/pages/404";
+import { navBar } from "@/components/Navbar/index";
+import { langSwitcher } from "@/components/LangSwitcher";
+import { navigate } from "@/router";
 
 const navRoot = document.querySelector<HTMLElement>("#nav")!;
 const appRoot = document.querySelector<HTMLElement>("#app")!;
 
-const AUTH_ROUTES = ["/login", "/register"];
-// center配置にするルート
-const CENTER_ROUTES = ["/", "/pingpong", "/pingpong_3D_config", "/websocket"];
+export function renderLayout(routePath: string) {
+  const route = routes[routePath];
 
-export function renderLayout(route: string) {	
-	const r = routes[route];
-	if (!r) {
-		navRoot.innerHTML = "";
-		appRoot.innerHTML = new NotFoundPage().render();
-		return;
-	}
-	
-	const isAuthPage = AUTH_ROUTES.includes(route);
-	const isCenterPage = CENTER_ROUTES.includes(route);
-	
-	// navbar
-	navRoot.innerHTML = "";
-	if (!isAuthPage) navRoot.appendChild(renderNavbar());
-	
-	// content
-	const content = typeof r.content === "function" ? r.content() : r.content;
+  navRoot.innerHTML = "";
+  appRoot.innerHTML = "";
 
-	if (isAuthPage) {
-		appRoot.innerHTML = `<div class="auth-screen">${content}</div>`;
-	} else if (isCenterPage) {
-		appRoot.innerHTML = `<div class="center-screen">${content}</div>`;
-	} else {
-		appRoot.innerHTML = content;
-	}
+  if (!route) {
+    navigate("/not_found");
+    return;
+  }
 
-	r.onMount?.();
+  // navbar
+  if (route.show_navbar) {
+    navBar.mount(navRoot);
+    langSwitcher.mount(navRoot);
+  } else {
+    navBar.unmount();
+  }
+
+  // content
+  const content =
+    typeof route.component.content === "function"
+      ? route.component.content()
+      : route.component.content;
+
+  switch (route.layout) {
+    case "auth":
+      appRoot.innerHTML = `<div class="auth-screen">${content}</div>`;
+      break;
+
+    case "center":
+      appRoot.innerHTML = `<div class="center-screen">${content}</div>`;
+      break;
+
+    default:
+      appRoot.innerHTML = content;
+  }
 }

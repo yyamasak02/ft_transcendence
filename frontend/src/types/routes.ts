@@ -1,3 +1,9 @@
+export type RouteMeta = {
+  showInNavbar?: boolean;
+  navbarOrder?: number;
+  navbarLabelKey?: string;
+};
+
 /**
  * ルーティング情報の型定義
  * @module models/routes
@@ -28,4 +34,10 @@ export type Route = {
   };
 };
 
-export type Routes = Record<string, Route>;
+export type RouteConfig = {
+  component: Route;
+  show_navbar: boolean;
+  layout: string;
+};
+
+export type Routes = Record<string, RouteConfig>;

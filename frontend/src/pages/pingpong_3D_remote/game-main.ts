@@ -16,7 +16,7 @@ import {
   getPaddleInputs,
 } from "./input/keyboard";
 import { GameHUD } from "./object/ui3D/GameHUD";
-import { navigate } from "@/router/router";
+import { navigate } from "@/router";
 import type { GameState } from "./core/game";
 import { createWinEffect, disposeWinEffect } from "./object/effect/finEffect";
 import { cutIn, zoomOut, stopZoomOut } from "./object/effect/cameraWork";

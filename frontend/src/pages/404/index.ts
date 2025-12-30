@@ -1,7 +1,8 @@
 import type { Component } from "@/types/component";
+import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 
-export class NotFoundPage implements Component {
+export class NotFoundComponent implements Component {
   render() {
     return `
       <div class="flex flex-col items-center justify-center min-h-screen bg-black text-green-400 font-mono text-center">
@@ -15,3 +16,8 @@ export class NotFoundPage implements Component {
     `;
   }
 }
+
+export const NotFoundRoute: Route = {
+  linkLabel: () => word("home"),
+  content: () => new NotFoundComponent().render(),
+};

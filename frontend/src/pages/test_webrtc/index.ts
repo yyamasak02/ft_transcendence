@@ -163,13 +163,11 @@ export class TestWebRTCPage implements Component {
 
 const testPage = new TestWebRTCPage();
 
-export const TestWebRTCRoute: Record<string, Route> = {
-  "/test_rtc": {
-    linkLabel: "TestWebRTC",
-    content: testPage.render(),
-    onMount: (container) => {
-      console.log(container);
-      testPage.init();
-    },
+export const TestWebRTCRoute: Route = {
+  linkLabel: "TestWebRTC",
+  content: testPage.render(),
+  onMount: (container) => {
+    console.log(container);
+    testPage.init();
   },
 };

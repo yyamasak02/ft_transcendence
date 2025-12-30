@@ -1,5 +1,5 @@
 // src/router/routes.ts
-import type { Route } from "@/types/routes";
+import type { Routes } from "@/types/routes";
 import { HomeRoute } from "@/pages/home";
 import { PingPongRoute } from "@/pages/pingpong";
 import { PingPong3DGameRoute } from "@/pages/pingpong_3D";
@@ -9,15 +9,57 @@ import { LoginRoute } from "@/pages/login";
 import { RegisterRoute } from "@/pages/register";
 import { WebSocketRoute } from "@/pages/websocket";
 import { TestWebRTCRoute } from "@/pages/test_webrtc";
+import { NotFoundRoute } from "@/pages/404";
 
-export const routes: Record<string, Route> = {
-  "/": HomeRoute["/"],
-  "/pingpong": PingPongRoute["/pingpong"],
-  "/pingpong_3D_config": PingPong3DSettingRoute["/pingpong_3D_config"],
-  "/pingpong_3D": PingPong3DGameRoute["/pingpong_3D"],
-  "/pingpong_3D_remote": PingPong3DGameRemoteRoute["/pingpong_3D_remote"],
-  "/login": LoginRoute["/login"],
-  "/register": RegisterRoute["/register"],
-  "/websocket": WebSocketRoute["/websocket"],
-  "/test_rtc": TestWebRTCRoute["/test_rtc"],
+export const routes: Routes = {
+  "/": {
+    component: HomeRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/pingpong": {
+    component: PingPongRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/pingpong_3D_config": {
+    component: PingPong3DSettingRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/pingpong_3D": {
+    component: PingPong3DGameRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/pingpong_3D_remote": {
+    component: PingPong3DGameRemoteRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/login": {
+    component: LoginRoute,
+    show_navbar: false,
+    layout: "auth",
+  },
+  "/register": {
+    component: RegisterRoute,
+    show_navbar: false,
+    layout: "auth",
+  },
+  "/websocket": {
+    component: WebSocketRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/test_rtc": {
+    component: TestWebRTCRoute,
+    show_navbar: true,
+    layout: "center",
+  },
+  "/not_found": {
+    component: NotFoundRoute,
+    show_navbar: false,
+    layout: "hidden",
+  },
 };
