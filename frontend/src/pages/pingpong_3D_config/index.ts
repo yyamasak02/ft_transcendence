@@ -5,7 +5,7 @@ import { navigate } from "@/router";
 import "./style.css";
 import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
-import { word } from "@/i18n";
+import { word, t } from "@/i18n";
 
 let preview: PreviewScene | null = null;
 
@@ -15,68 +15,68 @@ class PingPongComponent implements Component {
     return `
 			<div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
 				<div class="pp3d-config">
-					<h2>${word("pingpong3d_config")}</h2>
+						<h2>${t("pingpong3d_config")}</h2>
 
 					<div class="pp3d-config-row">
-						<label>${word("score_to_win")}</label>
+						<label>${t("score_to_win")}</label>
 						<input id="winning-score" type="number" min="1" max="20" value="5" />
 					</div>
 
 					<div class="pp3d-config-row">
-						<label>${word("ball_speed")}</label>
+						<label>${t("ball_speed")}</label>
 						<input id="ball-speed" type="range" min="10" max="100" step="10" value="50" />
 					</div>
 					
 				<div class="pp3d-config-row">
-					<label>${word("count_speed")}</label>
+					<label>${t("count_speed")}</label>
 					<select id="countdown-interval">
-						<option value="500">${word("fast")}</option>
-						<option value="1000" selected>${word("normal")}</option>
-						<option value="2000">${word("slow")}</option>
+						<option value="500">${t("fast")}</option>
+						<option value="1000" selected>${t("normal")}</option>
+						<option value="2000">${t("slow")}</option>
 					</select>
 				</div>
 					
 					<div class="pp3d-config-row">
-						<label>${word("stage")}</label>
+						<label>${t("stage")}</label>
 						<select id="stage-select">
-							<option value="0">${word("classic")}</option>
-							<option value="1">${word("shadow")}</option>
-							<option value="2">${word("warp")}</option>
+							<option value="0">${t("classic")}</option>
+							<option value="1">${t("shadow")}</option>
+							<option value="2">${t("warp")}</option>
 						</select>
 					</div>
 
 					<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">${word("color1")}</label>
+							<label class="pp3d-label">${t("color1")}</label>
 							<select id="paddle1-color" class="pp3d-color-select">
-								<option value="blue">${word("blue")}</option>
-								<option value="green">${word("green")}</option>
-								<option value="red">${word("red")}</option>
-								<option value="yellow">${word("yellow")}</option>
-								<option value="white">${word("white")}</option>
-								<option value="black">${word("black")}</option>
-								<option value="pink">${word("pink")}</option>
+								<option value="blue">${t("blue")}</option>
+								<option value="green">${t("green")}</option>
+								<option value="red">${t("red")}</option>
+								<option value="yellow">${t("yellow")}</option>
+								<option value="white">${t("white")}</option>
+								<option value="black">${t("black")}</option>
+								<option value="pink">${t("pink")}</option>
 							</select>
 
 							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">${word("length")}</label>
+								<label class="pp3d-sub-label">${t("length")}</label>
 								<input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
 							</div>
 						</div>
 
 						<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">${word("color2")}</label>
+							<label class="pp3d-label">${t("color2")}</label>
 							<select id="paddle2-color" class="pp3d-color-select">
-								<option value="green">${word("green")}</option>
-								<option value="blue">${word("blue")}</option>
-								<option value="red">${word("red")}</option>
-								<option value="yellow">${word("yellow")}</option>
-								<option value="white">${word("white")}</option>
-								<option value="black">${word("black")}</option>
-								<option value="pink">${word("pink")}</option>
+								<option value="green">${t("green")}</option>
+								<option value="blue">${t("blue")}</option>
+								<option value="red">${t("red")}</option>
+								<option value="yellow">${t("yellow")}</option>
+								<option value="white">${t("white")}</option>
+								<option value="black">${t("black")}</option>
+								<option value="pink">${t("pink")}</option>
 							</select>
 
 							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">${word("length")}</label>
+								<label class="pp3d-sub-label">${t("length")}</label>
 								<input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
 							</div>
 						</div>
@@ -86,7 +86,7 @@ class PingPongComponent implements Component {
 					</div>
 
 					<div class="pp3d-config-row">
-						<button id="pingpong-start-btn">${word("start")}</button>
+						<button id="pingpong-start-btn">${t("start")}</button>
 					</div>
 
 				</div>

@@ -3,6 +3,4 @@ import { router } from "@/router";
 import "./style.css";
 
 router.init();
-langManager.addEventListener("change", () => {
-  router.rerender();
-});
+langManager.initDomBindings();

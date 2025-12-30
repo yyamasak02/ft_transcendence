@@ -1,6 +1,6 @@
 import type { Route } from "@/types/routes";
 import type { Component } from "@/types/component";
-import { word } from "@/i18n";
+import { word, t } from "@/i18n";
 import "./style.css";
 
 // TODO ログイン機能を実装する
@@ -10,17 +10,13 @@ class LoginComponent implements Component {
 						<div class="login-screen">
 							<div class="login-box">
 
-								<h2 class="login-title">
-									${word("login")}
-								</h2>
+								<h2 class="login-title">${t("login")}</h2>
 
 								<form class="login-form" id="login-form">
 
 									<!-- Username(Email) -->
 									<div class="login-field">
-										<label for="email">
-											${word("username")}
-										</label>
+										<label for="email">${t("username")}</label>
 										<input
 											type="email"
 											id="email"
@@ -33,9 +29,7 @@ class LoginComponent implements Component {
 
 									<!-- Password -->
 									<div class="login-field">
-										<label for="password">
-											${word("password")}
-										</label>
+										<label for="password">${t("password")}</label>
 										<input
 											type="password"
 											id="password"
@@ -53,19 +47,15 @@ class LoginComponent implements Component {
 											id="remember"
 											name="remember"
 										/>
-										<label for="remember">${word("keep_login")}</label>
+										<label for="remember">${t("keep_login")}</label>
 									</div>
 
 									<!-- Submit -->
-									<button type="submit" class="login-submit">
-										${word("enter")}
-									</button>
+									<button type="submit" class="login-submit">${t("enter")}</button>
 
 									<!-- Footer -->
 									<div class="login-footer">
-										<a class="login-link" href="/register" data-nav>
-											${word("to_signup")}
-										</a>
+										<a class="login-link" href="/register" data-nav>${t("to_signup")}</a>
 									</div>
 								</form>
 						</div>
