@@ -1,6 +1,6 @@
 // src/game-main.ts ゲーム本体
 
-import { Vector3, Color4 } from "@babylonjs/core";
+import { Vector3, Color4, Mesh } from "@babylonjs/core";
 import { initDOMRefs, canvas, engine, scene } from "./core/data";
 import { loadSettings } from "./core/gameSettings";
 import { Ball } from "./object/Ball";
@@ -28,6 +28,16 @@ import {
   transitionToPlayView,
 } from "./object/effect/cameraWork";
 import { AIController } from "./object/AI/AI";
+import { GAME_CONFIG } from "./core/constants3D";
+import { word } from "@/i18n";
+
+const MAIN_CONSTS = {
+  RALLY_DEBOUNCE_MS: 100,
+  RALLY_NOTIFICATION: {
+    INTERVAL: 10,
+    MAX_LEVEL: 4,
+  },
+} as const;
 
 let settings = loadSettings();
 let isRunning = false;
@@ -42,6 +52,19 @@ let aiController: AIController | null = null;
 let p1Score = 0;
 let p2Score = 0;
 let p2Input: PaddleInput = { up: false, down: false };
+let wasEnterDown = false;
+let lastRallyTime = 0;
+
+const UILockController = {
+  lock() {
+    gameState.resetLocked = true;
+    updateUIButtons();
+  },
+  unlock() {
+    gameState.resetLocked = false;
+    updateUIButtons();
+  },
+};
 
 export const gameState: GameState = {
   phase: "menu",
@@ -50,6 +73,7 @@ export const gameState: GameState = {
   lastWinner: null,
   resetLocked: false,
   countdownID: 0,
+  rallyCount: 0,
 };
 
 export function reloadSettings() {
@@ -90,6 +114,8 @@ export function startGame() {
   gameState.lastWinner = null;
   gameState.countdownID = 0;
   gameState.resetLocked = false;
+  gameState.rallyCount = 0;
+  lastRallyTime = 0;
 
   p1Score = 0;
   p2Score = 0;
@@ -105,7 +131,7 @@ export function startGame() {
 
   // ball作成
   const initialBallPos = new Vector3(0, 1, 0);
-  ball = new Ball(scene, initialBallPos, settings.ballSpeed);
+  ball = new Ball(scene, initialBallPos, GAME_CONFIG.BALL_INITIAL_SPEED);
   ball.stop();
   ball.velocity = new Vector3(0, 0, 0);
   ball.reset("center", paddle1, paddle2);
@@ -127,6 +153,9 @@ export function startGame() {
   hud.hideScore();
   hud.showTitle();
   hud.startFloatingTextAnimation(scene);
+  hud.setRallyCount(0);
+
+  wasEnterDown = false;
 
   // ===== 描画ループ開始 ========================
 
@@ -135,27 +164,86 @@ export function startGame() {
 
     if (paddle1 && paddle2 && ball) {
       if (gameState.phase === "menu") {
-        if (isEnterPressed()) {
-          gameState.phase = "starting";
-          handleEnterToStart();
+        const isEnterDown = isEnterPressed();
+        if (isEnterDown && !wasEnterDown) {
+          const gameRoot = document.getElementById("pingpong-3d-root");
+          const helpOverlay =
+            gameRoot?.querySelector<HTMLElement>("#help-overlay");
+          const isHelpVisible =
+            helpOverlay && helpOverlay.style.display === "flex";
+
+          if (isHelpVisible) {
+            helpOverlay.style.display = "none";
+            updateUIButtons();
+          } else {
+            gameState.phase = "starting";
+            handleEnterToStart();
+          }
         }
+        wasEnterDown = isEnterDown;
       } else if (gameState.phase === "game" && !isPaused) {
         // paddleの動き
         const allInputs = getPaddleInputs();
-        paddle1.update(deltaTime, allInputs.p1);
+
         if (aiController) {
           p2Input = aiController.getInputs(ball, paddle2);
         } else {
           p2Input = allInputs.p2;
         }
+
+        const onPaddleMove = () => {
+          if (stage && paddle1 && paddle2) {
+            stage.updateDestruction(paddle1, paddle2);
+          }
+        };
+
+        const isRallyRush = settings.rallyRush;
+        paddle1.updateRallyPosition(
+          gameState.rallyCount,
+          isRallyRush,
+          onPaddleMove,
+        );
+        paddle2.updateRallyPosition(
+          gameState.rallyCount,
+          isRallyRush,
+          onPaddleMove,
+        );
+
+        paddle1.update(deltaTime, allInputs.p1);
         paddle2.update(deltaTime, p2Input);
-        // ラリー &　スコア
+
+        const collisionWrapper = (ballMesh: Mesh, paddle: Paddle) => {
+          const hit = checkPaddleCollision(ballMesh, paddle);
+          const now = Date.now();
+
+          if (hit && now - lastRallyTime > MAIN_CONSTS.RALLY_DEBOUNCE_MS) {
+            lastRallyTime = now;
+            gameState.rallyCount++;
+
+            if (hud) hud.setRallyCount(gameState.rallyCount);
+
+            const { INTERVAL, MAX_LEVEL } = MAIN_CONSTS.RALLY_NOTIFICATION;
+
+            if (
+              isRallyRush &&
+              gameState.rallyCount > 0 &&
+              gameState.rallyCount % INTERVAL === 0
+            ) {
+              const level = gameState.rallyCount / INTERVAL;
+              if (level <= MAX_LEVEL && hud) {
+                hud.showNotification(word("further"));
+              }
+            }
+          }
+          return hit;
+        };
+
         const result = ball.update(
           deltaTime,
           paddle1,
           paddle2,
           gameState,
-          checkPaddleCollision,
+          collisionWrapper,
         );
         if (result && hud)
           onScore(result.scorer, ball, paddle1, paddle2, hud, gameState);
@@ -173,6 +261,7 @@ async function handleEnterToStart() {
 
   await transitionToPlayView(stage.camera, 1500);
   hud.showScore();
+  hud.showRallyText();
   gameState.phase = "game";
 
   countdownAndServe(
@@ -200,6 +289,11 @@ export function onScore(
   hud: GameHUD,
   gameState: GameState,
 ) {
+  gameState.rallyCount = 0;
+  hud.setRallyCount(0);
+  paddle1.updateRallyPosition(0, settings.rallyRush);
+  paddle2.updateRallyPosition(0, settings.rallyRush);
+
   reloadSettings();
   const winningScore = settings.winningScore;
 
@@ -220,7 +314,9 @@ export function onScore(
     endGame(hud, 2);
     return;
   }
-
+  if (stage) {
+    stage.resetCourt();
+  }
   countdownAndServe(
     gameState.lastWinner,
     ball,
@@ -241,6 +337,10 @@ export function endGame(hud: GameHUD, winner: 1 | 2) {
   gameState.phase = "gameover";
   gameState.isServing = false;
   gameState.rallyActive = false;
+  gameState.rallyCount = 0;
+  hud.setRallyCount(0);
+  hud.hideRallyText();
+
   UILockController.lock();
 
   isRunning = false;
@@ -248,7 +348,6 @@ export function endGame(hud: GameHUD, winner: 1 | 2) {
 
   hud.clearCountdown();
 
-  //   hud.showGameOver(winner === 1 ? "Player1" : "Player2");
   if (ball) ball.stop();
 
   endGameDirection(winner);
@@ -310,6 +409,7 @@ export function stopGame() {
   gameState.rallyActive = true;
   gameState.isServing = false;
   gameState.lastWinner = null;
+  gameState.rallyCount = 0;
 
   p1Score = 0;
   p2Score = 0;
@@ -352,6 +452,7 @@ export function resetGame() {
   gameState.rallyActive = false;
   gameState.isServing = false;
   gameState.lastWinner = null;
+  gameState.rallyCount = 0;
   p1Score = 0;
   p2Score = 0;
 
@@ -360,6 +461,8 @@ export function resetGame() {
     hud.setScore(0, 0);
     hud.clearGameOver();
     hud.clearTitle();
+    hud.setRallyCount(0);
+    hud.showRallyText();
   }
   // パドルを作り直す
   if (paddle1 && paddle2) {
@@ -390,18 +493,6 @@ export function resetGame() {
   }
 }
 
-// リセット無効化
-const UILockController = {
-  lock() {
-    gameState.resetLocked = true;
-    updateUIButtons();
-  },
-  unlock() {
-    gameState.resetLocked = false;
-    updateUIButtons();
-  },
-};
-
 function updateUIButtons() {
   const gameRoot = document.getElementById(
     "pingpong-3d-root",
@@ -411,6 +502,8 @@ function updateUIButtons() {
   const overlay = gameRoot.querySelector<HTMLElement>("#pause-overlay");
 
   // 左上UI
+  const helpOverlay = gameRoot.querySelector<HTMLElement>("#help-overlay");
+  const btnHelp = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-help");
   const btnHomeNav =
     gameRoot.querySelector<HTMLButtonElement>("#btn-3d-home-nav");
   const btnSettingsNav = gameRoot.querySelector<HTMLButtonElement>(
@@ -430,35 +523,50 @@ function updateUIButtons() {
   const show = (el: HTMLElement | null) =>
     el && (el.style.display = "inline-flex");
 
+  const isHelpVisible = helpOverlay && helpOverlay.style.display === "flex";
   if (gameState.phase === "menu") {
     if (overlay) overlay.style.display = "none";
     centralBtns.forEach((btn) => hide(btn));
 
-    show(btnHomeNav);
-    show(btnSettingsNav);
+    if (isHelpVisible) {
+      hide(btnHomeNav);
+      hide(btnSettingsNav);
+      hide(btnHelp);
+    } else {
+      show(btnHomeNav);
+      show(btnSettingsNav);
+      show(btnHelp);
+    }
+
     hide(btnPause);
     hide(btnCameraReset);
   } else if (gameState.phase === "game" && !isPaused) {
     if (overlay) overlay.style.display = "none";
+    hide(helpOverlay);
     centralBtns.forEach((btn) => hide(btn));
 
     hide(btnHomeNav);
     hide(btnSettingsNav);
+    hide(btnHelp);
     show(btnPause);
     show(btnCameraReset);
   } else if (gameState.phase === "pause") {
     if (overlay) overlay.style.display = "block";
+    hide(helpOverlay);
     centralBtns.forEach((btn) => show(btn));
 
     hide(btnHomeNav);
     hide(btnSettingsNav);
+    hide(btnHelp);
     hide(btnPause);
     show(btnCameraReset);
   } else {
     if (overlay) overlay.style.display = "none";
+    hide(helpOverlay);
     centralBtns.forEach((btn) => hide(btn));
     hide(btnHomeNav);
     hide(btnSettingsNav);
+    hide(btnHelp);
     hide(btnPause);
     hide(btnCameraReset);
   }
