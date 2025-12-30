@@ -1,15 +1,122 @@
 /* src/pages/home/style.css */
-.home-page {
+
+.home-container {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  min-height: 100vh;
+  padding: 20px;
 }
 
-.home-user {
-  align-self: flex-start;
-  margin-left: 24px;
-  margin-bottom: 16px;
-  color: #cfcfcf;
-  font-size: 0.9rem;
-  letter-spacing: 0.06em;
+h1 {
+  margin-bottom: 50px;
+  font-size: 4rem;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  font-family: "Bebas Neue", sans-serif;
+}
+
+.banner-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.banner-container {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  aspect-ratio: 2816 / 1536;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background-color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.banner-slide {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  z-index: 0;
+
+  pointer-events: none;
+  cursor: default;
+}
+
+.banner-slide.active {
+  opacity: 1;
+  z-index: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.banner-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.banner-nav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: rgba(0, 0, 0, 0);
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  font-size: 4rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.banner-nav:hover {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.prev-btn {
+  left: 0;
+}
+.next-btn {
+  right: 0;
+}
+
+.banner-indicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  z-index: 10;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #fff;
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }

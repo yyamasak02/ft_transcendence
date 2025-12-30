@@ -4,7 +4,7 @@ export type PlayerType = "Player" | "Easy" | "Normal" | "Hard";
 
 export type GameSettings = {
   winningScore: number;
-  ballSpeed: number;
+  rallyRush: boolean;
   selectedCountdownSpeed: number;
   selectedStageIndex: number;
   player1Color: string;
@@ -15,8 +15,8 @@ export type GameSettings = {
 };
 
 const DEFAULT_SETTINGS: GameSettings = {
-  winningScore: 5,
-  ballSpeed: 50,
+  winningScore: 3,
+  rallyRush: true,
   selectedCountdownSpeed: 1000,
   selectedStageIndex: 0,
   player1Color: "blue",
@@ -38,6 +38,10 @@ export function loadSettings(): GameSettings {
     const parsed = JSON.parse(raw);
     const settings: GameSettings = { ...DEFAULT_SETTINGS, ...parsed };
 
+    if (typeof settings.rallyRush !== "boolean") {
+      settings.rallyRush = DEFAULT_SETTINGS.rallyRush;
+    }
+
     if (!VALID_PLAYER_TYPES.includes(settings.player2Type)) {
       console.warn(
         `Invalid player2Type detected: ${settings.player2Type}. Resetting to default.`,
@@ -50,15 +54,13 @@ export function loadSettings(): GameSettings {
     ) {
       settings.winningScore = DEFAULT_SETTINGS.winningScore;
     }
-    if (typeof settings.ballSpeed !== "number" || settings.ballSpeed <= 0) {
-      settings.ballSpeed = DEFAULT_SETTINGS.ballSpeed;
-    }
 
     return settings;
   } catch (e) {
     console.error(
       "Failed to parse settings from localStorage. Using defaults.",
     );
+    localStorage.removeItem(STORAGE_KEY);
     return { ...DEFAULT_SETTINGS };
   }
 }

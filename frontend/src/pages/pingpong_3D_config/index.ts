@@ -12,96 +12,99 @@ let preview: PreviewScene | null = null;
 
 // ゲーム設定画面
 class PingPongComponent implements Component {
-	render(): string {
-		return `
-			<div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
-				<div class="pp3d-config">
-					<h2>${word("pingpong3d_config")}</h2>
-					<div class="pp3d-config-row">
-						<label>${word("player2Type") || "Opponent"}</label>
-						<select id="player2-type">
-							<option value="Player">${word("player2")}</option>
-							<option value="Easy">${word("easyLv")}</option>
-							<option value="Normal" selected>${word("normalLv")}</option>
-							<option value="Hard">${word("hardLv")}</option>
-						</select>
-					</div>
+  render(): string {
+    return `
+            <div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
+                <div class="pp3d-config">
+                    <h2>${word("pingpong3d_config")}</h2>
+                    <div class="pp3d-config-row">
+                        <label>${word("player2Type") || "Opponent"}</label>
+                        <select id="player2-type">
+                            <option value="Player">${word("player2")}</option>
+                            <option value="Easy">${word("easyLv")}</option>
+                            <option value="Normal" selected>${word("normalLv")}</option>
+                            <option value="Hard">${word("hardLv")}</option>
+                        </select>
+                    </div>
 
-					<div class="pp3d-config-row">
-						<label>${word("score_to_win")}</label>
-						<input id="winning-score" type="number" min="1" max="20" value="5" />
-					</div>
+                    <div class="pp3d-config-row">
+                        <label>${word("score_to_win")}</label>
+                        <input id="winning-score" type="number" min="1" max="20" value="3" />
+                    </div>
 
-					<div class="pp3d-config-row">
-						<label>${word("ball_speed")}</label>
-						<input id="ball-speed" type="range" min="10" max="100" step="10" value="50" />
-					</div>
-					
-				<div class="pp3d-config-row">
-					<label>${word("count_speed")}</label>
-					<select id="countdown-interval">
-						<option value="500">${word("fast")}</option>
-						<option value="1000" selected>${word("normal")}</option>
-						<option value="2000">${word("slow")}</option>
-					</select>
-				</div>
-					
-					<div class="pp3d-config-row">
-						<label>${word("stage")}</label>
-						<select id="stage-select">
-							<option value="0">${word("classic")}</option>
-							<option value="1">${word("shadow")}</option>
-							<option value="2">${word("warp")}</option>
-						</select>
-					</div>
+                    <div class="pp3d-config-row">
+                        <label>${word("count_speed")}</label>
+                        <select id="countdown-interval">
+                            <option value="500">${word("fast")}</option>
+                            <option value="1000" selected>${word("normal")}</option>
+                            <option value="2000">${word("slow")}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pp3d-config-row">
+                        <label>${word("stage")}</label>
+                        <select id="stage-select">
+                            <option value="0">${word("classic")}</option>
+                            <option value="1">${word("shadow")}</option>
+                            <option value="2">${word("warp")}</option>
+                        </select>
+                    </div>
 
-					<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">${word("color1")}</label>
-							<select id="paddle1-color" class="pp3d-color-select">
-								<option value="blue">${word("blue")}</option>
-								<option value="green">${word("green")}</option>
-								<option value="red">${word("red")}</option>
-								<option value="yellow">${word("yellow")}</option>
-								<option value="white">${word("white")}</option>
-								<option value="black">${word("black")}</option>
-								<option value="pink">${word("pink")}</option>
-							</select>
+                    <div class="pp3d-config-row pp3d-inline-row">
+                            <label class="pp3d-label">${word("color1")}</label>
+                            <select id="paddle1-color" class="pp3d-color-select">
+                                <option value="blue">${word("blue")}</option>
+                                <option value="green">${word("green")}</option>
+                                <option value="red">${word("red")}</option>
+                                <option value="yellow">${word("yellow")}</option>
+                                <option value="white">${word("white")}</option>
+                                <option value="black">${word("black")}</option>
+                                <option value="pink">${word("pink")}</option>
+                            </select>
 
-							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">${word("length")}</label>
-								<input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
-							</div>
-						</div>
+                            <div class="pp3d-length-group">
+                                <label class="pp3d-sub-label">${word("length")}</label>
+                                <input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
+                            </div>
+                        </div>
 
-						<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">${word("color2")}</label>
-							<select id="paddle2-color" class="pp3d-color-select">
-								<option value="green">${word("green")}</option>
-								<option value="blue">${word("blue")}</option>
-								<option value="red">${word("red")}</option>
-								<option value="yellow">${word("yellow")}</option>
-								<option value="white">${word("white")}</option>
-								<option value="black">${word("black")}</option>
-								<option value="pink">${word("pink")}</option>
-							</select>
+                        <div class="pp3d-config-row pp3d-inline-row">
+                            <label class="pp3d-label">${word("color2")}</label>
+                            <select id="paddle2-color" class="pp3d-color-select">
+                                <option value="green">${word("green")}</option>
+                                <option value="blue">${word("blue")}</option>
+                                <option value="red">${word("red")}</option>
+                                <option value="yellow">${word("yellow")}</option>
+                                <option value="white">${word("white")}</option>
+                                <option value="black">${word("black")}</option>
+                                <option value="pink">${word("pink")}</option>
+                            </select>
 
-							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">${word("length")}</label>
-								<input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
-							</div>
-						</div>
+                            <div class="pp3d-length-group">
+                                <label class="pp3d-sub-label">${word("length")}</label>
+                                <input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
+                            </div>
+                        </div>
 
-					<div class="pp-preview-container">
-						<canvas id="previewCanvas3D"></canvas>
-					</div>
+                    <div class="pp3d-config-row">
+                        <label>${word("collapse_mode")}</label>
+                        <div class="pp3d-toggle-container">
+                            <input id="rally-rush-toggle" type="checkbox" checked class="pp3d-toggle-input" />
+                            <span class="pp3d-toggle-text">${word("collapse_explanation")}</span>
+                        </div>
+                    </div>
 
-					<div class="pp3d-config-row">
-						<button id="pingpong-start-btn">${word("start")}</button>
-					</div>
+                    <div class="pp-preview-container">
+                        <canvas id="previewCanvas3D"></canvas>
+                    </div>
 
-				</div>
-			</div>
-		`;
+                    <div class="pp3d-config-row pp3d-config-row--button">
+                        <button id="pingpong-start-btn">${word("start")}</button>
+                    </div>
+
+                </div>
+            </div>
+        `;
   }
 }
 
@@ -135,8 +138,8 @@ export const PingPong3DSettingRoute: Routes = {
       // 入力要素の参照を取る
       const winningScoreInput =
         pp3dConfigRoot.querySelector<HTMLInputElement>("#winning-score");
-      const ballSpeedInput =
-        pp3dConfigRoot.querySelector<HTMLInputElement>("#ball-speed");
+      const rallyRushInput =
+        pp3dConfigRoot.querySelector<HTMLInputElement>("#rally-rush-toggle");
       const countdownSelect = pp3dConfigRoot.querySelector<HTMLSelectElement>(
         "#countdown-interval",
       );
@@ -189,7 +192,7 @@ export const PingPong3DSettingRoute: Routes = {
       startBtn.addEventListener("click", () => {
         if (
           !winningScoreInput ||
-          !ballSpeedInput ||
+          !rallyRushInput ||
           !countdownSelect ||
           !stageSelect ||
           !p1LenInput ||
@@ -202,7 +205,7 @@ export const PingPong3DSettingRoute: Routes = {
 
         // Start Game が押された時の設定値を受け取る
         const winningScore = Number(winningScoreInput.value);
-        const ballSpeed = Number(ballSpeedInput.value);
+        const rallyRush = rallyRushInput ? rallyRushInput.checked : false;
         const countdown = Number(countdownSelect.value);
         const stage = Number(stageSelect.value);
         const p1Length = Number(p1LenInput.value);
@@ -214,7 +217,7 @@ export const PingPong3DSettingRoute: Routes = {
         // 入力値を読み取る
         saveSettings({
           winningScore,
-          ballSpeed,
+          rallyRush,
           selectedCountdownSpeed: countdown,
           selectedStageIndex: stage,
           player1Color: p1Color,
