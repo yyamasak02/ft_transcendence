@@ -4,6 +4,7 @@ export const GAME_CONFIG = {
   COURT_HEIGHT: 40,
   PADDLE_THICKNESS: 1,
   BALL_RADIUS: 1,
+  BALL_INITIAL_SPEED: 50,
 };
 
 export type GameConfig = typeof GAME_CONFIG;

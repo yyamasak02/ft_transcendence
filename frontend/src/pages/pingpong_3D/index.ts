@@ -30,40 +30,82 @@ export const PingPong3DGameRoute: Route = {
       return;
     }
 
-    // ボタン取得
-    const btnHome = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-home");
-    const btnSettings =
-      gameRoot.querySelector<HTMLButtonElement>("#btn-3d-settings");
-    const btnPause = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-pause");
-    const btnResume =
-      gameRoot.querySelector<HTMLButtonElement>("#btn-3d-resume");
-    const btnReset = gameRoot.querySelector<HTMLButtonElement>("#btn-3d-reset");
-    const btnCameraReset = gameRoot.querySelector<HTMLButtonElement>(
-      "#btn-3d-camera-reset",
-    );
-
-    btnHome?.addEventListener("click", () => {
+    const handleHome = () => {
       PingPong3DGame.stopGame();
       navigate("/");
-    });
-    btnSettings?.addEventListener("click", () => {
+    };
+
+    const handleSettings = () => {
       PingPong3DGame.stopGame();
       navigate("/pingpong_3D_config");
-    });
-    btnPause?.addEventListener("click", () => {
+    };
+
+    // HOMEボタン
+    gameRoot
+      .querySelector("#btn-3d-home-nav")
+      ?.addEventListener("click", handleHome);
+    gameRoot
+      .querySelector("#btn-3d-home")
+      ?.addEventListener("click", handleHome);
+
+    // SETTINGSボタン
+    const btnSettingsNav =
+      gameRoot.querySelector("#btn-3d-settings-nav") ||
+      gameRoot.querySelector("#btn-3d-setting-nav");
+    const btnSettingsCentral =
+      gameRoot.querySelector("#btn-3d-settings") ||
+      gameRoot.querySelector("#btn-3d-setting");
+
+    btnSettingsNav?.addEventListener("click", handleSettings);
+    btnSettingsCentral?.addEventListener("click", handleSettings);
+
+    // PAUSEボタン
+    gameRoot.querySelector("#btn-3d-pause")?.addEventListener("click", () => {
       PingPong3DGame.pauseGame();
     });
-    btnResume?.addEventListener("click", () => {
+
+    // RESUMEボタン
+    gameRoot.querySelector("#btn-3d-resume")?.addEventListener("click", () => {
       PingPong3DGame.resumeGame();
     });
-    btnReset?.addEventListener("click", () => {
+
+    // RESETボタン
+    gameRoot.querySelector("#btn-3d-reset")?.addEventListener("click", () => {
       if (PingPong3DGame.gameState.resetLocked) return;
       PingPong3DGame.resetGame();
     });
-    btnCameraReset?.addEventListener("click", () => {
-      PingPong3DGame.resetCamera();
+
+    // CAMERA RESETボタン
+    gameRoot
+      .querySelector("#btn-3d-camera-reset")
+      ?.addEventListener("click", () => {
+        PingPong3DGame.resetCamera();
+      });
+
+    // HowToPlay (Help) ボタン
+    const btnHelp = gameRoot.querySelector("#btn-3d-help");
+    const helpOverlay = gameRoot.querySelector<HTMLElement>("#help-overlay");
+    const btnCloseHelp = gameRoot.querySelector("#btn-close-help");
+
+    btnHelp?.addEventListener("click", () => {
+      if (helpOverlay) {
+        helpOverlay.style.display = "flex";
+      }
+    });
+
+    btnCloseHelp?.addEventListener("click", () => {
+      if (helpOverlay) {
+        helpOverlay.style.display = "none";
+      }
+    });
+
+    helpOverlay?.addEventListener("click", (e) => {
+      if (e.target === helpOverlay) {
+        helpOverlay.style.display = "none";
+      }
     });
   },
+
   onUnmount: () => {
     document.body.classList.remove("game-body");
     const nav = document.getElementById("nav");

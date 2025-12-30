@@ -1,6 +1,6 @@
 import type { Route } from "@/types/routes";
 import type { Component } from "@/types/component";
-import { word, t } from "@/i18n";
+import { t } from "@/i18n";
 import "./style.css";
 
 // TODO ログイン機能を実装する
