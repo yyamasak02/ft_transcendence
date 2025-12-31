@@ -26,16 +26,15 @@ urls:
 	@echo "TextChat Backend http://127.0.0.1:8082"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "Nginx https://localhost:8443"
+
 ensure_envs:
-    @# Ensure env files exist so docker compose can parse the file even on fresh clones
-    @# Only create placeholders for files generated from secrets (not tracked ones)
-    @for f in \
-        ./frontend/.env.local \
-        ./backends/common/.env.development \
-        ./backends/game/.env.development \
-        ./backends/text_chat/.env.development; do \
-        [ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
-    done
+	@for f in \
+		./frontend/.env.local \
+		./backends/common/.env.development \
+		./backends/game/.env.development \
+		./backends/text_chat/.env.development; do \
+		[ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
+	done
 
 # Start all containers
 up: ensure_envs
@@ -67,9 +66,9 @@ clean: ensure_envs
 	docker system prune -f
 
 delete: clean
-    rm -f backends/common/db/app.db
-    rm -f backends/common/db/common.sqlite
-    rm -f backends/common/.env.development backends/game/.env.development backends/text_chat/.env.development frontend/.env.local
+	rm -f backends/common/db/app.db
+	rm -f backends/common/db/common.sqlite
+	rm -f backends/common/.env.development backends/game/.env.development backends/text_chat/.env.development frontend/.env.local
 
 # Show logs
 logs: ensure_envs

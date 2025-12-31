@@ -46,16 +46,16 @@ jobs:
         run: |
           set -euxo pipefail
           urls=(
-            "http://localhost:8080/api/docs"
-            "http://localhost:8081/api/docs"
-            "http://localhost:8082/api/docs"
-            "http://localhost:8083/api/docs"
+            "http://localhost:8080/api/docs/"
+            "http://localhost:8081/api/docs/"
+            "http://localhost:8082/api/docs/"
+            "http://localhost:8083/api/docs/"
           )
           for url in "${urls[@]}"; do
             echo "Checking $url"
             ok=false
             for i in {1..60}; do
-              if curl -fsS "$url" >/dev/null 2>&1; then
+              if curl -fLsS "$url" >/dev/null 2>&1; then
                 ok=true
                 break
               fi
