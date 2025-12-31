@@ -266,20 +266,18 @@ const setupRecentMatches = () => {
     });
 };
 
-export const MeRoute: Record<string, Route> = {
-  "/me": {
-    linkLabel: "",
-    content: () => new MeComponent().render(),
-    onMount: () => {
-      if (!getStoredAccessToken()) {
-        navigate("/login");
-        return;
-      }
-      setupTwoFactor();
-      setupRecentMatches();
-      setupUserMenuLinks();
-      setupLogout();
-    },
-    head: { title: "Me" },
+export const MeRoute: Route = {
+  linkLabel: "",
+  content: () => new MeComponent().render(),
+  onMount: () => {
+    if (!getStoredAccessToken()) {
+      navigate("/login");
+      return;
+    }
+    setupTwoFactor();
+    setupRecentMatches();
+    setupUserMenuLinks();
+    setupLogout();
   },
+  head: { title: "Me" },
 };

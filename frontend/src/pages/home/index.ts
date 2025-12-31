@@ -1,6 +1,6 @@
 // src/pages/home/index.ts
 import type { Route } from "@/types/routes";
-import { t, word } from "@/i18n";
+import { word } from "@/i18n";
 import type { Component } from "@/models/component";
 
 interface BannerSlide {

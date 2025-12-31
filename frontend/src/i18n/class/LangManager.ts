@@ -41,8 +41,8 @@ export class LangManager extends EventTarget {
     try {
       this._ensureBindings();
       this._updateBoundNodes();
-    } catch (_e) {
-      // 失敗しても致命ではない（次回リレンダーで整合する）
+    } catch (e) {
+      console.log(`[WARNING] failed to translate ${e}`);
     }
   }
 

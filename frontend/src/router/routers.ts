@@ -60,7 +60,7 @@ export const routes: Routes = {
     css_path: routeStyles.websocket,
   },
   "/me": {
-    component: MeRoute["/me"],
+    component: MeRoute,
     show_navbar: true,
     layout: "center",
     css_path: routeStyles.me,

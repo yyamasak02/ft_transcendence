@@ -10,7 +10,7 @@ export function word(key: I18nKey): string {
 export function t(key: I18nKey): string {
   const text = langManager.word(key);
   // Use a custom inline element with no semantics
-  return `<i18n-t data-i18n="${key}">${text}</i18n-t>`;
+  return `<span data-i18n="${key}">${text}</span>`;
 }
 
 // 属性を翻訳する（例: `${i18nAttr('placeholder','username')}`）

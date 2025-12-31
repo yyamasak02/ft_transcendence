@@ -64,7 +64,6 @@ export class PingPong3DGameView implements Component {
                             </button>
                         </div>
                     </div>
-                    // TODO word関数を使わずに差し替えるようにする
                     <div id="game-ui-3d">
                         <button id="btn-3d-help" title="${word("how_to_play")}">
                             <img src="../../public/button/help.svg" style="width: 24px; height: 24px;">

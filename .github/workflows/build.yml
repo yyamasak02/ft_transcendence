@@ -6,12 +6,66 @@ jobs:
   docker:
     name: Docker Compose Build & Health Check
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Provide the gist page URL via a single variable
+      # Use either: secrets.SECRET_GIST or vars.SECRET_GIST
+      SECRET_GIST: ${{ secrets.SECRET_GIST || vars.SECRET_GIST }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/checkout@v3
-      - name: Checkout And Build
-        run: docker compose -f docker-compose.local.yml up -d
+      - name: Show Docker info
+        run: |
+          docker --version
+          docker compose version
+          df -h
+
+      - name: Prepare secret.yaml
+        run: |
+          set -euo pipefail
+          if [[ -z "${SECRET_GIST:-}" ]]; then
+            echo "SECRET_GIST is required. Define it as a repository secret or variable." >&2
+            exit 1
+          fi
+          raw="$SECRET_GIST"
+          raw="${raw/gist.github.com/gist.githubusercontent.com}"
+          case "$raw" in
+            */raw* ) : ;;
+            * ) raw="${raw%/}/raw" ;;
+          esac
+          echo "Fetching secret from $raw"
+          curl -fsSL "$raw" -o secret.yaml
+          echo "secret.yaml prepared:" && ls -l secret.yaml
+
+      - name: make init (compose up)
+        run: |
+          make init
+
+      - name: HTTP health checks
+        run: |
+          set -euxo pipefail
+          urls=(
+            "http://localhost:8080/api/docs"
+            "http://localhost:8081/api/docs"
+            "http://localhost:8082/api/docs"
+            "http://localhost:8083/api/docs"
+          )
+          for url in "${urls[@]}"; do
+            echo "Checking $url"
+            ok=false
+            for i in {1..60}; do
+              if curl -fsS "$url" >/dev/null 2>&1; then
+                ok=true
+                break
+              fi
+              sleep 3
+            done
+            if [ "$ok" != true ]; then
+              echo "Health check failed for $url" >&2
+              exit 1
+            fi
+          done
 
       - name: Check Container Health Status
         run: |
@@ -34,6 +88,7 @@ jobs:
             docker compose -f docker-compose.local.yml ps
             exit 1
           fi
+
       - name: Debug containers
         if: failure()
         run: |
@@ -41,7 +96,12 @@ jobs:
           docker compose -f docker-compose.local.yml ps -a
           echo
           echo "=== Logs from containers ==="
-          docker compose -f docker-compose.local.yml logs --tail=100
+          docker compose -f docker-compose.local.yml logs --no-color --tail=200 || true
+
       - name: Cleanup containers
         if: always()
         run: docker compose -f docker-compose.local.yml down
+
+      - name: Cleanup secret.yaml
+        if: always()
+        run: rm -f secret.yaml || true
