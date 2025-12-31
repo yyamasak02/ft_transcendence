@@ -125,6 +125,38 @@ export const uploadProfileImageBodySchema = Type.Object({
 
 export type UploadProfileImageBody = Static<typeof uploadProfileImageBodySchema>;
 
+const friendStatusSchema = Type.Union([
+  Type.Literal("accepted"),
+  Type.Literal("pending_incoming"),
+  Type.Literal("pending_outgoing"),
+]);
+
+export const friendItemSchema = Type.Object({
+  id: Type.Integer({ minimum: 1 }),
+  name: Type.String({ minLength: 1 }),
+  profileImage: Type.Union([profileImageSchema, Type.Null()]),
+  online: Type.Boolean(),
+  status: friendStatusSchema,
+});
+
+export const friendsListResponseSchema = Type.Object({
+  friends: Type.Array(friendItemSchema),
+});
+
+export const friendRequestBodySchema = Type.Object({
+  name: Type.String({ minLength: 1 }),
+});
+
+export type FriendRequestBody = Static<typeof friendRequestBodySchema>;
+
+export const friendRespondBodySchema = Type.Object({
+  requestId: Type.Integer({ minimum: 1 }),
+  accept: Type.Boolean(),
+});
+
+export type FriendRespondBody = Static<typeof friendRespondBodySchema>;
+
+
 export const userBanBodySchema = Type.Composite([
   userIdentifierSchema,
   Type.Object({

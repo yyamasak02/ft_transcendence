@@ -43,6 +43,18 @@
   letter-spacing: 0.06em;
 }
 
+.user-profile-name.is-online {
+  color: #6bb6ff;
+}
+
+.user-profile-name.is-offline {
+  color: #9a9a9a;
+}
+
+.user-profile-friend-heart {
+  color: #e0c030;
+}
+
 .user-profile-avatar {
   margin-top: 10px;
   width: 120px;
@@ -68,6 +80,42 @@
   font-size: 0.9rem;
   color: #c0c0c0;
   align-self: flex-start;
+}
+
+.user-profile-status.is-online {
+  color: #6bb6ff;
+}
+
+.user-profile-status.is-offline {
+  color: #9a9a9a;
+}
+
+.user-profile-friend-request {
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.user-profile-friend-request:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.user-profile-friend-request:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.user-profile-friend-msg {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #c8c8c8;
 }
 
 .user-profile-section {

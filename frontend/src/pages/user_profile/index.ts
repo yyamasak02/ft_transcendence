@@ -30,6 +30,10 @@ class UserProfileComponent {
                 <img class="user-profile-avatar" id="user-profile-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" ${i18nAttr("alt", "profile_image_alt")} />
                 <div class="user-profile-status" id="user-profile-status"></div>
               </div>
+              <button class="user-profile-friend-request" id="user-profile-friend-request">
+                ${t("friend_request_button")}
+              </button>
+              <div class="user-profile-friend-msg" id="user-profile-friend-msg"></div>
               <button class="user-profile-back" id="user-profile-back">
                 ${t("my_profile")}
               </button>
@@ -56,15 +60,26 @@ const setProfileMessage = (message: string) => {
   container.textContent = message;
 };
 
-const setProfileHeader = (name: string, online: boolean) => {
+const setProfileHeader = (name: string, online: boolean, isFriend: boolean) => {
   const nameEl = document.querySelector<HTMLDivElement>("#user-profile-name");
   const statusEl = document.querySelector<HTMLDivElement>("#user-profile-status");
-  if (nameEl) nameEl.textContent = name;
-  if (statusEl) {
-    statusEl.textContent = `${word("user_profile_status")}: ${
-      online ? word("user_profile_online") : word("user_profile_offline")
-    }`;
+  if (nameEl) {
+    nameEl.innerHTML = isFriend
+      ? `<span class="user-profile-friend-heart">&#9829;</span> ${name}`
+      : name;
+    nameEl.classList.toggle("is-online", online);
+    nameEl.classList.toggle("is-offline", !online);
   }
+  if (statusEl) {
+    statusEl.textContent = online ? word("user_profile_online") : word("user_profile_offline");
+    statusEl.classList.toggle("is-online", online);
+    statusEl.classList.toggle("is-offline", !online);
+  }
+};
+
+const setFriendMessage = (message: string) => {
+  const el = document.querySelector<HTMLDivElement>("#user-profile-friend-msg");
+  if (el) el.textContent = message;
 };
 
 const loadCustomProfileImage = async (name: string) => {
@@ -191,12 +206,15 @@ const loadProfile = async (name: string) => {
       setProfileMessage(body?.message ?? word("match_results_fetch_failed"));
       return;
     }
-    setProfileHeader(String(body.name ?? name), Boolean(body.online));
+    const profileName = String(body.name ?? name);
+    const online = Boolean(body.online);
+    const isFriend = await loadFriendStatus(profileName);
+    setProfileHeader(profileName, online, isFriend);
     const profileImage = body?.profileImage ?? null;
     const profileImageKey = typeof profileImage === "string" ? profileImage : null;
-    setProfileImage(profileImageKey, String(body.name ?? name));
+    setProfileImage(profileImageKey, profileName);
     if (Array.isArray(body.matches)) {
-      renderMatches(body.matches as MatchItem[], String(body.name ?? name));
+      renderMatches(body.matches as MatchItem[], profileName);
     } else {
       setProfileMessage(word("match_results_fetch_failed"));
     }
@@ -211,6 +229,65 @@ const setupBack = () => {
   button.addEventListener("click", () => {
     navigate("/me");
   });
+};
+
+const setupFriendRequest = (name: string) => {
+  const button = document.querySelector<HTMLButtonElement>(
+    "#user-profile-friend-request",
+  );
+  if (!button) return;
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) {
+    button.disabled = true;
+    return;
+  }
+  button.addEventListener("click", async (event) => {
+    event.preventDefault();
+    button.disabled = true;
+    setFriendMessage("");
+    try {
+      const res = await fetch("/api/common/user/friends/request", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setFriendMessage(body?.message ?? word("friend_request_failed"));
+        button.disabled = false;
+        return;
+      }
+      setFriendMessage(word("friend_request_sent"));
+    } catch {
+      setFriendMessage(word("friend_request_failed"));
+      button.disabled = false;
+    }
+  });
+};
+
+const loadFriendStatus = async (name: string) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return false;
+  try {
+    const res = await fetch("/api/common/user/friends", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (!res.ok) return false;
+    const body = await res.json().catch(() => ({}));
+    const friends = Array.isArray(body?.friends) ? body.friends : [];
+    return friends.some(
+      (friend: { name?: string; status?: string }) =>
+        friend?.name === name && friend?.status === "accepted",
+    );
+  } catch {
+    return false;
+  }
 };
 
 const getProfileNameFromQuery = () => {
@@ -228,6 +305,7 @@ export const UserProfileRoute: Route = {
       return;
     }
     setupBack();
+    setupFriendRequest(name);
     loadProfile(name);
   },
   head: { title: "User Profile" },

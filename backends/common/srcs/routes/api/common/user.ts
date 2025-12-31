@@ -46,6 +46,9 @@ import {
   userProfileResponseSchema,
   updateProfileImageBodySchema,
   uploadProfileImageBodySchema,
+  friendRequestBodySchema,
+  friendRespondBodySchema,
+  friendsListResponseSchema,
   puidLookupQuerySchema,
   puidLookupResponseSchema,
   googleLoginBodySchema,
@@ -72,6 +75,8 @@ import type {
   UserProfileImageQuery,
   UpdateProfileImageBody,
   UploadProfileImageBody,
+  FriendRequestBody,
+  FriendRespondBody,
 } from "../../../schemas/user.js";
 import type { TwoFactorTokenPayload } from "../../../types/jwt.js";
 
@@ -87,6 +92,17 @@ export default async function (fastify: FastifyInstance) {
     value !== null &&
     (value as { type?: unknown }).type === "2fa" &&
     typeof (value as { userId?: unknown }).userId === "number";
+  const profileImageKeys = new Set([
+    "Robot",
+    "Snowman",
+    "Sniper",
+    "Suicider",
+    "Queen",
+  ]);
+  const toProfileImage = (value: string | null): "Robot" | "Snowman" | "Sniper" | "Suicider" | "Queen" | null => {
+    if (!value || !profileImageKeys.has(value)) return null;
+    return value as "Robot" | "Snowman" | "Sniper" | "Suicider" | "Queen";
+  };
 
   f.post<{ Body: RegisterBody }>(
     "/user/register",
@@ -474,7 +490,7 @@ export default async function (fastify: FastifyInstance) {
         user.puid,
       );
 
-      const profileImage = user.profile_image ?? null;
+      const profileImage = toProfileImage(user.profile_image ?? null);
 
       return {
         name: user.name,
@@ -516,7 +532,7 @@ export default async function (fastify: FastifyInstance) {
         reply.code(404);
         return { message: "User not found." };
       }
-      const profileImage = user.profile_image ?? null;
+      const profileImage = toProfileImage(user.profile_image ?? null);
       return { profileImage };
     },
   );
@@ -622,6 +638,186 @@ export default async function (fastify: FastifyInstance) {
       }
       reply.header("Content-Type", "image/png");
       return reply.send(user.profile_image_data);
+    },
+  );
+
+  f.get(
+    "/user/friends",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        response: {
+          200: friendsListResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const rows = await fastify.db.all<Array<{
+        id: number;
+        status: string;
+        requester_puid: string;
+        addressee_puid: string;
+        requester_name: string;
+        addressee_name: string;
+        requester_image: string | null;
+        addressee_image: string | null;
+        requester_access: string | null;
+        addressee_access: string | null;
+      }>>(
+        `SELECT
+           f.id,
+           f.status,
+           f.requester_puid,
+           f.addressee_puid,
+           requester.name AS requester_name,
+           addressee.name AS addressee_name,
+           requester.profile_image AS requester_image,
+           addressee.profile_image AS addressee_image,
+           requester.last_accessed_at AS requester_access,
+           addressee.last_accessed_at AS addressee_access
+         FROM friends f
+         JOIN users AS requester ON requester.puid = f.requester_puid
+         JOIN users AS addressee ON addressee.puid = f.addressee_puid
+         WHERE f.requester_puid = ? OR f.addressee_puid = ?
+         ORDER BY f.created_at DESC`,
+        request.user.puid,
+        request.user.puid,
+      );
+
+      const toOnline = (value: string | null) => {
+        if (!value) return false;
+        const normalized = value.replace(" ", "T");
+        const parsed = new Date(`${normalized}Z`);
+        if (Number.isNaN(parsed.getTime())) return false;
+        return Date.now() - parsed.getTime() <= 5 * 60 * 1000;
+      };
+
+      const friends: Array<{
+        id: number;
+        name: string;
+        profileImage: "Robot" | "Snowman" | "Sniper" | "Suicider" | "Queen" | null;
+        online: boolean;
+        status: "accepted" | "pending_incoming" | "pending_outgoing";
+      }> = rows.map((row) => {
+        const isRequester = row.requester_puid === request.user.puid;
+        const status: "accepted" | "pending_outgoing" | "pending_incoming" =
+          row.status === "accepted"
+            ? "accepted"
+            : isRequester
+              ? "pending_outgoing"
+              : "pending_incoming";
+        const name = isRequester ? row.addressee_name : row.requester_name;
+        const profileImage = toProfileImage(
+          isRequester ? row.addressee_image : row.requester_image,
+        );
+        const online = toOnline(isRequester ? row.addressee_access : row.requester_access);
+        return {
+          id: row.id,
+          name,
+          profileImage,
+          online,
+          status,
+        };
+      });
+
+      return { friends };
+    },
+  );
+
+  f.post<{ Body: FriendRequestBody }>(
+    "/user/friends/request",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        body: friendRequestBodySchema,
+        response: {
+          200: userActionResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+          409: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { name } = request.body;
+      const target = await fastify.db.get<{ puid: string }>(
+        "SELECT puid FROM users WHERE name = ?",
+        name,
+      );
+      if (!target) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+      if (target.puid === request.user.puid) {
+        reply.code(400);
+        return { message: "Cannot add yourself." };
+      }
+      const existing = await fastify.db.get<{ id: number }>(
+        `SELECT id FROM friends
+         WHERE (requester_puid = ? AND addressee_puid = ?)
+            OR (requester_puid = ? AND addressee_puid = ?)` ,
+        request.user.puid,
+        target.puid,
+        target.puid,
+        request.user.puid,
+      );
+      if (existing) {
+        reply.code(409);
+        return { message: "Friend request already exists." };
+      }
+      await fastify.db.run(
+        "INSERT INTO friends (requester_puid, addressee_puid, status) VALUES (?, ?, ?)",
+        request.user.puid,
+        target.puid,
+        "pending",
+      );
+      return { message: "Friend request sent." };
+    },
+  );
+
+  f.patch<{ Body: FriendRespondBody }>(
+    "/user/friends/respond",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        body: friendRespondBodySchema,
+        response: {
+          200: userActionResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { requestId, accept } = request.body;
+      const row = await fastify.db.get<{ requester_puid: string; addressee_puid: string; status: string }>(
+        "SELECT requester_puid, addressee_puid, status FROM friends WHERE id = ?",
+        requestId,
+      );
+      if (!row) {
+        reply.code(404);
+        return { message: "Friend request not found." };
+      }
+      if (row.addressee_puid != request.user.puid || row.status != "pending") {
+        reply.code(400);
+        return { message: "Invalid friend request." };
+      }
+      if (accept) {
+        await fastify.db.run(
+          "UPDATE friends SET status = ? WHERE id = ?",
+          "accepted",
+          requestId,
+        );
+        return { message: "Friend request accepted." };
+      }
+      await fastify.db.run("DELETE FROM friends WHERE id = ?", requestId);
+      return { message: "Friend request declined." };
     },
   );
 

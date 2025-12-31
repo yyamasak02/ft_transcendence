@@ -72,6 +72,10 @@ class MeComponent {
           <div class="me-matches-summary" id="me-matches-summary"></div>
           <div class="me-matches" id="me-matches"></div>
         </div>
+        <div class="me-friends-panel">
+          <h3 class="me-side-title">${t("friends")}</h3>
+          <div class="me-friends-list" id="me-friends-list"></div>
+        </div>
       </div>
     `;
   };
@@ -271,6 +275,160 @@ const setupUserSearch = () => {
     }
   });
 };
+
+type FriendItem = {
+  id: number;
+  name: string;
+  profileImage: string | null;
+  online: boolean;
+  status: "accepted" | "pending_incoming" | "pending_outgoing";
+};
+
+const loadFriendCustomImage = async (name: string, img: HTMLImageElement) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  try {
+    const res = await fetch(
+      `/api/common/user/profile_image_data?name=${encodeURIComponent(name)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!res.ok) return;
+    const blob = await res.blob();
+    img.src = URL.createObjectURL(blob);
+  } catch {
+    return;
+  }
+};
+
+const renderFriends = (items: FriendItem[]) => {
+  const container = document.querySelector<HTMLDivElement>("#me-friends-list");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!items.length) {
+    container.textContent = word("friends_empty");
+    return;
+  }
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "me-friend";
+
+    const avatar = document.createElement("img");
+    avatar.className = "me-friend-avatar";
+    avatar.alt = word("profile_image_alt");
+    if (item.profileImage && isProfileImageKey(item.profileImage)) {
+      avatar.src = getProfileImageSrc(item.profileImage);
+    } else {
+      avatar.src = getProfileImageSrc(DEFAULT_PROFILE_IMAGE);
+      loadFriendCustomImage(item.name, avatar);
+    }
+
+    const info = document.createElement("div");
+    info.className = "me-friend-info";
+
+    const nameLink = document.createElement("a");
+    nameLink.className = "me-friend-link";
+    nameLink.href = `/user?name=${encodeURIComponent(item.name)}`;
+    nameLink.textContent = item.name;
+    nameLink.setAttribute("data-name", item.name);
+
+    const status = document.createElement("div");
+    status.className = "me-friend-status";
+    if (item.status === "accepted") {
+      status.textContent = item.online
+        ? word("user_profile_online")
+        : word("user_profile_offline");
+    } else if (item.status === "pending_incoming") {
+      status.textContent = word("friend_status_pending_incoming");
+    } else {
+      status.textContent = word("friend_status_pending_outgoing");
+    }
+
+    info.append(nameLink, status);
+
+    const actions = document.createElement("div");
+    actions.className = "me-friend-actions";
+    if (item.status === "pending_incoming") {
+      const accept = document.createElement("button");
+      accept.type = "button";
+      accept.className = "me-friend-accept";
+      accept.textContent = word("friend_accept");
+      accept.setAttribute("data-id", String(item.id));
+      accept.setAttribute("data-action", "accept");
+
+      const decline = document.createElement("button");
+      decline.type = "button";
+      decline.className = "me-friend-decline";
+      decline.textContent = word("friend_decline");
+      decline.setAttribute("data-id", String(item.id));
+      decline.setAttribute("data-action", "decline");
+
+      actions.append(accept, decline);
+    }
+
+    row.append(avatar, info, actions);
+    container.appendChild(row);
+  });
+};
+
+const loadFriends = async () => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  try {
+    const res = await fetch("/api/common/user/friends", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (!res.ok) return;
+    const body = await res.json().catch(() => ({}));
+    const items = Array.isArray(body?.friends) ? body.friends : [];
+    renderFriends(items as FriendItem[]);
+  } catch {
+    return;
+  }
+};
+
+const respondFriendRequest = async (requestId: number, accept: boolean) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  await fetch("/api/common/user/friends/respond", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ requestId, accept }),
+  }).catch(() => null);
+  loadFriends();
+};
+
+const setupFriendActions = () => {
+  const container = document.querySelector<HTMLDivElement>("#me-friends-list");
+  if (!container) return;
+  container.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    if (target.classList.contains("me-friend-link")) {
+      event.preventDefault();
+      const name = target.getAttribute("data-name");
+      if (name) navigate(`/user?name=${encodeURIComponent(name)}`);
+      return;
+    }
+    const action = target.getAttribute("data-action");
+    const id = target.getAttribute("data-id");
+    if (!action || !id) return;
+    const requestId = Number(id);
+    if (!Number.isFinite(requestId)) return;
+    respondFriendRequest(requestId, action === "accept");
+  });
+};
+
 
 const renderMatches = (
   items: Array<{
@@ -555,6 +713,8 @@ export const MeRoute: Route = {
     setupTwoFactor();
     setupProfileImagePicker();
     setupRecentMatches();
+    loadFriends();
+    setupFriendActions();
     setupUserMenuLinks();
     setupUserSearch();
     setupLogout();

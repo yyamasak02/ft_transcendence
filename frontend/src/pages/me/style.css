@@ -201,6 +201,17 @@
   color: #fff;
 }
 
+.me-friends-panel {
+  min-width: 240px;
+  max-width: 360px;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid #2b2b2b;
+  background: #0b0b0b;
+  grid-column: 3;
+  color: #fff;
+}
+
 .me-side-title {
   margin: 0 0 12px;
   font-size: 1rem;
@@ -266,4 +277,73 @@
   padding: 8px 10px;
   border: 1px solid #222;
   background: #121212;
+}
+
+
+.me-friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #d0d0d0;
+}
+
+.me-friend {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #222;
+  background: #121212;
+}
+
+.me-friend-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #2b2b2b;
+}
+
+.me-friend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.me-friend-link {
+  color: #f0f0f0;
+  text-decoration: none;
+}
+
+.me-friend-link:hover {
+  text-decoration: underline;
+}
+
+.me-friend-status {
+  color: #b6b6b6;
+  font-size: 0.75rem;
+}
+
+.me-friend-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.me-friend-accept,
+.me-friend-decline {
+  padding: 4px 8px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.me-friend-accept:hover,
+.me-friend-decline:hover {
+  background: #3b3b3b;
+  border-color: #777;
 }
