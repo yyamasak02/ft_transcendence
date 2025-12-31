@@ -7,6 +7,9 @@ import register from "@/pages/register/style.css?url";
 import websocket from "@/pages/websocket/style.css?url";
 import testRtc from "@/pages/test_webrtc/style.css?url";
 import notFound from "@/pages/404/style.css?url";
+import me from "@/pages/me/style.css?url";
+import googleSignup from "@/pages/google_signup/style.css?url";
+import twoFactor from "@/pages/two_factor/style.css?url";
 
 export const routeStyles = {
   home,
@@ -17,5 +20,8 @@ export const routeStyles = {
   register,
   websocket,
   testRtc,
+  me,
+  googleSignup,
+  twoFactor,
   notFound,
 } as const;

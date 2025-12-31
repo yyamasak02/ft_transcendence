@@ -49,6 +49,7 @@ export class Router {
       langSwitcher.mount(domRoots.nav);
     } else {
       navBar.unmount();
+      langSwitcher.unmount();
     }
     renderRouteContent(normalized);
     nextRoute.component.onMount?.();

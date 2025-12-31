@@ -114,3 +114,18 @@
   color: #eee;
   text-decoration: underline;
 }
+
+.login-google-msg {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #9a9a9a;
+  white-space: pre-wrap;
+}
+
+.login-msg {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  text-align: center;
+  white-space: pre-wrap;
+}

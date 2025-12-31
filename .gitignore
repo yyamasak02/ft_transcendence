@@ -2,8 +2,11 @@
 prompts/
 convertPDFtoHTML.py
 .env*
-!.env.local
-!.env.development
+*.env
+*.env.*
+secret.txt
+secret.yaml
+secret.yml
 docker-compose.local.yml
 node_modules
 *.sqlite

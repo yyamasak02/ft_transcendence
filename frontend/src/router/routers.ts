@@ -7,6 +7,9 @@ import { PingPong3DSettingRoute } from "@/pages/pingpong_3D_config";
 import { LoginRoute } from "@/pages/login";
 import { RegisterRoute } from "@/pages/register";
 import { WebSocketRoute } from "@/pages/websocket";
+import { MeRoute } from "@/pages/me";
+import { GoogleSignupRoute } from "@/pages/google_signup";
+import { TwoFactorRoute } from "@/pages/two_factor";
 import { TestWebRTCRoute } from "@/pages/test_webrtc";
 import { NotFoundRoute } from "@/pages/404";
 
@@ -54,6 +57,24 @@ export const routes: Routes = {
     show_navbar: true,
     layout: "center",
     css_path: routeStyles.websocket,
+  },
+  "/me": {
+    component: MeRoute["/me"],
+    show_navbar: true,
+    layout: "center",
+    css_path: routeStyles.me,
+  },
+  "/google-signup": {
+    component: GoogleSignupRoute,
+    show_navbar: false,
+    layout: "auth",
+    css_path: routeStyles.googleSignup,
+  },
+  "/two-factor": {
+    component: TwoFactorRoute,
+    show_navbar: false,
+    layout: "auth",
+    css_path: routeStyles.twoFactor,
   },
   "/test_rtc": {
     component: TestWebRTCRoute,

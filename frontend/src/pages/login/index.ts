@@ -1,8 +1,24 @@
 import type { Route } from "@/types/routes";
 import type { Component } from "@/types/component";
 import { t, word } from "@/i18n";
+import { navigate } from "@/router";
+import {
+  GOOGLE_ID_TOKEN_KEY,
+  GOOGLE_LONG_TERM_KEY,
+  TWO_FACTOR_LONG_TERM_KEY,
+  TWO_FACTOR_TOKEN_KEY,
+} from "@/constants/auth";
+import {
+  MIN_USERNAME_LENGTH,
+  USERNAME_ROMAN_PATTERN,
+} from "@/constants/validation";
+import { storeTokens } from "@/utils/token-storage";
+import { loadGsi } from "@/utils/google-auth";
+import "./style.css";
 
-// TODO ログイン機能を実装する
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
+const API_BASE = "/api/common";
+
 class LoginComponent implements Component {
   render = () => {
     return `
@@ -15,12 +31,14 @@ class LoginComponent implements Component {
 
 									<!-- Username(Email) -->
 									<div class="login-field">
-										<label for="email">${t("username")}</label>
+										<label for="username">
+											${t("username")}
+										</label>
 										<input
-											type="email"
-											id="email"
-											name="email"
-											placeholder="your@example.com"
+											type="text"
+											id="username"
+											name="username"
+											placeholder="yourname"
 											required
 											class="login-input"
 										/>
@@ -56,13 +74,178 @@ class LoginComponent implements Component {
 									<div class="login-footer">
 										<a class="login-link" href="/register" data-nav>${t("to_signup")}</a>
 									</div>
+
+									<div class="login-footer">
+										<div id="google-btn"></div>
+										<p id="google-msg" class="login-google-msg"></p>
+									</div>
+
+									<p id="login-msg" class="login-msg"></p>
 								</form>
 						</div>
-        	`;
+	`;
   };
 }
+
+const setLoginMsg = (message: string) => {
+  const el = document.querySelector<HTMLParagraphElement>("#login-msg");
+  if (el) el.textContent = message;
+};
+
+const setGoogleMsg = (message: string) => {
+  const el = document.querySelector<HTMLParagraphElement>("#google-msg");
+  if (el) el.textContent = message;
+};
+
+const storePendingGoogleSignup = (idToken: string, longTerm: boolean) => {
+  sessionStorage.setItem(GOOGLE_ID_TOKEN_KEY, idToken);
+  sessionStorage.setItem(GOOGLE_LONG_TERM_KEY, longTerm ? "1" : "0");
+};
+
+const storeTwoFactorChallenge = (token: string, longTerm: boolean) => {
+  sessionStorage.setItem(TWO_FACTOR_TOKEN_KEY, token);
+  sessionStorage.setItem(TWO_FACTOR_LONG_TERM_KEY, longTerm ? "1" : "0");
+};
+
+const handleGoogleCredential = async (
+  credential: string,
+  longTerm: boolean,
+) => {
+  setGoogleMsg(word("google_login_processing"));
+  try {
+    const res = await fetch(`${API_BASE}/user/google_login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken: credential, longTerm }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 404) {
+      storePendingGoogleSignup(credential, longTerm);
+      navigate("/google-signup");
+      return;
+    }
+    if (body?.twoFactorRequired && body?.twoFactorToken) {
+      storeTwoFactorChallenge(body.twoFactorToken, longTerm);
+      navigate("/two-factor");
+      return;
+    }
+    if (!res.ok) {
+      setGoogleMsg(
+        body?.message ??
+          `${word("google_login_failed")} (status ${res.status})`,
+      );
+      return;
+    }
+    storeTokens(body.accessToken, body.longTermToken);
+    setGoogleMsg(word("google_login_success"));
+    navigate("/");
+  } catch (error) {
+    setGoogleMsg(`${word("google_login_error")}: ${error}`);
+  }
+};
+
+const setupGoogleLogin = async () => {
+  if (!GOOGLE_CLIENT_ID) {
+    setGoogleMsg(word("google_client_id_missing"));
+    return;
+  }
+  const google = await loadGsi().catch((err) => {
+    setGoogleMsg(`${word("google_script_load_failed")}: ${err}`);
+    return null;
+  });
+  if (!google?.accounts?.id) return;
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: ({ credential }) => {
+      const remember = Boolean(
+        document.querySelector<HTMLInputElement>("#remember")?.checked,
+      );
+      if (credential) handleGoogleCredential(credential, remember);
+    },
+  });
+  google.accounts.id.renderButton(document.getElementById("google-btn"), {
+    theme: "outline",
+    size: "large",
+    type: "standard",
+    text: "continue_with",
+  });
+  google.accounts.id.prompt();
+};
+
+const setupLoginForm = () => {
+  const form = document.querySelector<HTMLFormElement>("#login-form");
+  const submitButton = form?.querySelector<HTMLButtonElement>(".login-submit");
+  const toSignupLink = document.querySelector<HTMLAnchorElement>(
+    ".login-link[href='/register']",
+  );
+
+  if (toSignupLink) {
+    toSignupLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate("/register");
+    });
+  }
+
+  if (!form) return;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setLoginMsg("");
+
+    const formData = new FormData(form);
+    const name = String(formData.get("username") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const longTerm = Boolean(formData.get("remember"));
+
+    if (!name || !password) {
+      setLoginMsg(word("login_required"));
+      return;
+    }
+    if (name.length < MIN_USERNAME_LENGTH) {
+      setLoginMsg(word("username_min_length"));
+      return;
+    }
+    if (!USERNAME_ROMAN_PATTERN.test(name)) {
+      setLoginMsg(word("username_roman_only"));
+      return;
+    }
+
+    if (submitButton) submitButton.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, password, longTerm }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (body?.twoFactorRequired && body?.twoFactorToken) {
+        storeTwoFactorChallenge(body.twoFactorToken, longTerm);
+        navigate("/two-factor");
+        return;
+      }
+      if (!res.ok) {
+        setLoginMsg(
+          body?.message ?? `${word("login_failed")} (status ${res.status})`,
+        );
+        return;
+      }
+      storeTokens(body.accessToken, body.longTermToken);
+      setLoginMsg(word("login_success"));
+      navigate("/");
+    } catch (error) {
+      setLoginMsg(`${word("login_error")}: ${error}`);
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+};
 
 export const LoginRoute: Route = {
   linkLabel: () => word("login"),
   content: () => new LoginComponent().render(),
+  onMount: () => {
+    setupLoginForm();
+    setupGoogleLogin();
+  },
+  head: { title: "Login" },
 };
