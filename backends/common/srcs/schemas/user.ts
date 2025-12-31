@@ -79,15 +79,6 @@ export const userActionResponseSchema = Type.Object({
   message: Type.String(),
 });
 
-export const userInformationQuerySchema = userIdentifierSchema;
-
-export const userInformationResponseSchema = Type.Object({
-  id: Type.Number(),
-  name: Type.String(),
-  puid: Type.String({ minLength: 1 }),
-  status: Type.String(),
-});
-
 export const userBanBodySchema = Type.Composite([
   userIdentifierSchema,
   Type.Object({
@@ -134,6 +125,17 @@ export const updatePasswordBodySchema = Type.Composite([
 ]);
 
 export type UpdatePasswordBody = Static<typeof updatePasswordBodySchema>;
+
+export const updateUserNameBodySchema = Type.Object({
+  name: Type.String({ minLength: 1 }),
+});
+
+export type UpdateUserNameBody = Static<typeof updateUserNameBodySchema>;
+
+export const updateUserNameResponseSchema = Type.Object({
+  accessToken: Type.String({ minLength: 1 }),
+  message: Type.String({ minLength: 1 }),
+});
 
 export const deleteUserBodySchema = Type.Composite([
   userIdentifierSchema,

@@ -7,12 +7,14 @@ import {
 } from "@/constants/auth";
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
+import { getStoredAccessToken } from "@/utils/token-storage";
 
 class MeComponent {
   render = () => {
     return `
-      <div class="me-page">
-        <h2 class="me-title">テスト</h2>
+      <div class="me-layout">
+        <div class="me-page">
+          <h2 class="me-title">${word("user_menu")}</h2>
         <div class="me-section">
           <h3 class="me-section-title">${word("two_factor")}</h3>
           <p class="me-section-desc">${word("two_factor_desc")}</p>
@@ -20,7 +22,19 @@ class MeComponent {
           <div class="me-qr" id="me-qr"></div>
           <p class="me-2fa-msg" id="me-2fa-msg"></p>
         </div>
+        <div class="me-section">
+          <h3 class="me-section-title">${word("username_change")}</h3>
+          <p class="me-section-desc">${word("username_change_desc")}</p>
+          <a class="me-link" href="/username-change" data-nav>
+            ${word("username_change_action")}
+          </a>
+        </div>
         <button class="me-logout" id="me-logout">ログアウト</button>
+        </div>
+        <div class="me-side">
+          <h3 class="me-side-title">${word("match_results")}</h3>
+          <div class="me-matches" id="me-matches"></div>
+        </div>
       </div>
     `;
   };
@@ -167,12 +181,105 @@ const setupLogout = () => {
   });
 };
 
+const setupUserMenuLinks = () => {
+  const link = document.querySelector<HTMLAnchorElement>(
+    ".me-link[href='/username-change']",
+  );
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    navigate("/username-change");
+  });
+};
+
+const renderMatches = (
+  items: Array<{
+    id: number;
+    ownerName: string;
+    guestName?: string;
+    ownerScore: number;
+    guestScore: number;
+    createdAt: string;
+  }>,
+  currentName: string | null,
+) => {
+  const container = document.querySelector<HTMLDivElement>("#me-matches");
+  if (!container) return;
+  if (!items.length) {
+    container.textContent = word("no_matches");
+    return;
+  }
+  container.innerHTML = "";
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "me-match";
+    const isOwner = currentName ? item.ownerName === currentName : true;
+    const opponent = isOwner
+      ? item.guestName ?? word("ai_opponent")
+      : item.ownerName;
+    const myScore = isOwner ? item.ownerScore : item.guestScore;
+    const oppScore = isOwner ? item.guestScore : item.ownerScore;
+    const result =
+      myScore > oppScore
+        ? word("result_win")
+        : myScore < oppScore
+          ? word("result_lose")
+          : word("result_draw");
+    const score = `${myScore} - ${oppScore}`;
+    const date = new Date(item.createdAt);
+    const formattedDate = Number.isNaN(date.getTime())
+      ? item.createdAt
+      : date.toLocaleString();
+    row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
+    container.appendChild(row);
+  });
+};
+
+const setMatchesMessage = (message: string) => {
+  const container = document.querySelector<HTMLDivElement>("#me-matches");
+  if (!container) return;
+  container.textContent = message;
+};
+
+const setupRecentMatches = () => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  const currentName = decodeJwtPayload(accessToken)?.name ?? null;
+  fetch("/api/common/match_results?limit=10", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        setMatchesMessage(word("match_results_fetch_failed"));
+        return;
+      }
+      const body = await res.json().catch(() => []);
+      if (Array.isArray(body)) {
+        renderMatches(body, currentName);
+      } else {
+        setMatchesMessage(word("match_results_fetch_failed"));
+      }
+    })
+    .catch(() => {
+      setMatchesMessage(word("match_results_fetch_failed"));
+    });
+};
+
 export const MeRoute: Record<string, Route> = {
   "/me": {
     linkLabel: "",
     content: () => new MeComponent().render(),
     onMount: () => {
+      if (!getStoredAccessToken()) {
+        navigate("/login");
+        return;
+      }
       setupTwoFactor();
+      setupRecentMatches();
+      setupUserMenuLinks();
       setupLogout();
     },
     head: { title: "Me" },
