@@ -84,17 +84,18 @@
 .me-link {
   display: inline-block;
   padding: 8px 14px;
-  background: #2b2b2b;
+  background: #2f2f2f;
   border: 1px solid #555;
   color: #eee;
   text-decoration: none;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .me-link:hover {
-  background: #3a3a3a;
+  background: #3b3b3b;
   border-color: #777;
 }
 
