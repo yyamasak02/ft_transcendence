@@ -1,3 +1,9 @@
+export type RouteMeta = {
+  showInNavbar?: boolean;
+  navbarOrder?: number;
+  navbarLabelKey?: string;
+};
+
 /**
  * ルーティング情報の型定義
  * @module models/routes
@@ -19,6 +25,7 @@
  * }
  */
 export type Route = {
+  // Navbar 表示用。word("...") を返す関数推奨だが、固定文字列も可
   linkLabel?: string | (() => string);
   content: string | (() => string);
   onMount?: () => void | Promise<void>;
@@ -28,4 +35,11 @@ export type Route = {
   };
 };
 
-export type Routes = Record<string, Route>;
+export type RouteConfig = {
+  component: Route;
+  show_navbar: boolean;
+  layout: string;
+  css_path: string;
+};
+
+export type Routes = Record<string, RouteConfig>;

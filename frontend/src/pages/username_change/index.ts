@@ -1,13 +1,11 @@
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
-import { navigate } from "@/router/router";
+import { word, t } from "@/i18n";
+import { navigate } from "@/router";
 import {
   MIN_USERNAME_LENGTH,
   USERNAME_ROMAN_PATTERN,
 } from "@/constants/validation";
-import {
-  LONG_TERM_TOKEN_KEY,
-} from "@/constants/auth";
+import { LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import { getStoredAccessToken, storeTokens } from "@/utils/token-storage";
 import { decodeJwtPayload } from "@/utils/jwt";
 import "./style.css";
@@ -19,11 +17,11 @@ class UsernameChangeComponent {
     return `
       <div class="username-change-screen">
         <div class="username-change-box">
-          <h2 class="username-change-title">${word("username_change")}</h2>
+          <h2 class="username-change-title">${t("username_change")}</h2>
           <p class="username-change-current" id="username-change-current"></p>
           <form class="username-change-form" id="username-change-form">
             <div class="username-change-field">
-              <label for="username-change-input">${word("username")}</label>
+              <label for="username-change-input">${t("username")}</label>
               <input
                 type="text"
                 id="username-change-input"
@@ -34,13 +32,13 @@ class UsernameChangeComponent {
               />
             </div>
             <button type="submit" class="username-change-submit">
-              ${word("username_change_submit")}
+              ${t("username_change_submit")}
             </button>
             <p id="username-change-msg" class="username-change-msg"></p>
           </form>
           <div class="username-change-footer">
             <a class="username-change-link" href="/me" data-nav>
-              ${word("username_change_back")}
+              ${t("username_change_back")}
             </a>
           </div>
         </div>
@@ -50,14 +48,18 @@ class UsernameChangeComponent {
 }
 
 const setChangeMsg = (message: string) => {
-  const el = document.querySelector<HTMLParagraphElement>("#username-change-msg");
+  const el = document.querySelector<HTMLParagraphElement>(
+    "#username-change-msg",
+  );
   if (el) el.textContent = message;
 };
 
 const setCurrentName = (accessToken: string | null) => {
-  const el = document.querySelector<HTMLParagraphElement>("#username-change-current");
+  const el = document.querySelector<HTMLParagraphElement>(
+    "#username-change-current",
+  );
   if (!el) return;
-  const name = accessToken ? decodeJwtPayload(accessToken)?.name ?? "" : "";
+  const name = accessToken ? (decodeJwtPayload(accessToken)?.name ?? "") : "";
   el.textContent = name ? `${word("current_username")}: ${name}` : "";
 };
 
@@ -134,7 +136,8 @@ const setupChangeForm = () => {
         return;
       }
 
-      const longTermToken = localStorage.getItem(LONG_TERM_TOKEN_KEY) ?? undefined;
+      const longTermToken =
+        localStorage.getItem(LONG_TERM_TOKEN_KEY) ?? undefined;
       const nextAccessToken = String(body?.accessToken ?? "");
       if (nextAccessToken) {
         storeTokens(nextAccessToken, longTermToken);
@@ -150,14 +153,12 @@ const setupChangeForm = () => {
   });
 };
 
-export const UsernameChangeRoute: Record<string, Route> = {
-  "/username-change": {
-    linkLabel: "",
-    content: () => new UsernameChangeComponent().render(),
-    onMount: () => {
-      setupChangeForm();
-      setupBackLink();
-    },
-    head: { title: "Username Change" },
+export const UsernameChangeRoute: Route = {
+  linkLabel: "",
+  content: () => new UsernameChangeComponent().render(),
+  onMount: () => {
+    setupChangeForm();
+    setupBackLink();
   },
+  head: { title: "Username Change" },
 };

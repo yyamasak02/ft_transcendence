@@ -1,4 +1,11 @@
-FROM node:lts-alpine
+FROM node:24-alpine
+
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    sqlite-dev \
+    py3-setuptools
 
 WORKDIR /app
 

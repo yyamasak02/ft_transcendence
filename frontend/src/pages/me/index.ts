@@ -1,10 +1,7 @@
 import type { Route } from "@/types/routes";
-import { getLang, word } from "@/i18n";
-import { navigate } from "@/router/router";
-import {
-  ACCESS_TOKEN_KEY,
-  LONG_TERM_TOKEN_KEY,
-} from "@/constants/auth";
+import { langManager, word, t, i18nAttr } from "@/i18n";
+import { navigate } from "@/router";
+import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { getStoredAccessToken } from "@/utils/token-storage";
@@ -34,44 +31,44 @@ class MeComponent {
               type="text"
               class="me-search-input"
               name="username"
-              placeholder="${word("user_search_placeholder")}"
+              ${i18nAttr("placeholder", "user_search_placeholder")}
               required
             />
             <button class="me-search-btn" type="submit">
-              ${word("user_search_button")}
+              ${t("user_search_button")}
             </button>
           </form>
           <div class="me-search-msg" id="me-user-search-msg"></div>
           <h2 class="me-title">${currentName}</h2>
           <div class="me-avatar-row">
             <img class="me-avatar" id="me-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
-            <a class="me-avatar-link" href="#" id="me-avatar-change">${word("profile_image_change")}</a>
+            <a class="me-avatar-link" href="#" id="me-avatar-change">${t("profile_image_change")}</a>
           </div>
           <div class="me-avatar-picker" id="me-avatar-picker">
             ${pickerItems}
             <label class="me-avatar-upload">
               <input type="file" id="me-avatar-upload" accept="image/png" />
-              ${word("profile_image_upload")}
+              ${t("profile_image_upload")}
             </label>
           </div>
         <div class="me-section">
-          <h3 class="me-section-title">${word("two_factor")}</h3>
-          <p class="me-section-desc">${word("two_factor_desc")}</p>
-          <button class="me-2fa" id="me-2fa">${word("two_factor_enable")}</button>
+          <h3 class="me-section-title">${t("two_factor")}</h3>
+          <p class="me-section-desc">${t("two_factor_desc")}</p>
+          <button class="me-2fa" id="me-2fa">${t("two_factor_enable")}</button>
           <div class="me-qr" id="me-qr"></div>
           <p class="me-2fa-msg" id="me-2fa-msg"></p>
         </div>
         <div class="me-section">
-          <h3 class="me-section-title">${word("username_change")}</h3>
-          <p class="me-section-desc">${word("username_change_desc")}</p>
+          <h3 class="me-section-title">${t("username_change")}</h3>
+          <p class="me-section-desc">${t("username_change_desc")}</p>
           <a class="me-link" href="/username-change" data-nav>
-            ${word("username_change_action")}
+            ${t("username_change_action")}
           </a>
         </div>
-        <button class="me-logout" id="me-logout">ログアウト</button>
+        <button class="me-logout" id="me-logout">${t("logout")}</button>
         </div>
         <div class="me-side">
-          <h3 class="me-side-title">${word("match_results")}</h3>
+          <h3 class="me-side-title">${t("match_results")}</h3>
           <div class="me-matches-summary" id="me-matches-summary"></div>
           <div class="me-matches" id="me-matches"></div>
         </div>
@@ -184,7 +181,8 @@ const setupTwoFactor = () => {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setTwoFactorMsg(
-          body?.message ?? `${word("two_factor_failed")} (status ${res.status})`,
+          body?.message ??
+            `${word("two_factor_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -304,7 +302,7 @@ const renderMatches = (
     row.className = "me-match";
     const isOwner = currentName ? item.ownerName === currentName : true;
     const opponent = isOwner
-      ? item.guestName ?? word("ai_opponent")
+      ? (item.guestName ?? word("ai_opponent"))
       : item.ownerName;
     const myScore = isOwner ? item.ownerScore : item.guestScore;
     const oppScore = isOwner ? item.guestScore : item.ownerScore;
@@ -340,7 +338,7 @@ const parseMatchDate = (value: string) => {
 const formatMatchDate = (createdAt: string) => {
   const date = parseMatchDate(createdAt);
   if (!date) return createdAt;
-  const lang = getLang();
+  const lang = langManager.lang;
   const timeZone = "Asia/Tokyo";
   if (lang === "ja") {
     return new Intl.DateTimeFormat("ja-JP", {
@@ -541,27 +539,25 @@ const setupRecentMatches = () => {
     });
 };
 
-export const MeRoute: Record<string, Route> = {
-  "/me": {
-    linkLabel: "",
-    content: () => new MeComponent().render(),
-    onMount: () => {
-      if (!getStoredAccessToken()) {
-        navigate("/login");
-        return;
-      }
-      const accessToken = getStoredAccessToken();
-      const currentName = accessToken
-        ? decodeJwtPayload(accessToken)?.name ?? null
-        : null;
-      if (currentName) loadProfileImage(currentName);
-      setupTwoFactor();
-      setupProfileImagePicker();
-      setupRecentMatches();
-      setupUserMenuLinks();
-      setupUserSearch();
-      setupLogout();
-    },
-    head: { title: "Me" },
+export const MeRoute: Route = {
+  linkLabel: "",
+  content: () => new MeComponent().render(),
+  onMount: () => {
+    if (!getStoredAccessToken()) {
+      navigate("/login");
+      return;
+    }
+    const accessToken = getStoredAccessToken();
+    const currentName = accessToken
+      ? decodeJwtPayload(accessToken)?.name ?? null
+      : null;
+    if (currentName) loadProfileImage(currentName);
+    setupTwoFactor();
+    setupProfileImagePicker();
+    setupRecentMatches();
+    setupUserMenuLinks();
+    setupUserSearch();
+    setupLogout();
   },
+  head: { title: "Me" },
 };

@@ -1,6 +1,6 @@
 import type { Route } from "@/types/routes";
-import { getLang, word } from "@/i18n";
-import { navigate } from "@/router/router";
+import { langManager, word, t, i18nAttr } from "@/i18n";
+import { navigate } from "@/router";
 import { getStoredAccessToken } from "@/utils/token-storage";
 import {
   DEFAULT_PROFILE_IMAGE,
@@ -27,16 +27,16 @@ class UserProfileComponent {
             <div class="user-profile-left">
               <div class="user-profile-name" id="user-profile-name"></div>
               <div class="user-profile-avatar-row">
-                <img class="user-profile-avatar" id="user-profile-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
+                <img class="user-profile-avatar" id="user-profile-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" ${i18nAttr("alt", "profile_image_alt")} />
                 <div class="user-profile-status" id="user-profile-status"></div>
               </div>
               <button class="user-profile-back" id="user-profile-back">
-                ${word("my_profile")}
+                ${t("my_profile")}
               </button>
             </div>
             <div class="user-profile-center">
               <div class="user-profile-section">
-                <h3 class="user-profile-section-title">${word("match_results")}</h3>
+                <h3 class="user-profile-section-title">${t("match_results")}</h3>
                 <div class="user-profile-matches" id="user-profile-matches"></div>
               </div>
             </div>
@@ -113,7 +113,7 @@ const parseMatchDate = (value: string) => {
 const formatMatchDate = (createdAt: string) => {
   const date = parseMatchDate(createdAt);
   if (!date) return createdAt;
-  const lang = getLang();
+  const lang = langManager.lang;
   const timeZone = "Asia/Tokyo";
   if (lang === "ja") {
     return new Intl.DateTimeFormat("ja-JP", {
@@ -218,19 +218,17 @@ const getProfileNameFromQuery = () => {
   return params.get("name")?.trim() ?? "";
 };
 
-export const UserProfileRoute: Record<string, Route> = {
-  "/user": {
-    linkLabel: "",
-    content: () => new UserProfileComponent().render(),
-    onMount: () => {
-      const name = getProfileNameFromQuery();
-      if (!name) {
-        setProfileMessage(word("user_profile_not_found"));
-        return;
-      }
-      setupBack();
-      loadProfile(name);
-    },
-    head: { title: "User Profile" },
+export const UserProfileRoute: Route = {
+  linkLabel: "",
+  content: () => new UserProfileComponent().render(),
+  onMount: () => {
+    const name = getProfileNameFromQuery();
+    if (!name) {
+      setProfileMessage(word("user_profile_not_found"));
+      return;
+    }
+    setupBack();
+    loadProfile(name);
   },
+  head: { title: "User Profile" },
 };

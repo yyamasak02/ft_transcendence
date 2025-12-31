@@ -1,4 +1,5 @@
 .venv
+prompts/
 convertPDFtoHTML.py
 .env*
 *.env

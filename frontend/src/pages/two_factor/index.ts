@@ -1,6 +1,6 @@
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
-import { navigate } from "@/router/router";
+import { word, t } from "@/i18n";
+import { navigate } from "@/router";
 import {
   TWO_FACTOR_LONG_TERM_KEY,
   TWO_FACTOR_TOKEN_KEY,
@@ -15,11 +15,11 @@ class TwoFactorComponent {
     return `
       <div class="two-factor-screen">
         <div class="two-factor-box">
-          <h2 class="two-factor-title">${word("two_factor_title")}</h2>
-          <p class="two-factor-desc">${word("two_factor_prompt")}</p>
+          <h2 class="two-factor-title">${t("two_factor_title")}</h2>
+          <p class="two-factor-desc">${t("two_factor_prompt")}</p>
           <form class="two-factor-form" id="two-factor-form">
             <div class="two-factor-field">
-              <label for="code">${word("two_factor_code")}</label>
+              <label for="code">${t("two_factor_code")}</label>
               <input
                 type="text"
                 id="code"
@@ -32,11 +32,11 @@ class TwoFactorComponent {
               />
             </div>
             <button type="submit" class="two-factor-submit">
-              ${word("two_factor_verify")}
+              ${t("two_factor_verify")}
             </button>
             <div class="two-factor-footer">
               <a class="two-factor-link" href="/login">
-                ${word("to_login")}
+                ${t("to_login")}
               </a>
             </div>
             <p id="two-factor-msg" class="two-factor-msg"></p>
@@ -63,9 +63,8 @@ const clearTwoFactorState = () => {
 
 const setupTwoFactorForm = () => {
   const form = document.querySelector<HTMLFormElement>("#two-factor-form");
-  const submitButton = form?.querySelector<HTMLButtonElement>(
-    ".two-factor-submit",
-  );
+  const submitButton =
+    form?.querySelector<HTMLButtonElement>(".two-factor-submit");
   const toLoginLink = document.querySelector<HTMLAnchorElement>(
     ".two-factor-link[href='/login']",
   );
@@ -110,7 +109,8 @@ const setupTwoFactorForm = () => {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setTwoFactorMsg(
-          body?.message ?? `${word("two_factor_verify_failed")} (status ${res.status})`,
+          body?.message ??
+            `${word("two_factor_verify_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -129,11 +129,9 @@ const setupTwoFactorForm = () => {
   });
 };
 
-export const TwoFactorRoute: Record<string, Route> = {
-  "/two-factor": {
-    linkLabel: "",
-    content: () => new TwoFactorComponent().render(),
-    onMount: setupTwoFactorForm,
-    head: { title: "Two-Factor" },
-  },
+export const TwoFactorRoute: Route = {
+  linkLabel: "",
+  content: () => new TwoFactorComponent().render(),
+  onMount: setupTwoFactorForm,
+  head: { title: "Two-Factor" },
 };
