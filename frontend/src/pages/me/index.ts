@@ -11,8 +11,9 @@ import { decodeJwtPayload } from "@/utils/jwt";
 class MeComponent {
   render = () => {
     return `
-      <div class="me-page">
-        <h2 class="me-title">テスト</h2>
+      <div class="me-layout">
+        <div class="me-page">
+          <h2 class="me-title">${word("user_menu")}</h2>
         <div class="me-section">
           <h3 class="me-section-title">${word("two_factor")}</h3>
           <p class="me-section-desc">${word("two_factor_desc")}</p>
@@ -21,6 +22,11 @@ class MeComponent {
           <p class="me-2fa-msg" id="me-2fa-msg"></p>
         </div>
         <button class="me-logout" id="me-logout">ログアウト</button>
+        </div>
+        <div class="me-side">
+          <h3 class="me-side-title">${word("match_results")}</h3>
+          <div class="me-matches" id="me-matches"></div>
+        </div>
       </div>
     `;
   };
@@ -167,12 +173,78 @@ const setupLogout = () => {
   });
 };
 
+const renderMatches = (
+  items: Array<{
+    id: number;
+    ownerName: string;
+    guestName?: string;
+    ownerScore: number;
+    guestScore: number;
+    createdAt: string;
+  }>,
+  currentName: string | null,
+) => {
+  const container = document.querySelector<HTMLDivElement>("#me-matches");
+  if (!container) return;
+  if (!items.length) {
+    container.textContent = word("no_matches");
+    return;
+  }
+  container.innerHTML = "";
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "me-match";
+    const isOwner = currentName ? item.ownerName === currentName : true;
+    const opponent = isOwner
+      ? item.guestName ?? word("ai_opponent")
+      : item.ownerName;
+    const myScore = isOwner ? item.ownerScore : item.guestScore;
+    const oppScore = isOwner ? item.guestScore : item.ownerScore;
+    const result =
+      myScore > oppScore
+        ? word("result_win")
+        : myScore < oppScore
+          ? word("result_lose")
+          : word("result_draw");
+    const score = `${myScore} - ${oppScore}`;
+    const date = new Date(item.createdAt);
+    const formattedDate = Number.isNaN(date.getTime())
+      ? item.createdAt
+      : date.toLocaleString();
+    row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
+    container.appendChild(row);
+  });
+};
+
+const getStoredAccessToken = () =>
+  sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
+  localStorage.getItem(ACCESS_TOKEN_KEY);
+
+const setupRecentMatches = () => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  const currentName = decodeJwtPayload(accessToken)?.name ?? null;
+  fetch("/api/common/match_results?limit=10", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+    .then(async (res) => {
+      if (!res.ok) return;
+      const body = await res.json().catch(() => []);
+      if (Array.isArray(body)) renderMatches(body, currentName);
+    })
+    .catch(() => null);
+};
+
 export const MeRoute: Record<string, Route> = {
   "/me": {
     linkLabel: "",
     content: () => new MeComponent().render(),
     onMount: () => {
       setupTwoFactor();
+      setupRecentMatches();
       setupLogout();
     },
     head: { title: "Me" },
