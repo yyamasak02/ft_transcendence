@@ -45,8 +45,8 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Guest cannot be the owner." };
       }
 
-      const owner = await fastify.db.get<{ name: string }>(
-        "SELECT name FROM users WHERE puid = ?",
+      const owner = await fastify.db.get<{ id: number }>(
+        "SELECT id FROM users WHERE puid = ?",
         ownerPuid,
       );
       if (!owner) {
@@ -54,25 +54,21 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Owner not found." };
       }
 
-      let guestName: string | null = null;
       if (guestPuid) {
-        const guest = await fastify.db.get<{ name: string }>(
-          "SELECT name FROM users WHERE puid = ?",
+        const guest = await fastify.db.get<{ id: number }>(
+          "SELECT id FROM users WHERE puid = ?",
           guestPuid,
         );
         if (!guest) {
           reply.code(404);
           return { message: "Guest not found." };
         }
-        guestName = guest.name;
       }
 
       const result = await fastify.db.run(
-        "INSERT INTO match_sessions (owner_puid, guest_puid, owner_name, guest_name) VALUES (?, ?, ?, ?)",
+        "INSERT INTO match_sessions (owner_puid, guest_puid) VALUES (?, ?)",
         ownerPuid,
         guestPuid,
-        owner.name,
-        guestName,
       );
 
       const row = await fastify.db.get<{ id: number; created_at: string }>(
@@ -114,10 +110,8 @@ export default async function (fastify: FastifyInstance) {
       const session = await fastify.db.get<{
         owner_puid: string;
         guest_puid: string | null;
-        owner_name: string | null;
-        guest_name: string | null;
       }>(
-        "SELECT owner_puid, guest_puid, owner_name, guest_name FROM match_sessions WHERE id = ?",
+        "SELECT owner_puid, guest_puid FROM match_sessions WHERE id = ?",
         matchId,
       );
 
@@ -144,12 +138,10 @@ export default async function (fastify: FastifyInstance) {
       }
 
       const result = await fastify.db.run(
-        "INSERT INTO match_results (match_id, owner_puid, guest_puid, owner_name, guest_name, owner_score, guest_score) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO match_results (match_id, owner_puid, guest_puid, owner_score, guest_score) VALUES (?, ?, ?, ?, ?)",
         matchId,
         session.owner_puid,
         session.guest_puid,
-        session.owner_name ?? "",
-        session.guest_name ?? null,
         ownerScore,
         guestScore,
       );
@@ -192,10 +184,18 @@ export default async function (fastify: FastifyInstance) {
         guest_score: number;
         created_at: string;
       }>>(
-        `SELECT id, owner_name, guest_name, owner_score, guest_score, created_at
+        `SELECT
+           match_results.id,
+           COALESCE(owner.name, match_results.owner_name) AS owner_name,
+           COALESCE(guest.name, match_results.guest_name) AS guest_name,
+           match_results.owner_score,
+           match_results.guest_score,
+           match_results.created_at
          FROM match_results
-         WHERE owner_puid = ? OR guest_puid = ?
-         ORDER BY created_at DESC
+         LEFT JOIN users AS owner ON owner.puid = match_results.owner_puid
+         LEFT JOIN users AS guest ON guest.puid = match_results.guest_puid
+         WHERE match_results.owner_puid = ? OR match_results.guest_puid = ?
+         ORDER BY match_results.created_at DESC
          LIMIT ?`,
         request.user.puid,
         request.user.puid,

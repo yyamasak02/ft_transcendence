@@ -81,6 +81,23 @@
   color: #d2d2d2;
 }
 
+.me-link {
+  display: inline-block;
+  padding: 8px 14px;
+  background: #2b2b2b;
+  border: 1px solid #555;
+  color: #eee;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  transition: all 0.2s ease;
+}
+
+.me-link:hover {
+  background: #3a3a3a;
+  border-color: #777;
+}
+
 .me-logout {
   margin-top: 18px;
   padding: 10px 16px;

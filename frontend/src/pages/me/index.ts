@@ -21,6 +21,13 @@ class MeComponent {
           <div class="me-qr" id="me-qr"></div>
           <p class="me-2fa-msg" id="me-2fa-msg"></p>
         </div>
+        <div class="me-section">
+          <h3 class="me-section-title">${word("username_change")}</h3>
+          <p class="me-section-desc">${word("username_change_desc")}</p>
+          <a class="me-link" href="/username-change" data-nav>
+            ${word("username_change_action")}
+          </a>
+        </div>
         <button class="me-logout" id="me-logout">ログアウト</button>
         </div>
         <div class="me-side">
@@ -173,6 +180,17 @@ const setupLogout = () => {
   });
 };
 
+const setupUserMenuLinks = () => {
+  const link = document.querySelector<HTMLAnchorElement>(
+    ".me-link[href='/username-change']",
+  );
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    navigate("/username-change");
+  });
+};
+
 const renderMatches = (
   items: Array<{
     id: number;
@@ -245,6 +263,7 @@ export const MeRoute: Record<string, Route> = {
     onMount: () => {
       setupTwoFactor();
       setupRecentMatches();
+      setupUserMenuLinks();
       setupLogout();
     },
     head: { title: "Me" },

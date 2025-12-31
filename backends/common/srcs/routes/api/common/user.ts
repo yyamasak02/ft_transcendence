@@ -34,11 +34,11 @@ import {
   registerBodySchema,
   registerResponseSchema,
   updatePasswordBodySchema,
+  updateUserNameBodySchema,
+  updateUserNameResponseSchema,
   userActionResponseSchema,
   userBanBodySchema,
   userBlockBodySchema,
-  userInformationQuerySchema,
-  userInformationResponseSchema,
   puidLookupQuerySchema,
   puidLookupResponseSchema,
   googleLoginBodySchema,
@@ -54,9 +54,9 @@ import type {
   RefreshTokenBody,
   RegisterBody,
   UpdatePasswordBody,
+  UpdateUserNameBody,
   UserBanBody,
   UserBlockBody,
-  UserIdentifier,
   PuidLookupQuery,
   GoogleLoginBody,
   GoogleRegisterBody,
@@ -400,37 +400,6 @@ export default async function (fastify: FastifyInstance) {
     },
   );
 
-  f.get<{ Querystring: UserIdentifier }>(
-    "/user/information",
-    {
-      preHandler: fastify.authenticate,
-      schema: {
-        tags: ["User"],
-        querystring: userInformationQuerySchema,
-        response: {
-          200: userInformationResponseSchema,
-          401: errorResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    },
-    async (request, reply) => {
-      const { puid } = request.query;
-      const user = await findUserByPuid(fastify, puid);
-      if (!user) {
-        reply.code(404);
-        return { message: "User not found." };
-      }
-
-      return {
-        id: user.id,
-        name: user.name,
-        puid: user.puid,
-        status: "active",
-      };
-    },
-  );
-
   f.post<{ Body: UserBanBody }>(
     "/user/ban",
     {
@@ -597,6 +566,66 @@ export default async function (fastify: FastifyInstance) {
       return {
         message: `Password updated for user ${puid}.`,
       };
+    },
+  );
+
+  f.patch<{ Body: UpdateUserNameBody }>(
+    "/user/name",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        body: updateUserNameBodySchema,
+        response: {
+          200: updateUserNameResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+          409: errorResponseSchema,
+          500: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const nextName = request.body.name.trim();
+      if (!nextName) {
+        reply.code(400);
+        return { message: "Name is required." };
+      }
+
+      const user = await fastify.db.get<{ id: number; name: string; puid: string }>(
+        "SELECT id, name, puid FROM users WHERE id = ?",
+        request.user.userId,
+      );
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+
+      if (user.name !== nextName) {
+        try {
+          await fastify.db.run(
+            "UPDATE users SET name = ? WHERE id = ?",
+            nextName,
+            user.id,
+          );
+        } catch (error) {
+          if (isSqliteConstraintError(error)) {
+            reply.code(409);
+            return { message: "User already exists." };
+          }
+          throw error;
+        }
+
+      }
+
+      const tokens = await issueTokens(fastify, {
+        id: user.id,
+        puid: user.puid,
+        name: nextName,
+      });
+
+      return { accessToken: tokens.accessToken, message: "Name updated." };
     },
   );
 
