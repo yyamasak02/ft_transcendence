@@ -3,7 +3,6 @@ import type { Routes } from "@/types/routes";
 import { HomeRoute } from "@/pages/home";
 import { PingPongRoute } from "@/pages/pingpong";
 import { PingPong3DGameRoute } from "@/pages/pingpong_3D";
-import { PingPong3DGameRemoteRoute } from "@/pages/pingpong_3D_remote";
 import { PingPong3DSettingRoute } from "@/pages/pingpong_3D_config";
 import { LoginRoute } from "@/pages/login";
 import { RegisterRoute } from "@/pages/register";
@@ -37,12 +36,6 @@ export const routes: Routes = {
     show_navbar: true,
     layout: "center",
     css_path: routeStyles.pingpong3D,
-  },
-  "/pingpong_3D_remote": {
-    component: PingPong3DGameRemoteRoute,
-    show_navbar: true,
-    layout: "center",
-    css_path: routeStyles.pingpong3DRemote,
   },
   "/login": {
     component: LoginRoute,

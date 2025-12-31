@@ -1,7 +1,7 @@
 import type { Route } from "@/types/routes";
 
-import { word } from "@/i18n";
 import type { Component } from "@/types/component";
+import { word } from "@/i18n";
 
 class WebSocketComponent implements Component {
   private animationId: number | null = null;

@@ -3,32 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
 body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
+  background-color: #000;
 }
-
-body {
-  display: block;
-  margin: 0;
-  background: #000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
 canvas {
   background: #111;
   border: 2px solid #00ffcc;
   border-radius: 8px;
-}
-
-#app {
-  width: 100%;
-  max-width: none;
 }
 
 .auth-screen {
@@ -45,17 +26,5 @@ canvas {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 60px;
   color: white;
-}
-
-#nav {
-  display: flex;
-  align-items: center;
-  gap: 2.5rem;
-  width: 100%;
-  padding: 1rem;
-  background-color: #000;
-  color: #fff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }

@@ -25,6 +25,7 @@ export type RouteMeta = {
  * }
  */
 export type Route = {
+  // Navbar 表示用。word("...") を返す関数推奨だが、固定文字列も可
   linkLabel?: string | (() => string);
   content: string | (() => string);
   onMount?: () => void | Promise<void>;

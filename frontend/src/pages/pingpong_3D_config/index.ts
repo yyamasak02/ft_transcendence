@@ -5,7 +5,7 @@ import { navigate } from "@/router";
 
 import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
-import { word, t } from "@/i18n";
+import { t, word } from "@/i18n";
 import type { PlayerType } from "../pingpong_3D/core/gameSettings";
 
 let preview: PreviewScene | null = null;

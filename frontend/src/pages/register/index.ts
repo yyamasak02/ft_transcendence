@@ -1,7 +1,7 @@
 // src/pages/register/index.ts
 import type { Route } from "@/types/routes";
 
-import { word, t } from "@/i18n";
+import { t, word } from "@/i18n";
 import type { Component } from "@/types/component";
 
 // TODO 新規登録機能を実装する

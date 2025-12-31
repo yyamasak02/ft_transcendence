@@ -1,6 +1,6 @@
 import type { Route } from "@/types/routes";
 import type { Component } from "@/types/component";
-import { t } from "@/i18n";
+import { t, word } from "@/i18n";
 
 // TODO ログイン機能を実装する
 class LoginComponent implements Component {
@@ -63,6 +63,6 @@ class LoginComponent implements Component {
 }
 
 export const LoginRoute: Route = {
-  linkLabel: () => "login",
+  linkLabel: () => word("login"),
   content: () => new LoginComponent().render(),
 };

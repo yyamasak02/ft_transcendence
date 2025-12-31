@@ -1,18 +1,20 @@
 import { navigate } from "@/router";
-import type { NavItem } from "./nav";
 import { routes } from "@/router/routers";
+import { langManager } from "@/i18n";
 
 import "./navbar.css";
 
 export class NavBar {
   private root: HTMLElement;
-  private items: NavItem[];
 
-  constructor(items: NavItem[]) {
-    this.items = items;
-
+  constructor() {
     this.root = document.createElement("nav");
-    this.root.className = "navbar";
+    this.root.classList.add("navbar", "flex");
+
+    // 言語変更でラベルを再評価
+    langManager.addEventListener("change", () => {
+      this.render();
+    });
 
     this.render();
   }
@@ -20,7 +22,15 @@ export class NavBar {
   private render() {
     this.root.innerHTML = "";
 
-    for (const item of this.items) {
+    const items = Object.entries(routes)
+      .filter(([_, route]) => route.show_navbar == true)
+      .map(([path, route]) => {
+        const ll = route.component.linkLabel;
+        const label = typeof ll === "function" ? ll() : (ll ?? path);
+        return { path, label };
+      });
+
+    for (const item of items) {
       const a = document.createElement("a");
       a.href = item.path;
       a.textContent = item.label;
@@ -44,17 +54,4 @@ export class NavBar {
   }
 }
 
-const navItems = Object.entries(routes)
-  .filter(([_, route]) => route.show_navbar == true)
-  .map(([path, route]) => {
-    const label =
-      typeof route.component.linkLabel === "function"
-        ? route.component.linkLabel()
-        : (route.component.linkLabel ?? path);
-
-    return {
-      path,
-      label,
-    };
-  });
-export const navBar = new NavBar(navItems);
+export const navBar = new NavBar();
