@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
+import { word, t } from "@/i18n";
 import { navigate } from "@/router";
 import { GOOGLE_ID_TOKEN_KEY, GOOGLE_LONG_TERM_KEY } from "@/constants/auth";
 import {
@@ -16,12 +16,12 @@ class GoogleSignupComponent {
     return `
       <div class="google-signup-screen">
         <div class="google-signup-box">
-          <h2 class="google-signup-title">${word("google_signup")}</h2>
-          <p class="google-signup-desc">${word("google_signup_desc")}</p>
+          <h2 class="google-signup-title">${t("google_signup")}</h2>
+          <p class="google-signup-desc">${t("google_signup_desc")}</p>
 
           <form class="google-signup-form" id="google-signup-form">
             <div class="google-signup-field">
-              <label for="username">${word("username")}</label>
+              <label for="username">${t("username")}</label>
               <input
                 type="text"
                 id="username"
@@ -34,16 +34,16 @@ class GoogleSignupComponent {
 
             <div class="google-signup-remember">
               <input type="checkbox" id="remember" name="remember" />
-              <label for="remember">${word("keep_login")}</label>
+              <label for="remember">${t("keep_login")}</label>
             </div>
 
             <button type="submit" class="google-signup-submit">
-              ${word("register")}
+              ${t("register")}
             </button>
 
             <div class="google-signup-footer">
               <a class="google-signup-link" href="/login">
-                ${word("to_login")}
+                ${t("to_login")}
               </a>
             </div>
 

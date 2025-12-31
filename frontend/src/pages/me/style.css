@@ -2,6 +2,14 @@
 .me-page {
   padding: 24px;
   color: #fff;
+  grid-column: 1;
+}
+
+.me-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 520px) 1fr;
+  gap: 24px;
+  align-items: flex-start;
 }
 
 .me-title {
@@ -73,6 +81,24 @@
   color: #d2d2d2;
 }
 
+.me-link {
+  display: inline-block;
+  padding: 8px 14px;
+  background: #2f2f2f;
+  border: 1px solid #555;
+  color: #eee;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.me-link:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
 .me-logout {
   margin-top: 18px;
   padding: 10px 16px;
@@ -87,4 +113,36 @@
 .me-logout:hover {
   background: #444;
   border-color: #888;
+}
+
+.me-side {
+  min-width: 280px;
+  max-width: 520px;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid #2b2b2b;
+  background: #0b0b0b;
+  grid-column: 2;
+  color: #fff;
+}
+
+.me-side-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.me-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #d0d0d0;
+  word-break: break-word;
+}
+
+.me-match {
+  padding: 8px 10px;
+  border: 1px solid #222;
+  background: #121212;
 }

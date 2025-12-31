@@ -11,6 +11,7 @@ import { MeRoute } from "@/pages/me";
 import { GoogleSignupRoute } from "@/pages/google_signup";
 import { TwoFactorRoute } from "@/pages/two_factor";
 import { TestWebRTCRoute } from "@/pages/test_webrtc";
+import { UsernameChangeRoute } from "@/pages/username_change";
 import { NotFoundRoute } from "@/pages/404";
 
 import { routeStyles } from "./consts/routeStyles";
@@ -75,6 +76,12 @@ export const routes: Routes = {
     show_navbar: false,
     layout: "auth",
     css_path: routeStyles.twoFactor,
+  },
+  "/username-change": {
+    component: UsernameChangeRoute,
+    show_navbar: false,
+    layout: "auth",
+    css_path: routeStyles.usernameChange,
   },
   "/test_rtc": {
     component: TestWebRTCRoute,

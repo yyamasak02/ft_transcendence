@@ -10,6 +10,7 @@ import notFound from "@/pages/404/style.css?url";
 import me from "@/pages/me/style.css?url";
 import googleSignup from "@/pages/google_signup/style.css?url";
 import twoFactor from "@/pages/two_factor/style.css?url";
+import usernameChange from "@/pages/username_change/style.css?url";
 
 export const routeStyles = {
   home,
@@ -24,4 +25,5 @@ export const routeStyles = {
   googleSignup,
   twoFactor,
   notFound,
+  usernameChange,
 } as const;

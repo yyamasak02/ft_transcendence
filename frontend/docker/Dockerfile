@@ -4,7 +4,8 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    sqlite-dev
+    sqlite-dev \
+    py3-setuptools
 
 WORKDIR /app
 

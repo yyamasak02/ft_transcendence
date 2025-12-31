@@ -68,7 +68,7 @@ class RegisterComponent implements Component {
 									</div>
 
 									<div class="register-divider">
-										<span>${word("other_signup_methods")}</span>
+										<span>${t("other_signup_methods")}</span>
 									</div>
 
 									<div class="register-alt">

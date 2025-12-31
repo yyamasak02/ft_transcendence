@@ -74,6 +74,8 @@ export class NavBar {
   }
 
   mount(container: ParentNode) {
+    this.unmount();
+    this.render();
     container.appendChild(this.root);
   }
 
