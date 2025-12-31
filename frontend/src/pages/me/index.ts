@@ -7,6 +7,7 @@ import {
 } from "@/constants/auth";
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
+import { getStoredAccessToken } from "@/utils/token-storage";
 
 class MeComponent {
   render = () => {
@@ -234,9 +235,11 @@ const renderMatches = (
   });
 };
 
-const getStoredAccessToken = () =>
-  sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
-  localStorage.getItem(ACCESS_TOKEN_KEY);
+const setMatchesMessage = (message: string) => {
+  const container = document.querySelector<HTMLDivElement>("#me-matches");
+  if (!container) return;
+  container.textContent = message;
+};
 
 const setupRecentMatches = () => {
   const accessToken = getStoredAccessToken();
@@ -249,11 +252,20 @@ const setupRecentMatches = () => {
     },
   })
     .then(async (res) => {
-      if (!res.ok) return;
+      if (!res.ok) {
+        setMatchesMessage(word("match_results_fetch_failed"));
+        return;
+      }
       const body = await res.json().catch(() => []);
-      if (Array.isArray(body)) renderMatches(body, currentName);
+      if (Array.isArray(body)) {
+        renderMatches(body, currentName);
+      } else {
+        setMatchesMessage(word("match_results_fetch_failed"));
+      }
     })
-    .catch(() => null);
+    .catch(() => {
+      setMatchesMessage(word("match_results_fetch_failed"));
+    });
 };
 
 export const MeRoute: Record<string, Route> = {
@@ -261,6 +273,10 @@ export const MeRoute: Record<string, Route> = {
     linkLabel: "",
     content: () => new MeComponent().render(),
     onMount: () => {
+      if (!getStoredAccessToken()) {
+        navigate("/login");
+        return;
+      }
       setupTwoFactor();
       setupRecentMatches();
       setupUserMenuLinks();

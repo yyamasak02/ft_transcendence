@@ -29,7 +29,7 @@ export const matchResultResponseSchema = Type.Object({
 export type MatchResultResponse = Static<typeof matchResultResponseSchema>;
 
 export const matchRecentQuerySchema = Type.Object({
-  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })),
+  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 10 })),
 });
 
 export type MatchRecentQuery = Static<typeof matchRecentQuerySchema>;

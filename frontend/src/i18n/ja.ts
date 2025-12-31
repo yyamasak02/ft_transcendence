@@ -93,6 +93,7 @@ export const ja = {
 	result_lose: "負け",
 	result_draw: "引き分け",
 	match_results: "試合結果",
+	match_results_fetch_failed: "試合結果の取得に失敗しました。",
 	user_menu: "ユーザー",
 	two_factor: "2段階認証",
 	two_factor_desc: "アカウント保護のため2段階認証を有効化します。",

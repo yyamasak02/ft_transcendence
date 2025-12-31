@@ -93,6 +93,7 @@ export const en = {
 	result_lose: "Lose",
 	result_draw: "Draw",
 	match_results: "Match Results",
+	match_results_fetch_failed: "Failed to load match results.",
 	user_menu: "User",
 	two_factor: "Two-Factor Authentication",
 	two_factor_desc: "Enable 2FA to secure your account.",

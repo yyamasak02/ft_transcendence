@@ -93,6 +93,7 @@ export const edo = {
 	result_lose: "負け",
 	result_draw: "引き分け",
 	match_results: "勝負の結果",
+	match_results_fetch_failed: "勝負の記録を取れなんだ。",
 	user_menu: "名乗り",
 	two_factor: "二段の見届け",
 	two_factor_desc: "名を守るため、二段の見届けを使うぞ。",

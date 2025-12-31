@@ -120,12 +120,9 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Match session not found." };
       }
 
-      if (
-        request.user.puid !== session.owner_puid &&
-        request.user.puid !== session.guest_puid
-      ) {
+      if (request.user.puid !== session.owner_puid) {
         reply.code(403);
-        return { message: "Not a participant." };
+        return { message: "Only the owner can record match results." };
       }
 
       const existing = await fastify.db.get(
@@ -175,7 +172,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const limit = request.query.limit ?? 10;
+      const limit = request.query.limit;
       const rows = await fastify.db.all<Array<{
         id: number;
         owner_name: string;
@@ -186,8 +183,8 @@ export default async function (fastify: FastifyInstance) {
       }>>(
         `SELECT
            match_results.id,
-           COALESCE(owner.name, match_results.owner_name) AS owner_name,
-           COALESCE(guest.name, match_results.guest_name) AS guest_name,
+           owner.name AS owner_name,
+           guest.name AS guest_name,
            match_results.owner_score,
            match_results.guest_score,
            match_results.created_at
