@@ -54,6 +54,7 @@ build: ensure_envs
 
 init: delete
 	@$(MAKE) secrets
+	@$(MAKE) ensure_envs
 	BE_COM_CMD="sh -c 'npm run db:setup && npm run dev'" \
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
