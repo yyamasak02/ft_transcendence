@@ -29,6 +29,7 @@ import {
   errorResponseSchema,
   loginBodySchema,
   loginResponseSchema,
+  lastAccessResponseSchema,
   refreshTokenBodySchema,
   refreshTokenResponseSchema,
   registerBodySchema,
@@ -39,6 +40,12 @@ import {
   userActionResponseSchema,
   userBanBodySchema,
   userBlockBodySchema,
+  userProfileQuerySchema,
+  userProfileImageQuerySchema,
+  userProfileImageResponseSchema,
+  userProfileResponseSchema,
+  updateProfileImageBodySchema,
+  uploadProfileImageBodySchema,
   puidLookupQuerySchema,
   puidLookupResponseSchema,
   googleLoginBodySchema,
@@ -61,6 +68,10 @@ import type {
   GoogleLoginBody,
   GoogleRegisterBody,
   TwoFactorVerifyBody,
+  UserProfileQuery,
+  UserProfileImageQuery,
+  UpdateProfileImageBody,
+  UploadProfileImageBody,
 } from "../../../schemas/user.js";
 import type { TwoFactorTokenPayload } from "../../../types/jwt.js";
 
@@ -397,6 +408,246 @@ export default async function (fastify: FastifyInstance) {
       }
 
       return { puid: user.puid };
+    },
+  );
+
+  f.get<{ Querystring: UserProfileQuery }>(
+    "/user/profile",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        querystring: userProfileQuerySchema,
+        response: {
+          200: userProfileResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { name } = request.query;
+      const user = await fastify.db.get<{
+        id: number;
+        puid: string;
+        name: string;
+        last_accessed_at: string | null;
+        profile_image: string | null;
+      }>(
+        "SELECT id, puid, name, last_accessed_at, profile_image FROM users WHERE name = ?",
+        name,
+      );
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+
+      const online = (() => {
+        if (!user.last_accessed_at) return false;
+        const normalized = user.last_accessed_at.replace(" ", "T");
+        const parsed = new Date(`${normalized}Z`);
+        if (Number.isNaN(parsed.getTime())) return false;
+        return Date.now() - parsed.getTime() <= 5 * 60 * 1000;
+      })();
+
+      const rows = await fastify.db.all<Array<{
+        id: number;
+        owner_name: string;
+        guest_name: string | null;
+        owner_score: number;
+        guest_score: number;
+        created_at: string;
+      }>>(
+        `SELECT
+           match_results.id,
+           owner.name AS owner_name,
+           guest.name AS guest_name,
+           match_results.owner_score,
+           match_results.guest_score,
+           match_results.created_at
+         FROM match_results
+         LEFT JOIN users AS owner ON owner.puid = match_results.owner_puid
+         LEFT JOIN users AS guest ON guest.puid = match_results.guest_puid
+         WHERE match_results.owner_puid = ? OR match_results.guest_puid = ?
+         ORDER BY match_results.created_at DESC`,
+        user.puid,
+        user.puid,
+      );
+
+      const profileImage = user.profile_image ?? null;
+
+      return {
+        name: user.name,
+        online,
+        profileImage,
+        matches: rows.map((row) => ({
+          id: row.id,
+          ownerName: row.owner_name,
+          guestName: row.guest_name ?? undefined,
+          ownerScore: row.owner_score,
+          guestScore: row.guest_score,
+          createdAt: row.created_at,
+        })),
+      };
+    },
+  );
+
+  f.get<{ Querystring: UserProfileImageQuery }>(
+    "/user/profile_image",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        querystring: userProfileImageQuerySchema,
+        response: {
+          200: userProfileImageResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { name } = request.query;
+      const user = await fastify.db.get<{ profile_image: string | null }>(
+        "SELECT profile_image FROM users WHERE name = ?",
+        name,
+      );
+      if (!user) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+      const profileImage = user.profile_image ?? null;
+      return { profileImage };
+    },
+  );
+
+  f.patch<{ Body: UpdateProfileImageBody }>(
+    "/user/profile_image",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        body: updateProfileImageBodySchema,
+        response: {
+          200: userActionResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { profileImage } = request.body;
+      await fastify.db.run(
+        "UPDATE users SET profile_image = ?, profile_image_data = NULL WHERE id = ?",
+        profileImage,
+        request.user.userId,
+      );
+      return { message: "Profile image updated." };
+    },
+  );
+
+  f.post<{ Body: UploadProfileImageBody }>(
+    "/user/profile_image_upload",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        body: uploadProfileImageBodySchema,
+        response: {
+          200: userActionResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { imageBase64 } = request.body;
+      const prefix = "data:image/png;base64,";
+      const rawBase64 = imageBase64.startsWith(prefix)
+        ? imageBase64.slice(prefix.length)
+        : imageBase64;
+      let buffer: Buffer;
+      try {
+        buffer = Buffer.from(rawBase64, "base64");
+      } catch {
+        reply.code(400);
+        return { message: "Invalid base64 image." };
+      }
+      if (buffer.length === 0) {
+        reply.code(400);
+        return { message: "Image is required." };
+      }
+      const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+      if (buffer.length < pngSignature.length || !buffer.subarray(0, 8).equals(pngSignature)) {
+        reply.code(400);
+        return { message: "PNG format is required." };
+      }
+      const maxBytes = 1024 * 1024;
+      if (buffer.length > maxBytes) {
+        reply.code(400);
+        return { message: "Image is too large." };
+      }
+
+      await fastify.db.run(
+        "UPDATE users SET profile_image = NULL, profile_image_data = ? WHERE id = ?",
+        buffer,
+        request.user.userId,
+      );
+      return { message: "Profile image uploaded." };
+    },
+  );
+
+  f.get<{ Querystring: UserProfileImageQuery }>(
+    "/user/profile_image_data",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        querystring: userProfileImageQuerySchema,
+        response: {
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { name } = request.query;
+      const user = await fastify.db.get<{ profile_image_data: Buffer | null }>(
+        "SELECT profile_image_data FROM users WHERE name = ?",
+        name,
+      );
+      if (!user || !user.profile_image_data) {
+        reply.code(404);
+        return { message: "Profile image not found." };
+      }
+      reply.header("Content-Type", "image/png");
+      return reply.send(user.profile_image_data);
+    },
+  );
+
+  f.get(
+    "/user/last_access",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        response: {
+          200: lastAccessResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const row = await fastify.db.get<{ last_accessed_at: string | null }>(
+        "SELECT last_accessed_at FROM users WHERE id = ?",
+        request.user.userId,
+      );
+      if (!row) {
+        reply.code(404);
+        return { message: "User not found." };
+      }
+      return { lastAccessedAt: row.last_accessed_at };
     },
   );
 

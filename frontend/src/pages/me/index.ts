@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
+import { getLang, word } from "@/i18n";
 import { navigate } from "@/router/router";
 import {
   ACCESS_TOKEN_KEY,
@@ -8,13 +8,52 @@ import {
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { getStoredAccessToken } from "@/utils/token-storage";
+import {
+  DEFAULT_PROFILE_IMAGE,
+  PROFILE_IMAGES,
+  getProfileImageSrc,
+  isProfileImageKey,
+  type ProfileImageKey,
+} from "@/utils/profile-images";
 
 class MeComponent {
   render = () => {
+    const accessToken = getStoredAccessToken();
+    const currentName = accessToken
+      ? decodeJwtPayload(accessToken)?.name ?? word("user_menu")
+      : word("user_menu");
+    const pickerItems = PROFILE_IMAGES.map(
+      (item) =>
+        `<button type="button" data-profile="${item.key}">${item.label}</button>`,
+    ).join("");
     return `
       <div class="me-layout">
         <div class="me-page">
-          <h2 class="me-title">${word("user_menu")}</h2>
+          <form class="me-search" id="me-user-search">
+            <input
+              type="text"
+              class="me-search-input"
+              name="username"
+              placeholder="${word("user_search_placeholder")}"
+              required
+            />
+            <button class="me-search-btn" type="submit">
+              ${word("user_search_button")}
+            </button>
+          </form>
+          <div class="me-search-msg" id="me-user-search-msg"></div>
+          <h2 class="me-title">${currentName}</h2>
+          <div class="me-avatar-row">
+            <img class="me-avatar" id="me-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
+            <a class="me-avatar-link" href="#" id="me-avatar-change">${word("profile_image_change")}</a>
+          </div>
+          <div class="me-avatar-picker" id="me-avatar-picker">
+            ${pickerItems}
+            <label class="me-avatar-upload">
+              <input type="file" id="me-avatar-upload" accept="image/png" />
+              ${word("profile_image_upload")}
+            </label>
+          </div>
         <div class="me-section">
           <h3 class="me-section-title">${word("two_factor")}</h3>
           <p class="me-section-desc">${word("two_factor_desc")}</p>
@@ -33,6 +72,7 @@ class MeComponent {
         </div>
         <div class="me-side">
           <h3 class="me-side-title">${word("match_results")}</h3>
+          <div class="me-matches-summary" id="me-matches-summary"></div>
           <div class="me-matches" id="me-matches"></div>
         </div>
       </div>
@@ -192,6 +232,48 @@ const setupUserMenuLinks = () => {
   });
 };
 
+const setupUserSearch = () => {
+  const form = document.querySelector<HTMLFormElement>("#me-user-search");
+  const message = document.querySelector<HTMLDivElement>("#me-user-search-msg");
+  if (!form) return;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (message) message.textContent = "";
+    const formData = new FormData(form);
+    const name = String(formData.get("username") ?? "").trim();
+    if (!name) return;
+    const accessToken = getStoredAccessToken();
+    if (!accessToken) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/common/user/profile?name=${encodeURIComponent(name)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      if (res.status === 404) {
+        if (message) message.textContent = word("user_profile_not_found");
+        return;
+      }
+      if (!res.ok) {
+        if (message) message.textContent = word("user_search_failed");
+        return;
+      }
+      navigate(`/user?name=${encodeURIComponent(name)}`);
+    } catch (error) {
+      if (message) {
+        message.textContent = `${word("user_search_failed")}: ${error}`;
+      }
+    }
+  });
+};
+
 const renderMatches = (
   items: Array<{
     id: number;
@@ -204,11 +286,18 @@ const renderMatches = (
   currentName: string | null,
 ) => {
   const container = document.querySelector<HTMLDivElement>("#me-matches");
+  const summary = document.querySelector<HTMLDivElement>("#me-matches-summary");
   if (!container) return;
+  if (summary) {
+    summary.textContent = "";
+  }
   if (!items.length) {
     container.textContent = word("no_matches");
     return;
   }
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
   container.innerHTML = "";
   items.forEach((item) => {
     const row = document.createElement("div");
@@ -225,20 +314,204 @@ const renderMatches = (
         : myScore < oppScore
           ? word("result_lose")
           : word("result_draw");
+    if (myScore > oppScore) wins += 1;
+    else if (myScore < oppScore) losses += 1;
+    else draws += 1;
     const score = `${myScore} - ${oppScore}`;
-    const date = new Date(item.createdAt);
-    const formattedDate = Number.isNaN(date.getTime())
-      ? item.createdAt
-      : date.toLocaleString();
+    const formattedDate = formatMatchDate(item.createdAt);
     row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
     container.appendChild(row);
   });
+  if (summary) {
+    summary.textContent = `${word("match_summary")} ${word("result_win")}: ${wins} / ${word("result_lose")}: ${losses} / ${word("result_draw")}: ${draws}`;
+  }
+};
+
+const parseMatchDate = (value: string) => {
+  const direct = new Date(value);
+  if (!Number.isNaN(direct.getTime())) return direct;
+  const normalized = value.replace(" ", "T");
+  const withZone = normalized.endsWith("Z") ? normalized : `${normalized}Z`;
+  const fallback = new Date(withZone);
+  if (!Number.isNaN(fallback.getTime())) return fallback;
+  return null;
+};
+
+const formatMatchDate = (createdAt: string) => {
+  const date = parseMatchDate(createdAt);
+  if (!date) return createdAt;
+  const lang = getLang();
+  const timeZone = "Asia/Tokyo";
+  if (lang === "ja") {
+    return new Intl.DateTimeFormat("ja-JP", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone,
+    }).format(date);
+  }
+  if (lang === "edo") {
+    const edoDate = new Date(date.getTime());
+    edoDate.setFullYear(edoDate.getFullYear() - 300);
+    return new Intl.DateTimeFormat("ja-JP", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone,
+    }).format(edoDate);
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 };
 
 const setMatchesMessage = (message: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-matches");
   if (!container) return;
   container.textContent = message;
+};
+
+const loadCustomProfileImage = async (name: string) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  const img = document.querySelector<HTMLImageElement>("#me-avatar");
+  if (!img) return;
+  try {
+    const res = await fetch(
+      `/api/common/user/profile_image_data?name=${encodeURIComponent(name)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!res.ok) return;
+    const blob = await res.blob();
+    img.src = URL.createObjectURL(blob);
+  } catch {
+    return;
+  }
+};
+
+const setProfileImage = (profileImage: string | null, name: string | null) => {
+  const img = document.querySelector<HTMLImageElement>("#me-avatar");
+  if (!img) return;
+  if (profileImage && isProfileImageKey(profileImage)) {
+    img.src = getProfileImageSrc(profileImage);
+    return;
+  }
+  if (name) {
+    loadCustomProfileImage(name);
+  }
+};
+
+const loadProfileImage = async (name: string) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  try {
+    const res = await fetch(
+      `/api/common/user/profile_image?name=${encodeURIComponent(name)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!res.ok) return;
+    const body = await res.json().catch(() => ({}));
+    const profileImage = body?.profileImage ?? null;
+    const profileImageKey = typeof profileImage === "string" ? profileImage : null;
+    setProfileImage(profileImageKey, name);
+  } catch {
+    return;
+  }
+};
+
+const updateProfileImage = async (profileImage: ProfileImageKey, name: string | null) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  try {
+    const res = await fetch("/api/common/user/profile_image", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ profileImage }),
+    });
+    if (!res.ok) return;
+    setProfileImage(profileImage, name);
+  } catch {
+    return;
+  }
+};
+
+const uploadProfileImage = async (imageBase64: string, name: string | null) => {
+  const accessToken = getStoredAccessToken();
+  if (!accessToken) return;
+  try {
+    const res = await fetch("/api/common/user/profile_image_upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ imageBase64 }),
+    });
+    if (!res.ok) return;
+    const img = document.querySelector<HTMLImageElement>("#me-avatar");
+    if (img) {
+      img.src = imageBase64;
+    }
+    if (name) {
+      loadCustomProfileImage(name);
+    }
+  } catch {
+    return;
+  }
+};
+
+const setupProfileImagePicker = () => {
+  const toggle = document.querySelector<HTMLAnchorElement>("#me-avatar-change");
+  const picker = document.querySelector<HTMLDivElement>("#me-avatar-picker");
+  const uploadInput = document.querySelector<HTMLInputElement>(
+    "#me-avatar-upload",
+  );
+  if (!toggle || !picker) return;
+  toggle.addEventListener("click", (event) => {
+    event.preventDefault();
+    picker.classList.toggle("is-open");
+  });
+  picker.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    const value = target.getAttribute("data-profile");
+    if (value === null) return;
+    const profileImage = value as ProfileImageKey;
+    const isValid = PROFILE_IMAGES.some((item) => item.key === profileImage);
+    if (!isValid) return;
+    const accessToken = getStoredAccessToken();
+    const name = accessToken ? decodeJwtPayload(accessToken)?.name ?? null : null;
+    updateProfileImage(profileImage, name);
+    picker.classList.remove("is-open");
+  });
+  if (uploadInput) {
+    uploadInput.addEventListener("change", () => {
+      const file = uploadInput.files?.[0];
+      if (!file) return;
+      if (file.type !== "image/png") return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === "string" ? reader.result : null;
+        if (!result) return;
+        const accessToken = getStoredAccessToken();
+        const name = accessToken ? decodeJwtPayload(accessToken)?.name ?? null : null;
+        uploadProfileImage(result, name);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 };
 
 const setupRecentMatches = () => {
@@ -277,9 +550,16 @@ export const MeRoute: Record<string, Route> = {
         navigate("/login");
         return;
       }
+      const accessToken = getStoredAccessToken();
+      const currentName = accessToken
+        ? decodeJwtPayload(accessToken)?.name ?? null
+        : null;
+      if (currentName) loadProfileImage(currentName);
       setupTwoFactor();
+      setupProfileImagePicker();
       setupRecentMatches();
       setupUserMenuLinks();
+      setupUserSearch();
       setupLogout();
     },
     head: { title: "Me" },

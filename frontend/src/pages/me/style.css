@@ -17,6 +17,81 @@
   letter-spacing: 0.08em;
 }
 
+.me-avatar {
+  margin-top: 10px;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+.me-avatar-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.me-avatar-row .me-avatar {
+  margin-top: 0;
+}
+
+.me-avatar-link {
+  color: #bfbfbf;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.me-avatar-link:hover {
+  color: #e0e0e0;
+}
+
+.me-avatar-picker {
+  margin-top: 8px;
+  display: none;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.me-avatar-picker.is-open {
+  display: flex;
+}
+
+.me-avatar-picker button {
+  padding: 6px 10px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.me-avatar-picker button:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-avatar-upload {
+  padding: 6px 10px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.me-avatar-upload:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-avatar-upload input {
+  display: none;
+}
+
 .me-section {
   margin-top: 18px;
   padding: 16px;
@@ -130,6 +205,52 @@
   margin: 0 0 12px;
   font-size: 1rem;
   letter-spacing: 0.08em;
+}
+
+.me-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.me-search-input {
+  flex: 1;
+  padding: 8px 10px;
+  background: #101010;
+  border: 1px solid #333;
+  color: #eee;
+  border-radius: 4px;
+}
+
+.me-search-input::placeholder {
+  color: #666;
+}
+
+.me-search-btn {
+  padding: 8px 12px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.me-search-btn:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-search-msg {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #d2d2d2;
+}
+
+.me-matches-summary {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #c8c8c8;
+  letter-spacing: 0.04em;
 }
 
 .me-matches {

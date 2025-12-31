@@ -10,16 +10,17 @@ const AUTH_ROUTES = ["/login", "/register", "/google-signup", "/two-factor"];
 // center配置にするルート
 const CENTER_ROUTES = ["/", "/pingpong", "/pingpong_3D_config", "/websocket"];
 
-export function renderLayout(route: string) {	
-	const r = routes[route];
+export function renderLayout(route: string) {
+	const path = route.split("?")[0];
+	const r = routes[path];
 	if (!r) {
 		navRoot.innerHTML = "";
 		appRoot.innerHTML = new NotFoundPage().render();
 		return;
 	}
 	
-	const isAuthPage = AUTH_ROUTES.includes(route);
-	const isCenterPage = CENTER_ROUTES.includes(route);
+	const isAuthPage = AUTH_ROUTES.includes(path);
+	const isCenterPage = CENTER_ROUTES.includes(path);
 	
 	// navbar
 	navRoot.innerHTML = "";

@@ -10,6 +10,7 @@ import { GoogleSignupRoute } from "@/pages/google_signup";
 import { TwoFactorRoute } from "@/pages/two_factor";
 import { MeRoute } from "@/pages/me";
 import { UsernameChangeRoute } from "@/pages/username_change";
+import { UserProfileRoute } from "@/pages/user_profile";
 import { WebSocketRoute } from "@/pages/websocket";
 
 export const routes: Record<string, Route> = {
@@ -23,5 +24,6 @@ export const routes: Record<string, Route> = {
 	"/two-factor": TwoFactorRoute["/two-factor"],
 	"/me": MeRoute["/me"],
 	"/username-change": UsernameChangeRoute["/username-change"],
+	"/user": UserProfileRoute["/user"],
 	"/websocket": WebSocketRoute["/websocket"],
 };
