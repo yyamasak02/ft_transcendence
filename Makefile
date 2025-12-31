@@ -3,7 +3,7 @@
 # Variables
 COMPOSE_FILE = docker-compose.local.yml
 
-.PHONY: up down build clean logs status help secrets
+.PHONY: up down build clean logs status help secrets ensure_envs
 
 # Default target
 help:
@@ -26,17 +26,29 @@ urls:
 	@echo "TextChat Backend http://127.0.0.1:8082"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "Nginx https://localhost:8443"
+ensure_envs:
+	@# Ensure env files exist so docker compose can parse the file even on fresh clones
+	@for f in \
+		./frontend/.env.local \
+		./backends/common/.env.development \
+		./backends/game/.env.development \
+		./backends/text_chat/.env.development \
+		./backends/connect/.env.development \
+		./nginx/.env.local; do \
+		[ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
+	done
+
 # Start all containers
-up:
+up: ensure_envs
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 
 # Stop all containers
-down:
+down: ensure_envs
 	docker compose -f $(COMPOSE_FILE) down
 
 # Build and start all containers
-build:
+build: ensure_envs
 	docker compose -f $(COMPOSE_FILE) up -d --build
 	@$(MAKE) urls
 
@@ -50,17 +62,17 @@ secrets:
 	@bash scripts/secret.sh
 
 # Clean everything
-clean:
+clean: ensure_envs
 	docker compose -f $(COMPOSE_FILE) down -v --rmi all
 	docker system prune -f
 
 delete: clean
 	rm -f backends/common/db/app.db
 	rm -f backends/common/db/common.sqlite
-	rm -f backends/common/.env.development backends/game/.env.development backends/text_chat/.env.development frontend/.env.local
+	rm -f backends/common/.env.development backends/game/.env.development backends/text_chat/.env.development frontend/.env.local backends/connect/.env.development nginx/.env.local
 
 # Show logs
-logs:
+logs: ensure_envs
 	docker compose -f $(COMPOSE_FILE) logs -f
 
 # Show container status
