@@ -1,10 +1,7 @@
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
-import { navigate } from "@/router/router";
-import {
-  ACCESS_TOKEN_KEY,
-  LONG_TERM_TOKEN_KEY,
-} from "@/constants/auth";
+import { word, t } from "@/i18n";
+import { navigate } from "@/router";
+import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { getStoredAccessToken } from "@/utils/token-storage";
@@ -14,25 +11,25 @@ class MeComponent {
     return `
       <div class="me-layout">
         <div class="me-page">
-          <h2 class="me-title">${word("user_menu")}</h2>
+          <h2 class="me-title">${t("user_menu")}</h2>
         <div class="me-section">
-          <h3 class="me-section-title">${word("two_factor")}</h3>
-          <p class="me-section-desc">${word("two_factor_desc")}</p>
-          <button class="me-2fa" id="me-2fa">${word("two_factor_enable")}</button>
+          <h3 class="me-section-title">${t("two_factor")}</h3>
+          <p class="me-section-desc">${t("two_factor_desc")}</p>
+          <button class="me-2fa" id="me-2fa">${t("two_factor_enable")}</button>
           <div class="me-qr" id="me-qr"></div>
           <p class="me-2fa-msg" id="me-2fa-msg"></p>
         </div>
         <div class="me-section">
-          <h3 class="me-section-title">${word("username_change")}</h3>
-          <p class="me-section-desc">${word("username_change_desc")}</p>
+          <h3 class="me-section-title">${t("username_change")}</h3>
+          <p class="me-section-desc">${t("username_change_desc")}</p>
           <a class="me-link" href="/username-change" data-nav>
-            ${word("username_change_action")}
+            ${t("username_change_action")}
           </a>
         </div>
-        <button class="me-logout" id="me-logout">ログアウト</button>
+        <button class="me-logout" id="me-logout">${t("logout")}</button>
         </div>
         <div class="me-side">
-          <h3 class="me-side-title">${word("match_results")}</h3>
+          <h3 class="me-side-title">${t("match_results")}</h3>
           <div class="me-matches" id="me-matches"></div>
         </div>
       </div>
@@ -144,7 +141,8 @@ const setupTwoFactor = () => {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setTwoFactorMsg(
-          body?.message ?? `${word("two_factor_failed")} (status ${res.status})`,
+          body?.message ??
+            `${word("two_factor_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -215,7 +213,7 @@ const renderMatches = (
     row.className = "me-match";
     const isOwner = currentName ? item.ownerName === currentName : true;
     const opponent = isOwner
-      ? item.guestName ?? word("ai_opponent")
+      ? (item.guestName ?? word("ai_opponent"))
       : item.ownerName;
     const myScore = isOwner ? item.ownerScore : item.guestScore;
     const oppScore = isOwner ? item.guestScore : item.ownerScore;
@@ -268,20 +266,18 @@ const setupRecentMatches = () => {
     });
 };
 
-export const MeRoute: Record<string, Route> = {
-  "/me": {
-    linkLabel: "",
-    content: () => new MeComponent().render(),
-    onMount: () => {
-      if (!getStoredAccessToken()) {
-        navigate("/login");
-        return;
-      }
-      setupTwoFactor();
-      setupRecentMatches();
-      setupUserMenuLinks();
-      setupLogout();
-    },
-    head: { title: "Me" },
+export const MeRoute: Route = {
+  linkLabel: "",
+  content: () => new MeComponent().render(),
+  onMount: () => {
+    if (!getStoredAccessToken()) {
+      navigate("/login");
+      return;
+    }
+    setupTwoFactor();
+    setupRecentMatches();
+    setupUserMenuLinks();
+    setupLogout();
   },
+  head: { title: "Me" },
 };

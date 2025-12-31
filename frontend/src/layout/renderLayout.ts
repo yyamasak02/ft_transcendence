@@ -1,40 +1,33 @@
-// src/layout/renderLayout.ts layout専用の描画関数
-import { renderNavbar } from "@/components/navbar";
-import { routes } from "@/router/routes";
-import { NotFoundPage } from "@/pages/404";
+// src/layout/renderLayout.ts
+import { routes } from "@/router/routers";
+import { domRoots } from "./root";
+// Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
+// レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
+export function buildLayout(_routePath: string) {
+  // 事前クリアのみ。共通UIのマウントはRouter側の責務。
+  domRoots.nav.innerHTML = "";
+  domRoots.app.innerHTML = "";
+}
 
-const navRoot = document.querySelector<HTMLElement>("#nav")!;
-const appRoot = document.querySelector<HTMLElement>("#app")!;
+// ルート固有のコンテンツを描画
+export function renderRouteContent(routePath: string) {
+  const route = routes[routePath];
 
-const AUTH_ROUTES = ["/login", "/register", "/google-signup", "/two-factor"];
-// center配置にするルート
-const CENTER_ROUTES = ["/", "/pingpong", "/pingpong_3D_config", "/websocket"];
+  const content =
+    typeof route.component.content === "function"
+      ? route.component.content()
+      : route.component.content;
 
-export function renderLayout(route: string) {	
-	const r = routes[route];
-	if (!r) {
-		navRoot.innerHTML = "";
-		appRoot.innerHTML = new NotFoundPage().render();
-		return;
-	}
-	
-	const isAuthPage = AUTH_ROUTES.includes(route);
-	const isCenterPage = CENTER_ROUTES.includes(route);
-	
-	// navbar
-	navRoot.innerHTML = "";
-	if (!isAuthPage) navRoot.appendChild(renderNavbar());
-	
-	// content
-	const content = typeof r.content === "function" ? r.content() : r.content;
+  switch (route.layout) {
+    case "auth":
+      domRoots.app.innerHTML = `<div class="auth-screen">${content}</div>`;
+      break;
 
-	if (isAuthPage) {
-		appRoot.innerHTML = `<div class="auth-screen">${content}</div>`;
-	} else if (isCenterPage) {
-		appRoot.innerHTML = `<div class="center-screen">${content}</div>`;
-	} else {
-		appRoot.innerHTML = content;
-	}
+    case "center":
+      domRoots.app.innerHTML = `<div class="center-screen">${content}</div>`;
+      break;
 
-	r.onMount?.();
+    default:
+      domRoots.app.innerHTML = content;
+  }
 }

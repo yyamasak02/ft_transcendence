@@ -1,7 +1,7 @@
 // src/pages/home/index.ts
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
-import "./style.css";
+import type { Component } from "@/models/component";
 
 interface BannerSlide {
   id: number;
@@ -38,7 +38,7 @@ const SLIDES: BannerSlide[] = [
   },
 ];
 
-class HomeComponent {
+class HomeComponent implements Component {
   private currentSlideIndex: number = 0;
   private autoSlideInterval: number | null = null;
   private readonly INTERVAL_MS = 5000;
@@ -215,11 +215,9 @@ class HomeComponent {
 
 const homeComponent = new HomeComponent();
 
-export const HomeRoute: Record<string, Route> = {
-  "/": {
-    linkLabel: () => word("home"),
-    content: () => homeComponent.render(),
-    onMount: () => homeComponent.mount(),
-    onUnmount: () => homeComponent.unmount(),
-  },
+export const HomeRoute: Route = {
+  linkLabel: () => word("home"),
+  content: () => homeComponent.render(),
+  onMount: () => homeComponent.mount(),
+  onUnmount: () => homeComponent.unmount(),
 };

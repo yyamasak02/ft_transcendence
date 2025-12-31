@@ -1,10 +1,12 @@
 // src/router/index.ts
-import {
-  registerBrowserBackAndForth,
-  renderInitialPage,
-} from "./router";
+import { Router } from "./class/Router";
 
-export const initializeRoutes = () => {
-  registerBrowserBackAndForth();
-  renderInitialPage();
-};
+export const router = new Router();
+
+export function navigate(path: string) {
+  return router.navigate(path);
+}
+
+export function rerender() {
+  return router.rerender();
+}

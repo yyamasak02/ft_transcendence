@@ -1,11 +1,9 @@
 // src/pages/register/index.ts
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
-import { navigate } from "@/router/router";
-import {
-  GOOGLE_ID_TOKEN_KEY,
-  GOOGLE_LONG_TERM_KEY,
-} from "@/constants/auth";
+import type { Component } from "@/types/component";
+import { word, t } from "@/i18n";
+import { navigate } from "@/router";
+import { GOOGLE_ID_TOKEN_KEY, GOOGLE_LONG_TERM_KEY } from "@/constants/auth";
 import {
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
@@ -19,16 +17,16 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 const API_BASE = "/api/common";
 
 // TODO 新規登録機能を実装する
-class RegisterComponent {
+class RegisterComponent implements Component {
   render = () => {
     return `
             <div class="register-screen">
 							<div class="register-box">
-								<h2 class="register-title">${word("signup")}</h2>
+								<h2 class="register-title">${t("signup")}</h2>
 
 								<form class="register-form" id="register_form">
 									<div class="register-field">
-											<label for="username">${word("username")}</label>
+											<label for="username">${t("username")}</label>
 											<input
 											type="text"
 											id="username"
@@ -40,7 +38,7 @@ class RegisterComponent {
 									</div>
 
 									<div class="register-field">
-											<label for="password">${word("password")}</label>
+											<label for="password">${t("password")}</label>
 											<input
 											type="password"
 											id="password"
@@ -52,7 +50,7 @@ class RegisterComponent {
 									</div>
 
 									<div class="register-field">
-											<label for="password">${word("password_confirm")}</label>
+											<label for="password">${t("password_confirm")}</label>
 											<input
 											type="password"
 											id="password_confirm"
@@ -63,18 +61,14 @@ class RegisterComponent {
 											/>
 									</div>
 
-									<button type="submit" class="register-submit">
-											${word("register")}
-									</button>
+									<button type="submit" class="register-submit">${t("register")}</button>
 
 									<div class="register-footer">
-										<a class="register-link" href="/login">
-											${word("to_login")}
-										</a>
+										<a class="register-link" href="/login">${t("to_login")}</a>
 									</div>
 
 									<div class="register-divider">
-										<span>${word("other_signup_methods")}</span>
+										<span>${t("other_signup_methods")}</span>
 									</div>
 
 									<div class="register-alt">
@@ -151,18 +145,22 @@ const setupGoogleRegister = async () => {
       if (credential) handleGoogleCredential(credential);
     },
   });
-  google.accounts.id.renderButton(document.getElementById("google-btn-register"), {
-    theme: "outline",
-    size: "large",
-    type: "standard",
-    text: "continue_with",
-  });
+  google.accounts.id.renderButton(
+    document.getElementById("google-btn-register"),
+    {
+      theme: "outline",
+      size: "large",
+      type: "standard",
+      text: "continue_with",
+    },
+  );
   google.accounts.id.prompt();
 };
 
 const setupRegisterForm = () => {
   const form = document.querySelector<HTMLFormElement>("#register_form");
-  const submitButton = form?.querySelector<HTMLButtonElement>(".register-submit");
+  const submitButton =
+    form?.querySelector<HTMLButtonElement>(".register-submit");
   const toLoginLink = document.querySelector<HTMLAnchorElement>(
     ".register-link[href='/login']",
   );
@@ -233,13 +231,11 @@ const setupRegisterForm = () => {
   });
 };
 
-export const RegisterRoute: Record<string, Route> = {
-  "/register": {
-    linkLabel: () => word("signup"),
-    content: () => new RegisterComponent().render(),
-    onMount: () => {
-      setupRegisterForm();
-      setupGoogleRegister();
-    },
+export const RegisterRoute: Route = {
+  linkLabel: () => word("signup"),
+  content: () => new RegisterComponent().render(),
+  onMount: () => {
+    setupRegisterForm();
+    setupGoogleRegister();
   },
 };

@@ -1,7 +1,7 @@
 // pingpong_3D/game-view.ts ゲーム画面のHTML
 import type { Component } from "@/types/component";
-import "./style.css";
-import { word } from "@/i18n";
+
+import { t, word } from "@/i18n";
 
 export class PingPong3DGameView implements Component {
   render(): string {
@@ -85,19 +85,19 @@ export class PingPong3DGameView implements Component {
                     <div id="central-menu-container">
                         <button id="btn-3d-resume" class="central-btn">
                             <img src="../../public/button/resume.svg" style="width: 32px; height: 32px;">
-                            <span>${word("resume")}</span>
+                            <span>${t("resume")}</span>
                         </button>
                         <button id="btn-3d-reset" class="central-btn">
                             <img src="../../public/button/reset.svg" style="width: 32px; height: 32px;">
-                            <span>${word("reset")}</span>
+                            <span>${t("reset")}</span>
                         </button>
                         <button id="btn-3d-settings" class="central-btn">
                             <img src="../../public/button/gear.svg" style="width: 32px; height: 32px;">
-                            <span>${word("settings")}</span>
+                            <span>${t("settings")}</span>
                         </button>
                         <button id="btn-3d-home" class="central-btn">
                             <img src="../../public/button/home.svg" style="width: 32px; height: 32px;">
-                            <span>${word("home")}</span>
+                            <span>${t("home")}</span>
                         </button>
                     </div>
                 </div>

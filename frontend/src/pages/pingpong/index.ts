@@ -1,5 +1,5 @@
 import type { Component } from "@/models/component";
-import type { Routes } from "@/models/routes";
+import type { Route } from "@/types/routes";
 import { startPingPongGame } from "./game-main";
 import { word } from "@/i18n";
 
@@ -38,26 +38,24 @@ class PingPongComponent implements Component {
 
 const pingPongComponent = new PingPongComponent();
 
-export const PingPongRoute: Routes = {
-  "/pingpong": {
-    linkLabel: () => word("pingpong"),
-		content: () => pingPongComponent.render(),
-    onMount: () => {
-      console.log("Ping Pong page mounted");
-      document.body.classList.add("pingpong-page");
-      // スクロール防止
-      document.body.classList.add("overflow-hidden");
-      document.documentElement.classList.add("overflow-hidden");
-      startPingPongGame();
-    },
-    onUnmount: () => {
-      document.body.classList.remove("pingpong-page");
-      // スクロール復元
-      document.body.classList.remove("overflow-hidden");
-      document.documentElement.classList.remove("overflow-hidden");
-    },
-    head: {
-      title: "PingPong",
-    },
+export const PingPongRoute: Route = {
+  linkLabel: () => word("pingpong"),
+  content: () => pingPongComponent.render(),
+  onMount: () => {
+    console.log("Ping Pong page mounted");
+    document.body.classList.add("pingpong-page");
+    // スクロール防止
+    document.body.classList.add("overflow-hidden");
+    document.documentElement.classList.add("overflow-hidden");
+    startPingPongGame();
+  },
+  onUnmount: () => {
+    document.body.classList.remove("pingpong-page");
+    // スクロール復元
+    document.body.classList.remove("overflow-hidden");
+    document.documentElement.classList.remove("overflow-hidden");
+  },
+  head: {
+    title: "PingPong",
   },
 };

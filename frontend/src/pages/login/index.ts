@@ -1,6 +1,7 @@
 import type { Route } from "@/types/routes";
-import { word } from "@/i18n";
-import { navigate } from "@/router/router";
+import type { Component } from "@/types/component";
+import { t, word } from "@/i18n";
+import { navigate } from "@/router";
 import {
   GOOGLE_ID_TOKEN_KEY,
   GOOGLE_LONG_TERM_KEY,
@@ -18,22 +19,20 @@ import "./style.css";
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 const API_BASE = "/api/common";
 
-class LoginComponent {
+class LoginComponent implements Component {
   render = () => {
     return `
 						<div class="login-screen">
 							<div class="login-box">
 
-								<h2 class="login-title">
-									${word("login")}
-								</h2>
+								<h2 class="login-title">${t("login")}</h2>
 
 								<form class="login-form" id="login-form">
 
 									<!-- Username(Email) -->
 									<div class="login-field">
 										<label for="username">
-											${word("username")}
+											${t("username")}
 										</label>
 										<input
 											type="text"
@@ -47,9 +46,7 @@ class LoginComponent {
 
 									<!-- Password -->
 									<div class="login-field">
-										<label for="password">
-											${word("password")}
-										</label>
+										<label for="password">${t("password")}</label>
 										<input
 											type="password"
 											id="password"
@@ -67,19 +64,15 @@ class LoginComponent {
 											id="remember"
 											name="remember"
 										/>
-										<label for="remember">${word("keep_login")}</label>
+										<label for="remember">${t("keep_login")}</label>
 									</div>
 
 									<!-- Submit -->
-									<button type="submit" class="login-submit">
-										${word("enter")}
-									</button>
+									<button type="submit" class="login-submit">${t("enter")}</button>
 
 									<!-- Footer -->
 									<div class="login-footer">
-										<a class="login-link" href="/register" data-nav>
-											${word("to_signup")}
-										</a>
+										<a class="login-link" href="/register" data-nav>${t("to_signup")}</a>
 									</div>
 
 									<div class="login-footer">
@@ -114,7 +107,10 @@ const storeTwoFactorChallenge = (token: string, longTerm: boolean) => {
   sessionStorage.setItem(TWO_FACTOR_LONG_TERM_KEY, longTerm ? "1" : "0");
 };
 
-const handleGoogleCredential = async (credential: string, longTerm: boolean) => {
+const handleGoogleCredential = async (
+  credential: string,
+  longTerm: boolean,
+) => {
   setGoogleMsg(word("google_login_processing"));
   try {
     const res = await fetch(`${API_BASE}/user/google_login`, {
@@ -244,14 +240,12 @@ const setupLoginForm = () => {
   });
 };
 
-export const LoginRoute: Record<string, Route> = {
-  "/login": {
-    linkLabel: () => word("login"),
-    content: () => new LoginComponent().render(),
-    onMount: () => {
-      setupLoginForm();
-      setupGoogleLogin();
-    },
-    head: { title: "Login" },
+export const LoginRoute: Route = {
+  linkLabel: () => word("login"),
+  content: () => new LoginComponent().render(),
+  onMount: () => {
+    setupLoginForm();
+    setupGoogleLogin();
   },
+  head: { title: "Login" },
 };
