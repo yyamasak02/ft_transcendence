@@ -1,0 +1,156 @@
+/* src/pages/user_profile/style.css */
+.user-profile-page {
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+  color: #fff;
+  display: block;
+}
+
+.user-profile-card {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-profile-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 520px) 1fr;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.user-profile-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  grid-column: 1;
+}
+
+.user-profile-center {
+  grid-column: 2;
+}
+
+.user-profile-spacer {
+  grid-column: 3;
+}
+
+.user-profile-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.user-profile-friend-heart {
+  color: #e0c030;
+}
+
+.user-profile-avatar {
+  margin-top: 10px;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+.user-profile-avatar-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-profile-avatar-row .user-profile-avatar {
+  margin-top: 0;
+}
+
+.user-profile-status {
+  margin-top: 0;
+  font-size: 0.9rem;
+  color: #c0c0c0;
+  align-self: flex-start;
+}
+
+.user-profile-status.is-online {
+  color: #6bb6ff;
+}
+
+.user-profile-status.is-offline {
+  color: #9a9a9a;
+}
+
+.user-profile-friend-request {
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.user-profile-friend-request:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.user-profile-friend-request:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.user-profile-friend-msg {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #c8c8c8;
+}
+
+.user-profile-section {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+}
+
+.user-profile-section-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.user-profile-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #d0d0d0;
+  word-break: break-word;
+}
+
+.user-profile-match {
+  padding: 8px 10px;
+  border: 1px solid #222;
+  background: #121212;
+}
+
+.user-profile-back {
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: #333;
+  color: #eee;
+  border: 1px solid #666;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.user-profile-back:hover {
+  background: #444;
+  border-color: #888;
+}

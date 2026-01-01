@@ -37,7 +37,8 @@ export class Router {
       this._styleManager.unmount();
     }
 
-    const normalized = routes[route] ? route : "/not_found";
+    const path = route.split("?")[0];
+    const normalized = routes[path] ? path : "/not_found";
     const nextRoute = routes[normalized];
 
     if (nextRoute.css_path) {

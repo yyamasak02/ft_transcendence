@@ -17,6 +17,87 @@
   letter-spacing: 0.08em;
 }
 
+.me-avatar {
+  margin-top: 10px;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+.me-avatar-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.me-avatar-row .me-avatar {
+  margin-top: 0;
+}
+
+.me-avatar-link {
+  color: #bfbfbf;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.me-avatar-link:hover {
+  color: #e0e0e0;
+}
+
+.me-avatar-picker {
+  margin-top: 8px;
+  display: none;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.me-avatar-picker.is-open {
+  display: flex;
+}
+
+.me-avatar-picker button {
+  padding: 6px 10px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.me-avatar-picker button:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-avatar-upload {
+  padding: 6px 10px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.me-avatar-upload:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-avatar-upload input {
+  display: none;
+}
+
+.me-avatar-msg {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #c0c0c0;
+}
+
 .me-section {
   margin-top: 18px;
   padding: 16px;
@@ -126,10 +207,67 @@
   color: #fff;
 }
 
+.me-friends-panel {
+  min-width: 240px;
+  max-width: 360px;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid #2b2b2b;
+  background: #0b0b0b;
+  grid-column: 3;
+  color: #fff;
+}
+
 .me-side-title {
   margin: 0 0 12px;
   font-size: 1rem;
   letter-spacing: 0.08em;
+}
+
+.me-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.me-search-input {
+  flex: 1;
+  padding: 8px 10px;
+  background: #101010;
+  border: 1px solid #333;
+  color: #eee;
+  border-radius: 4px;
+}
+
+.me-search-input::placeholder {
+  color: #666;
+}
+
+.me-search-btn {
+  padding: 8px 12px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.me-search-btn:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-search-msg {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #d2d2d2;
+}
+
+.me-matches-summary {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #c8c8c8;
+  letter-spacing: 0.04em;
 }
 
 .me-matches {
@@ -145,4 +283,81 @@
   padding: 8px 10px;
   border: 1px solid #222;
   background: #121212;
+}
+
+
+.me-friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #d0d0d0;
+}
+
+.me-friend {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #222;
+  background: #121212;
+}
+
+.me-friend-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #2b2b2b;
+}
+
+.me-friend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.me-friend-link {
+  color: #f0f0f0;
+  text-decoration: none;
+}
+
+.me-friend-link:hover {
+  text-decoration: underline;
+}
+
+.me-friend-status {
+  color: #b6b6b6;
+  font-size: 0.75rem;
+}
+
+.me-friend-status.is-online {
+  color: #6bb6ff;
+}
+
+.me-friend-status.is-offline {
+  color: #9a9a9a;
+}
+
+.me-friend-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.me-friend-accept,
+.me-friend-decline {
+  padding: 4px 8px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.me-friend-accept:hover,
+.me-friend-decline:hover {
+  background: #3b3b3b;
+  border-color: #777;
 }
