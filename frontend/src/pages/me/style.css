@@ -92,6 +92,12 @@
   display: none;
 }
 
+.me-avatar-msg {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #c0c0c0;
+}
+
 .me-section {
   margin-top: 18px;
   padding: 16px;
@@ -324,6 +330,14 @@
 .me-friend-status {
   color: #b6b6b6;
   font-size: 0.75rem;
+}
+
+.me-friend-status.is-online {
+  color: #6bb6ff;
+}
+
+.me-friend-status.is-offline {
+  color: #9a9a9a;
 }
 
 .me-friend-actions {

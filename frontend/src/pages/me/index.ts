@@ -12,6 +12,9 @@ import {
   isProfileImageKey,
   type ProfileImageKey,
 } from "@/utils/profile-images";
+import { formatMatchDate } from "@/utils/date-format";
+import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
+import type { FriendItem } from "@/types/friends";
 
 class MeComponent {
   render = () => {
@@ -51,6 +54,7 @@ class MeComponent {
               ${t("profile_image_upload")}
             </label>
           </div>
+          <div class="me-avatar-msg" id="me-avatar-msg"></div>
         <div class="me-section">
           <h3 class="me-section-title">${t("two_factor")}</h3>
           <p class="me-section-desc">${t("two_factor_desc")}</p>
@@ -245,6 +249,13 @@ const setupUserSearch = () => {
     const name = String(formData.get("username") ?? "").trim();
     if (!name) return;
     const accessToken = getStoredAccessToken();
+    const currentName = accessToken
+      ? decodeJwtPayload(accessToken)?.name ?? ""
+      : "";
+    if (currentName && currentName.toLowerCase() === name.toLowerCase()) {
+      if (message) message.textContent = word("user_search_self");
+      return;
+    }
     if (!accessToken) {
       navigate("/login");
       return;
@@ -269,40 +280,18 @@ const setupUserSearch = () => {
       }
       navigate(`/user?name=${encodeURIComponent(name)}`);
     } catch (error) {
-      if (message) {
-        message.textContent = `${word("user_search_failed")}: ${error}`;
-      }
+      console.error("User search failed", error);
+      if (message) message.textContent = word("user_search_failed");
     }
   });
-};
-
-type FriendItem = {
-  id: number;
-  name: string;
-  profileImage: string | null;
-  online: boolean;
-  status: "accepted" | "pending_incoming" | "pending_outgoing";
 };
 
 const loadFriendCustomImage = async (name: string, img: HTMLImageElement) => {
   const accessToken = getStoredAccessToken();
   if (!accessToken) return;
-  try {
-    const res = await fetch(
-      `/api/common/user/profile_image_data?name=${encodeURIComponent(name)}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    if (!res.ok) return;
-    const blob = await res.blob();
-    img.src = URL.createObjectURL(blob);
-  } catch {
-    return;
-  }
+  const blob = await fetchProfileImageBlob(name, accessToken);
+  if (!blob) return;
+  img.src = URL.createObjectURL(blob);
 };
 
 const renderFriends = (items: FriendItem[]) => {
@@ -342,6 +331,8 @@ const renderFriends = (items: FriendItem[]) => {
       status.textContent = item.online
         ? word("user_profile_online")
         : word("user_profile_offline");
+      status.classList.toggle("is-online", item.online);
+      status.classList.toggle("is-offline", !item.online);
     } else if (item.status === "pending_incoming") {
       status.textContent = word("friend_status_pending_incoming");
     } else {
@@ -388,7 +379,18 @@ const loadFriends = async () => {
     if (!res.ok) return;
     const body = await res.json().catch(() => ({}));
     const items = Array.isArray(body?.friends) ? body.friends : [];
-    renderFriends(items as FriendItem[]);
+    const sorted = [...items].sort((a, b) => {
+      if (a.status === "accepted" && b.status === "accepted") {
+        if (a.online === b.online) return 0;
+        return a.online ? -1 : 1;
+      }
+      if (a.status === "accepted") return -1;
+      if (b.status === "accepted") return 1;
+      if (a.status === "pending_incoming" && b.status === "pending_outgoing") return -1;
+      if (a.status === "pending_outgoing" && b.status === "pending_incoming") return 1;
+      return 0;
+    });
+    renderFriends(sorted as FriendItem[]);
   } catch {
     return;
   }
@@ -474,7 +476,7 @@ const renderMatches = (
     else if (myScore < oppScore) losses += 1;
     else draws += 1;
     const score = `${myScore} - ${oppScore}`;
-    const formattedDate = formatMatchDate(item.createdAt);
+    const formattedDate = formatMatchDateByLang(item.createdAt);
     row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
     container.appendChild(row);
   });
@@ -483,42 +485,8 @@ const renderMatches = (
   }
 };
 
-const parseMatchDate = (value: string) => {
-  const direct = new Date(value);
-  if (!Number.isNaN(direct.getTime())) return direct;
-  const normalized = value.replace(" ", "T");
-  const withZone = normalized.endsWith("Z") ? normalized : `${normalized}Z`;
-  const fallback = new Date(withZone);
-  if (!Number.isNaN(fallback.getTime())) return fallback;
-  return null;
-};
-
-const formatMatchDate = (createdAt: string) => {
-  const date = parseMatchDate(createdAt);
-  if (!date) return createdAt;
-  const lang = langManager.lang;
-  const timeZone = "Asia/Tokyo";
-  if (lang === "ja") {
-    return new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone,
-    }).format(date);
-  }
-  if (lang === "edo") {
-    const edoDate = new Date(date.getTime());
-    edoDate.setFullYear(edoDate.getFullYear() - 300);
-    return new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone,
-    }).format(edoDate);
-  }
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-};
+const formatMatchDateByLang = (createdAt: string) =>
+  formatMatchDate(createdAt, langManager.lang);
 
 const setMatchesMessage = (message: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-matches");
@@ -531,22 +499,9 @@ const loadCustomProfileImage = async (name: string) => {
   if (!accessToken) return;
   const img = document.querySelector<HTMLImageElement>("#me-avatar");
   if (!img) return;
-  try {
-    const res = await fetch(
-      `/api/common/user/profile_image_data?name=${encodeURIComponent(name)}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    if (!res.ok) return;
-    const blob = await res.blob();
-    img.src = URL.createObjectURL(blob);
-  } catch {
-    return;
-  }
+  const blob = await fetchProfileImageBlob(name, accessToken);
+  if (!blob) return;
+  img.src = URL.createObjectURL(blob);
 };
 
 const setProfileImage = (profileImage: string | null, name: string | null) => {
@@ -634,6 +589,7 @@ const setupProfileImagePicker = () => {
   const uploadInput = document.querySelector<HTMLInputElement>(
     "#me-avatar-upload",
   );
+  const message = document.querySelector<HTMLDivElement>("#me-avatar-msg");
   if (!toggle || !picker) return;
   toggle.addEventListener("click", (event) => {
     event.preventDefault();
@@ -656,7 +612,20 @@ const setupProfileImagePicker = () => {
     uploadInput.addEventListener("change", () => {
       const file = uploadInput.files?.[0];
       if (!file) return;
-      if (file.type !== "image/png") return;
+      if (message) message.textContent = "";
+      const isPngType = file.type === "image/png";
+      const isPngName = !file.type && file.name.toLowerCase().endsWith(".png");
+      if (!isPngType && !isPngName) {
+        if (message) message.textContent = word("profile_image_invalid_type");
+        uploadInput.value = "";
+        return;
+      }
+      const maxBytes = 1024 * 1024;
+      if (file.size === 0 || file.size > maxBytes) {
+        if (message) message.textContent = word("profile_image_too_large");
+        uploadInput.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         const result = typeof reader.result === "string" ? reader.result : null;

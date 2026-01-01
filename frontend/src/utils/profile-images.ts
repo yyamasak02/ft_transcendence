@@ -24,5 +24,8 @@ export const isProfileImageKey = (value: string | null | undefined): value is Pr
 
 export const getProfileImageSrc = (key?: string | null) => {
   const found = PROFILE_IMAGES.find((item) => item.key === key);
-  return found?.src ?? PROFILE_IMAGES[0].src;
+  const defaultImage = PROFILE_IMAGES.find(
+    (item) => item.key === DEFAULT_PROFILE_IMAGE,
+  );
+  return found?.src ?? defaultImage?.src ?? PROFILE_IMAGES[0].src;
 };

@@ -43,14 +43,6 @@
   letter-spacing: 0.06em;
 }
 
-.user-profile-name.is-online {
-  color: #6bb6ff;
-}
-
-.user-profile-name.is-offline {
-  color: #9a9a9a;
-}
-
 .user-profile-friend-heart {
   color: #e0c030;
 }

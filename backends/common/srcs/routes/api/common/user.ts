@@ -23,6 +23,7 @@ import {
   generateTotpSecret,
   verifyGoogleIdToken,
 } from "../../../utils/auth.js";
+import { ONLINE_THRESHOLD_MS, isRecentlyActive } from "../../../utils/date.js";
 import {
   deleteUserBodySchema,
   destroyTokenBodySchema,
@@ -48,6 +49,7 @@ import {
   uploadProfileImageBodySchema,
   friendRequestBodySchema,
   friendRespondBodySchema,
+  friendRemoveBodySchema,
   friendsListResponseSchema,
   puidLookupQuerySchema,
   puidLookupResponseSchema,
@@ -77,6 +79,8 @@ import type {
   UploadProfileImageBody,
   FriendRequestBody,
   FriendRespondBody,
+  FriendRemoveBody,
+  ProfileImageKey,
 } from "../../../schemas/user.js";
 import type { TwoFactorTokenPayload } from "../../../types/jwt.js";
 
@@ -99,9 +103,17 @@ export default async function (fastify: FastifyInstance) {
     "Suicider",
     "Queen",
   ]);
-  const toProfileImage = (value: string | null): "Robot" | "Snowman" | "Sniper" | "Suicider" | "Queen" | null => {
+  const PNG_SIGNATURE = Buffer.from(
+    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  );
+  const MAX_PROFILE_IMAGE_BYTES = 1024 * 1024;
+  const FRIEND_STATUS = {
+    PENDING: "pending",
+    ACCEPTED: "accepted",
+  } as const;
+  const toProfileImage = (value: string | null): ProfileImageKey | null => {
     if (!value || !profileImageKeys.has(value)) return null;
-    return value as "Robot" | "Snowman" | "Sniper" | "Suicider" | "Queen";
+    return value as ProfileImageKey;
   };
 
   f.post<{ Body: RegisterBody }>(
@@ -458,13 +470,7 @@ export default async function (fastify: FastifyInstance) {
         return { message: "User not found." };
       }
 
-      const online = (() => {
-        if (!user.last_accessed_at) return false;
-        const normalized = user.last_accessed_at.replace(" ", "T");
-        const parsed = new Date(`${normalized}Z`);
-        if (Number.isNaN(parsed.getTime())) return false;
-        return Date.now() - parsed.getTime() <= 5 * 60 * 1000;
-      })();
+      const online = isRecentlyActive(user.last_accessed_at, ONLINE_THRESHOLD_MS);
 
       const rows = await fastify.db.all<Array<{
         id: number;
@@ -578,10 +584,11 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { imageBase64 } = request.body;
-      const prefix = "data:image/png;base64,";
-      const rawBase64 = imageBase64.startsWith(prefix)
-        ? imageBase64.slice(prefix.length)
-        : imageBase64;
+      const DATA_URL_PNG_BASE64_PREFIX = /^data:image\/png;base64\s*,/i;
+      const trimmed = imageBase64.trim();
+      const rawBase64 = DATA_URL_PNG_BASE64_PREFIX.test(trimmed)
+        ? trimmed.replace(DATA_URL_PNG_BASE64_PREFIX, "")
+        : trimmed;
       let buffer: Buffer;
       try {
         buffer = Buffer.from(rawBase64, "base64");
@@ -593,13 +600,11 @@ export default async function (fastify: FastifyInstance) {
         reply.code(400);
         return { message: "Image is required." };
       }
-      const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-      if (buffer.length < pngSignature.length || !buffer.subarray(0, 8).equals(pngSignature)) {
+      if (buffer.length < PNG_SIGNATURE.length || !buffer.subarray(0, 8).equals(PNG_SIGNATURE)) {
         reply.code(400);
         return { message: "PNG format is required." };
       }
-      const maxBytes = 1024 * 1024;
-      if (buffer.length > maxBytes) {
+      if (buffer.length > MAX_PROFILE_IMAGE_BYTES) {
         reply.code(400);
         return { message: "Image is too large." };
       }
@@ -634,6 +639,7 @@ export default async function (fastify: FastifyInstance) {
       );
       if (!user || !user.profile_image_data) {
         reply.code(404);
+        reply.type("application/json");
         return { message: "Profile image not found." };
       }
       reply.header("Content-Type", "image/png");
@@ -686,14 +692,6 @@ export default async function (fastify: FastifyInstance) {
         request.user.puid,
       );
 
-      const toOnline = (value: string | null) => {
-        if (!value) return false;
-        const normalized = value.replace(" ", "T");
-        const parsed = new Date(`${normalized}Z`);
-        if (Number.isNaN(parsed.getTime())) return false;
-        return Date.now() - parsed.getTime() <= 5 * 60 * 1000;
-      };
-
       const friends: Array<{
         id: number;
         name: string;
@@ -712,7 +710,10 @@ export default async function (fastify: FastifyInstance) {
         const profileImage = toProfileImage(
           isRequester ? row.addressee_image : row.requester_image,
         );
-        const online = toOnline(isRequester ? row.addressee_access : row.requester_access);
+        const online = isRecentlyActive(
+          isRequester ? row.addressee_access : row.requester_access,
+          ONLINE_THRESHOLD_MS,
+        );
         return {
           id: row.id,
           name,
@@ -773,7 +774,7 @@ export default async function (fastify: FastifyInstance) {
         "INSERT INTO friends (requester_puid, addressee_puid, status) VALUES (?, ?, ?)",
         request.user.puid,
         target.puid,
-        "pending",
+        FRIEND_STATUS.PENDING,
       );
       return { message: "Friend request sent." };
     },
@@ -804,20 +805,58 @@ export default async function (fastify: FastifyInstance) {
         reply.code(404);
         return { message: "Friend request not found." };
       }
-      if (row.addressee_puid != request.user.puid || row.status != "pending") {
+      if (row.addressee_puid !== request.user.puid || row.status !== FRIEND_STATUS.PENDING) {
         reply.code(400);
         return { message: "Invalid friend request." };
       }
       if (accept) {
         await fastify.db.run(
           "UPDATE friends SET status = ? WHERE id = ?",
-          "accepted",
+          FRIEND_STATUS.ACCEPTED,
           requestId,
         );
         return { message: "Friend request accepted." };
       }
       await fastify.db.run("DELETE FROM friends WHERE id = ?", requestId);
       return { message: "Friend request declined." };
+    },
+  );
+
+  f.post<{ Body: FriendRemoveBody }>(
+    "/user/friends/remove",
+    {
+      preHandler: fastify.authenticate,
+      schema: {
+        tags: ["User"],
+        body: friendRemoveBodySchema,
+        response: {
+          200: userActionResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { friendId } = request.body;
+      const row = await fastify.db.get<{ requester_puid: string; addressee_puid: string; status: string }>(
+        "SELECT requester_puid, addressee_puid, status FROM friends WHERE id = ?",
+        friendId,
+      );
+      if (!row) {
+        reply.code(404);
+        return { message: "Friend not found." };
+      }
+      if (row.status !== "accepted") {
+        reply.code(400);
+        return { message: "Friend is not accepted." };
+      }
+      if (row.requester_puid !== request.user.puid && row.addressee_puid !== request.user.puid) {
+        reply.code(400);
+        return { message: "Invalid friend request." };
+      }
+      await fastify.db.run("DELETE FROM friends WHERE id = ?", friendId);
+      return { message: "Friend removed." };
     },
   );
 

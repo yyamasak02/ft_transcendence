@@ -7,6 +7,9 @@ import {
   getProfileImageSrc,
   isProfileImageKey,
 } from "@/utils/profile-images";
+import { formatMatchDate } from "@/utils/date-format";
+import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
+import type { FriendItem } from "@/types/friends";
 import "./style.css";
 
 type MatchItem = {
@@ -52,243 +55,242 @@ class UserProfileComponent {
   };
 }
 
-const setProfileMessage = (message: string) => {
-  const container = document.querySelector<HTMLDivElement>(
-    "#user-profile-matches",
-  );
-  if (!container) return;
-  container.textContent = message;
+const formatMatchDateByLang = (createdAt: string) =>
+  formatMatchDate(createdAt, langManager.lang);
+
+type FriendInfo = {
+  isFriend: boolean;
+  friendId: number | null;
 };
 
-const setProfileHeader = (name: string, online: boolean, isFriend: boolean) => {
-  const nameEl = document.querySelector<HTMLDivElement>("#user-profile-name");
-  const statusEl = document.querySelector<HTMLDivElement>("#user-profile-status");
-  if (nameEl) {
-    nameEl.innerHTML = isFriend
-      ? `<span class="user-profile-friend-heart">&#9829;</span> ${name}`
-      : name;
-    nameEl.classList.toggle("is-online", online);
-    nameEl.classList.toggle("is-offline", !online);
+class UserProfileController {
+  private nameEl: HTMLDivElement | null;
+  private statusEl: HTMLDivElement | null;
+  private avatarEl: HTMLImageElement | null;
+  private friendButton: HTMLButtonElement | null;
+  private friendMsg: HTMLDivElement | null;
+  private matchesEl: HTMLDivElement | null;
+  private backButton: HTMLButtonElement | null;
+
+  constructor() {
+    this.nameEl = document.querySelector<HTMLDivElement>("#user-profile-name");
+    this.statusEl = document.querySelector<HTMLDivElement>("#user-profile-status");
+    this.avatarEl = document.querySelector<HTMLImageElement>("#user-profile-avatar");
+    this.friendButton = document.querySelector<HTMLButtonElement>(
+      "#user-profile-friend-request",
+    );
+    this.friendMsg = document.querySelector<HTMLDivElement>("#user-profile-friend-msg");
+    this.matchesEl = document.querySelector<HTMLDivElement>("#user-profile-matches");
+    this.backButton = document.querySelector<HTMLButtonElement>("#user-profile-back");
   }
-  if (statusEl) {
-    statusEl.textContent = online ? word("user_profile_online") : word("user_profile_offline");
-    statusEl.classList.toggle("is-online", online);
-    statusEl.classList.toggle("is-offline", !online);
+
+  setProfileMessage(message: string) {
+    if (!this.matchesEl) return;
+    this.matchesEl.textContent = message;
   }
-};
 
-const setFriendMessage = (message: string) => {
-  const el = document.querySelector<HTMLDivElement>("#user-profile-friend-msg");
-  if (el) el.textContent = message;
-};
+  setProfileHeader(name: string, online: boolean, isFriend: boolean) {
+    if (this.nameEl) {
+      this.nameEl.innerHTML = isFriend
+        ? `<span class="user-profile-friend-heart">&#9829;</span> ${name}`
+        : name;
+    }
+    if (this.statusEl) {
+      this.statusEl.textContent = online
+        ? word("user_profile_online")
+        : word("user_profile_offline");
+      this.statusEl.classList.toggle("is-online", online);
+      this.statusEl.classList.toggle("is-offline", !online);
+    }
+  }
 
-const loadCustomProfileImage = async (name: string) => {
-  const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
-  const img = document.querySelector<HTMLImageElement>("#user-profile-avatar");
-  if (!img) return;
-  try {
-    const res = await fetch(
-      `/api/common/user/profile_image_data?name=${encodeURIComponent(name)}`,
-      {
+  setFriendMessage(message: string) {
+    if (this.friendMsg) this.friendMsg.textContent = message;
+  }
+
+  async loadCustomProfileImage(name: string) {
+    const accessToken = getStoredAccessToken();
+    if (!accessToken || !this.avatarEl) return;
+    const blob = await fetchProfileImageBlob(name, accessToken);
+    if (!blob) return;
+    this.avatarEl.src = URL.createObjectURL(blob);
+  }
+
+  setProfileImage(profileImage: string | null, name: string) {
+    if (!this.avatarEl) return;
+    if (profileImage && isProfileImageKey(profileImage)) {
+      this.avatarEl.src = getProfileImageSrc(profileImage);
+      return;
+    }
+    this.loadCustomProfileImage(name);
+  }
+
+  renderMatches(items: MatchItem[], profileName: string) {
+    if (!this.matchesEl) return;
+    if (!items.length) {
+      this.matchesEl.textContent = word("no_matches");
+      return;
+    }
+    this.matchesEl.innerHTML = "";
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "user-profile-match";
+      const isOwner = item.ownerName === profileName;
+      const opponent = isOwner
+        ? item.guestName ?? word("ai_opponent")
+        : item.ownerName;
+      const myScore = isOwner ? item.ownerScore : item.guestScore;
+      const oppScore = isOwner ? item.guestScore : item.ownerScore;
+      const result =
+        myScore > oppScore
+          ? word("result_win")
+          : myScore < oppScore
+            ? word("result_lose")
+            : word("result_draw");
+      const score = `${myScore} - ${oppScore}`;
+      const formattedDate = formatMatchDateByLang(item.createdAt);
+      row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
+      this.matchesEl?.appendChild(row);
+    });
+  }
+
+  setupBack() {
+    if (!this.backButton) return;
+    this.backButton.addEventListener("click", () => {
+      navigate("/me");
+    });
+  }
+
+  setupFriendAction(
+    name: string,
+    online: boolean,
+    friendInfo: FriendInfo,
+  ) {
+    if (!this.friendButton) return;
+    const accessToken = getStoredAccessToken();
+    if (!accessToken) {
+      this.friendButton.disabled = true;
+      return;
+    }
+    this.friendButton.disabled = false;
+    this.friendButton.innerHTML = friendInfo.isFriend
+      ? t("friend_remove_button")
+      : t("friend_request_button");
+    this.friendButton.onclick = async (event) => {
+      event.preventDefault();
+      this.friendButton!.disabled = true;
+      this.setFriendMessage("");
+      try {
+        const res = friendInfo.isFriend && friendInfo.friendId
+          ? await fetch("/api/common/user/friends/remove", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ friendId: friendInfo.friendId }),
+            })
+          : await fetch("/api/common/user/friends/request", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name }),
+            });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          this.setFriendMessage(
+            body?.message ??
+              word(friendInfo.isFriend ? "friend_remove_failed" : "friend_request_failed"),
+          );
+          this.friendButton!.disabled = false;
+          return;
+        }
+        if (friendInfo.isFriend) {
+          this.setFriendMessage(word("friend_remove_done"));
+          this.setProfileHeader(name, online, false);
+          this.setupFriendAction(name, online, { isFriend: false, friendId: null });
+          return;
+        }
+        this.setFriendMessage(word("friend_request_sent"));
+      } catch {
+        this.setFriendMessage(
+          word(friendInfo.isFriend ? "friend_remove_failed" : "friend_request_failed"),
+        );
+        this.friendButton!.disabled = false;
+      }
+    };
+  }
+
+  async loadFriendStatus(name: string): Promise<FriendInfo> {
+    const accessToken = getStoredAccessToken();
+    if (!accessToken) return { isFriend: false, friendId: null };
+    try {
+      const res = await fetch("/api/common/user/friends", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      },
-    );
-    if (!res.ok) return;
-    const blob = await res.blob();
-    img.src = URL.createObjectURL(blob);
-  } catch {
-    return;
-  }
-};
-
-const setProfileImage = (profileImage: string | null, name: string) => {
-  const img = document.querySelector<HTMLImageElement>("#user-profile-avatar");
-  if (!img) return;
-  if (profileImage && isProfileImageKey(profileImage)) {
-    img.src = getProfileImageSrc(profileImage);
-    return;
-  }
-  loadCustomProfileImage(name);
-};
-
-const parseMatchDate = (value: string) => {
-  const direct = new Date(value);
-  if (!Number.isNaN(direct.getTime())) return direct;
-  const normalized = value.replace(" ", "T");
-  const withZone = normalized.endsWith("Z") ? normalized : `${normalized}Z`;
-  const fallback = new Date(withZone);
-  if (!Number.isNaN(fallback.getTime())) return fallback;
-  return null;
-};
-
-const formatMatchDate = (createdAt: string) => {
-  const date = parseMatchDate(createdAt);
-  if (!date) return createdAt;
-  const lang = langManager.lang;
-  const timeZone = "Asia/Tokyo";
-  if (lang === "ja") {
-    return new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone,
-    }).format(date);
-  }
-  if (lang === "edo") {
-    const edoDate = new Date(date.getTime());
-    edoDate.setFullYear(edoDate.getFullYear() - 300);
-    return new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone,
-    }).format(edoDate);
-  }
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-};
-
-const renderMatches = (items: MatchItem[], profileName: string) => {
-  const container = document.querySelector<HTMLDivElement>(
-    "#user-profile-matches",
-  );
-  if (!container) return;
-  if (!items.length) {
-    container.textContent = word("no_matches");
-    return;
-  }
-  container.innerHTML = "";
-  items.forEach((item) => {
-    const row = document.createElement("div");
-    row.className = "user-profile-match";
-    const isOwner = item.ownerName === profileName;
-    const opponent = isOwner
-      ? item.guestName ?? word("ai_opponent")
-      : item.ownerName;
-    const myScore = isOwner ? item.ownerScore : item.guestScore;
-    const oppScore = isOwner ? item.guestScore : item.ownerScore;
-    const result =
-      myScore > oppScore
-        ? word("result_win")
-        : myScore < oppScore
-          ? word("result_lose")
-          : word("result_draw");
-    const score = `${myScore} - ${oppScore}`;
-    const formattedDate = formatMatchDate(item.createdAt);
-    row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
-    container.appendChild(row);
-  });
-};
-
-const loadProfile = async (name: string) => {
-  const accessToken = getStoredAccessToken();
-  if (!accessToken) {
-    navigate("/login");
-    return;
-  }
-  try {
-    const res = await fetch(`/api/common/user/profile?name=${encodeURIComponent(name)}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    const body = await res.json().catch(() => ({}));
-    if (res.status === 404) {
-      setProfileMessage(word("user_profile_not_found"));
-      return;
-    }
-    if (!res.ok) {
-      setProfileMessage(body?.message ?? word("match_results_fetch_failed"));
-      return;
-    }
-    const profileName = String(body.name ?? name);
-    const online = Boolean(body.online);
-    const isFriend = await loadFriendStatus(profileName);
-    setProfileHeader(profileName, online, isFriend);
-    const profileImage = body?.profileImage ?? null;
-    const profileImageKey = typeof profileImage === "string" ? profileImage : null;
-    setProfileImage(profileImageKey, profileName);
-    if (Array.isArray(body.matches)) {
-      renderMatches(body.matches as MatchItem[], profileName);
-    } else {
-      setProfileMessage(word("match_results_fetch_failed"));
-    }
-  } catch (error) {
-    setProfileMessage(`${word("match_results_fetch_failed")}: ${error}`);
-  }
-};
-
-const setupBack = () => {
-  const button = document.querySelector<HTMLButtonElement>("#user-profile-back");
-  if (!button) return;
-  button.addEventListener("click", () => {
-    navigate("/me");
-  });
-};
-
-const setupFriendRequest = (name: string) => {
-  const button = document.querySelector<HTMLButtonElement>(
-    "#user-profile-friend-request",
-  );
-  if (!button) return;
-  const accessToken = getStoredAccessToken();
-  if (!accessToken) {
-    button.disabled = true;
-    return;
-  }
-  button.addEventListener("click", async (event) => {
-    event.preventDefault();
-    button.disabled = true;
-    setFriendMessage("");
-    try {
-      const res = await fetch("/api/common/user/friends/request", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name }),
       });
+      if (!res.ok) return { isFriend: false, friendId: null };
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setFriendMessage(body?.message ?? word("friend_request_failed"));
-        button.disabled = false;
+      const friends = Array.isArray(body?.friends) ? body.friends : [];
+      const match = (friends as FriendItem[]).find(
+        (friend) => friend?.name === name && friend?.status === "accepted",
+      );
+      return match?.id
+        ? { isFriend: true, friendId: match.id }
+        : { isFriend: false, friendId: null };
+    } catch {
+      return { isFriend: false, friendId: null };
+    }
+  }
+
+  async loadProfile(name: string) {
+    const accessToken = getStoredAccessToken();
+    if (!accessToken) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/common/user/profile?name=${encodeURIComponent(name)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 404) {
+        this.setProfileMessage(word("user_profile_not_found"));
         return;
       }
-      setFriendMessage(word("friend_request_sent"));
-    } catch {
-      setFriendMessage(word("friend_request_failed"));
-      button.disabled = false;
+      if (!res.ok) {
+        this.setProfileMessage(body?.message ?? word("match_results_fetch_failed"));
+        return;
+      }
+      const profileName = String(body.name ?? name);
+      const online = Boolean(body.online);
+      const friendInfo = await this.loadFriendStatus(profileName);
+      this.setProfileHeader(profileName, online, friendInfo.isFriend);
+      this.setupFriendAction(profileName, online, friendInfo);
+      const profileImage = body?.profileImage ?? null;
+      const profileImageKey = typeof profileImage === "string" ? profileImage : null;
+      this.setProfileImage(profileImageKey, profileName);
+      if (Array.isArray(body.matches)) {
+        this.renderMatches(body.matches as MatchItem[], profileName);
+      } else {
+        this.setProfileMessage(word("match_results_fetch_failed"));
+      }
+    } catch (error) {
+      console.error("Match results fetch failed", error);
+      this.setProfileMessage(word("match_results_fetch_failed"));
     }
-  });
-};
-
-const loadFriendStatus = async (name: string) => {
-  const accessToken = getStoredAccessToken();
-  if (!accessToken) return false;
-  try {
-    const res = await fetch("/api/common/user/friends", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    if (!res.ok) return false;
-    const body = await res.json().catch(() => ({}));
-    const friends = Array.isArray(body?.friends) ? body.friends : [];
-    return friends.some(
-      (friend: { name?: string; status?: string }) =>
-        friend?.name === name && friend?.status === "accepted",
-    );
-  } catch {
-    return false;
   }
-};
+}
 
 const getProfileNameFromQuery = () => {
   const params = new URLSearchParams(window.location.search);
@@ -301,12 +303,12 @@ export const UserProfileRoute: Route = {
   onMount: () => {
     const name = getProfileNameFromQuery();
     if (!name) {
-      setProfileMessage(word("user_profile_not_found"));
+      new UserProfileController().setProfileMessage(word("user_profile_not_found"));
       return;
     }
-    setupBack();
-    setupFriendRequest(name);
-    loadProfile(name);
+    const controller = new UserProfileController();
+    controller.setupBack();
+    controller.loadProfile(name);
   },
   head: { title: "User Profile" },
 };

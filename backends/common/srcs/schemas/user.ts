@@ -86,13 +86,15 @@ export const userProfileQuerySchema = Type.Object({
 
 export type UserProfileQuery = Static<typeof userProfileQuerySchema>;
 
-const profileImageSchema = Type.Union([
+export const profileImageSchema = Type.Union([
   Type.Literal("Robot"),
   Type.Literal("Snowman"),
   Type.Literal("Sniper"),
   Type.Literal("Suicider"),
   Type.Literal("Queen"),
 ]);
+
+export type ProfileImageKey = Static<typeof profileImageSchema>;
 
 export const userProfileResponseSchema = Type.Object({
   name: Type.String({ minLength: 1 }),
@@ -155,6 +157,12 @@ export const friendRespondBodySchema = Type.Object({
 });
 
 export type FriendRespondBody = Static<typeof friendRespondBodySchema>;
+
+export const friendRemoveBodySchema = Type.Object({
+  friendId: Type.Integer({ minimum: 1 }),
+});
+
+export type FriendRemoveBody = Static<typeof friendRemoveBodySchema>;
 
 
 export const userBanBodySchema = Type.Composite([
