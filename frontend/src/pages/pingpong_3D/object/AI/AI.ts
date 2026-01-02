@@ -2,7 +2,7 @@ import { Ball } from "../Ball";
 import { Paddle } from "../Paddle";
 import type { PaddleInput } from "../Paddle";
 import { GAME_CONFIG } from "../../core/constants3D";
-import type { PlayerType } from "../../core/gameSettings";
+import type { PlayerType } from "../../../../utils/pingpong3D/gameSettings";
 
 const AI_CONFIG = {
   SCAN_INTERVAL: 1000,

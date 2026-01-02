@@ -1,4 +1,4 @@
-// pingpong_3D/core/gameSettings.ts
+// utils/pingpong3D/gameSettings.ts
 
 export type PlayerType = "Player" | "Easy" | "Normal" | "Hard";
 

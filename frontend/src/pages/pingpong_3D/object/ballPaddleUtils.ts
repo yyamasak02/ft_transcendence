@@ -1,7 +1,7 @@
 // pingpong_3D/object/ballPaddleUtils.ts // game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
 import { GAME_CONFIG } from "../core/constants3D";
-import type { GameSettings } from "../core/gameSettings";
+import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
 import type { Ball } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";

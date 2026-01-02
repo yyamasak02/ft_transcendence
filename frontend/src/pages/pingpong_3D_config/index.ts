@@ -3,10 +3,10 @@ import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { navigate } from "@/router";
 
-import { saveSettings } from "../pingpong_3D/core/gameSettings";
-import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
+import { saveSettings } from "../../utils/pingpong3D/gameSettings";
+import { PreviewScene } from "./preview/PreviewScene";
 import { t, word } from "@/i18n";
-import type { PlayerType } from "../pingpong_3D/core/gameSettings";
+import type { PlayerType } from "../../utils/pingpong3D/gameSettings";
 
 let preview: PreviewScene | null = null;
 

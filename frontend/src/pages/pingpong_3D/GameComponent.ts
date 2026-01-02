@@ -1,26 +1,33 @@
-// pingpong_3D/game-view.ts ゲーム画面のHTML
 import type { Component } from "@/types/component";
-
 import { t, word } from "@/i18n";
+import { GameScreen } from "./GameScreen";
+import { navigate } from "@/router";
 
-export class PingPong3DGameView implements Component {
+export class GameComponent implements Component {
+  private _appElm: HTMLElement;
+  private _navElm: HTMLElement;
+  private _gameInstance!: GameScreen;
+  private _rootElm!: HTMLElement;
+  private _gameContainerElm!: HTMLElement;
+
+  constructor(appElm: HTMLElement, navElm: HTMLElement) {
+    this._appElm = appElm;
+    this._navElm = navElm;
+  }
+
   render(): string {
     return `
             <div id="pingpong-3d-root">
                 <div id="game-container-3d">
                     <canvas id="gameCanvas3D"></canvas>
-
                     <div id="pause-overlay"></div>
-
                     <div id="help-overlay">
                         <div class="help-content">
                             <h2>HOW TO PLAY</h2>
-
                             <div class="help-section victory">
                                 <span class="label">GOAL</span>
                                 <p class="victory-text">First to <span class="highlight">Win Points</span> Wins!</p>
                             </div>
-
                             <div class="help-grid">
                                 <div class="help-card">
                                     <div class="icon-area">
@@ -37,7 +44,6 @@ export class PingPong3DGameView implements Component {
                                     <h3>PADDLE CONTROL</h3>
                                     <p>Move Up & Down</p>
                                 </div>
-
                                 <div class="help-card">
                                     <div class="icon-area">
                                         <img src="/mouse-drag.svg" class="mouse-icon" alt="Mouse" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
@@ -47,7 +53,6 @@ export class PingPong3DGameView implements Component {
                                     <p>Drag to Rotate</p>
                                 </div>
                             </div>
-
                             <div class="help-footer">
                                 <div class="tool-item">
                                     <img src="/pause.svg" class="mini-icon">
@@ -103,5 +108,117 @@ export class PingPong3DGameView implements Component {
                 </div>
             </div>
         `;
+  }
+  onMount() {
+    this._appElm.classList.add("no-overflow");
+    document.body.classList.add("game-body");
+    this._navElm.style.display = "none";
+    const root = this._appElm.querySelector<HTMLElement>("#pingpong-3d-root");
+    const gameContainer =
+      this._appElm.querySelector<HTMLElement>("#game-container-3d");
+    if (!root || !gameContainer) {
+      throw new Error("root or gameContainer not found");
+    }
+    this._rootElm = root;
+    this._gameContainerElm = gameContainer;
+    // SETTINGSボタン
+    const btnSettingsNav = this._rootElm.querySelector("#btn-3d-settings-nav");
+    const btnSettingsCentral = this._rootElm.querySelector("#btn-3d-settings");
+    // HOMEボタン
+    const homeButton = this._rootElm.querySelector("#btn-3d-home");
+    const homeButtonNav = this._rootElm.querySelector("#btn-3d-home-nav");
+    // PAUSEボタン
+    const pauseButton = this._rootElm.querySelector("#btn-3d-pause");
+    // RESUMEボタン
+    const resumeButton = this._rootElm.querySelector("#btn-3d-resume");
+    // RESETボタン
+    const resetButton = this._rootElm.querySelector("#btn-3d-reset");
+    // CAMERA RESETボタン
+    const cameraResetButton = this._rootElm.querySelector(
+      "#btn-3d-camera-reset",
+    );
+    // HELP BUTTON
+    const btnHelp = this._rootElm.querySelector<HTMLElement>("#btn-3d-help");
+    // HELP OVERLAY ELEMENT
+    const helpOverlay =
+      this._rootElm.querySelector<HTMLElement>("#help-overlay");
+    // HELP CLOSE
+    const btnCloseHelp =
+      this._rootElm.querySelector<HTMLElement>("#btn-close-help");
+    if (
+      !btnSettingsNav ||
+      !btnSettingsCentral ||
+      !homeButton ||
+      !homeButtonNav ||
+      !pauseButton ||
+      !resumeButton ||
+      !resetButton ||
+      !cameraResetButton
+    ) {
+      throw new Error("some button elements are missing");
+    }
+    if (!btnHelp || !helpOverlay || !btnCloseHelp) {
+      throw new Error("some help elements are missing");
+    }
+
+    // ゲーム初期化
+    const canvas =
+      this._rootElm.querySelector<HTMLCanvasElement>("#gameCanvas3D");
+    if (!canvas) {
+      throw new Error("Canvas element #gameCanvas3D not found");
+    }
+    this._gameInstance = new GameScreen(canvas, this._rootElm);
+    this._gameInstance.stopGame();
+    this._gameInstance.startGame();
+
+    const handleHome = () => {
+      this._gameInstance.stopGame();
+      navigate("/");
+    };
+    const handleSettings = () => {
+      this._gameInstance.stopGame();
+      navigate("/pingpong_3D_config");
+    };
+    // SETTINGSボタン
+    btnSettingsNav.addEventListener("click", handleSettings);
+    btnSettingsCentral.addEventListener("click", handleSettings);
+    // HOMEボタン
+    homeButtonNav.addEventListener("click", handleHome);
+    homeButton.addEventListener("click", handleHome);
+    // PAUSEボタン
+    pauseButton.addEventListener("click", () => this._gameInstance.pauseGame());
+    // RESUMEボタン
+    resumeButton.addEventListener("click", () =>
+      this._gameInstance.resumeGame(),
+    );
+    // RESETボタン
+    resetButton.addEventListener("click", () => {
+      if (this._gameInstance.gameState.resetLocked) return;
+      this._gameInstance.resetGame();
+    });
+    // CAMERA RESETボタン
+    cameraResetButton.addEventListener("click", () =>
+      this._gameInstance.resetCamera(),
+    );
+
+    btnHelp.addEventListener(
+      "click",
+      () => (helpOverlay.style.display = "flex"),
+    );
+    btnCloseHelp.addEventListener(
+      "click",
+      () => (helpOverlay.style.display = "none"),
+    );
+    helpOverlay.addEventListener("click", (e) => {
+      if (e.target === helpOverlay) {
+        helpOverlay.style.display = "none";
+      }
+    });
+  }
+  onUnmount() {
+    this._appElm.classList.remove("no-overflow");
+    document.body.classList.remove("game-body");
+    this._navElm.style.display = "flex";
+    this._gameInstance.stopGame();
   }
 }
