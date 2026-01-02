@@ -1,101 +1,101 @@
 /* src/pages/register/style.css */
 .login-screen {
-	min-height: calc(100vh - 64px);
-	padding-top: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: radial-gradient(circle at center, #1c1c1c, #0b0b0b);
-	/* font-family: */
+  min-height: calc(100vh - 64px);
+  padding-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1c1c1c, #0b0b0b);
+  /* font-family: */
 }
 
 /* メインボックス */
 .login-box {
-	width: 380px;
-	padding: 32px;
-	background: #111;
-	border: 2px solid #444;
-	box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  width: 380px;
+  padding: 32px;
+  background: #111;
+  border: 2px solid #444;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
 }
 
 /* タイトル */
 .login-title {
-	text-align: center;
-	color: #e6e6e6;
-	font-size: 2.2rem;
-	letter-spacing: 0.2em;
-	margin-bottom: 28px;
-	font-weight: 700;
+  text-align: center;
+  color: #e6e6e6;
+  font-size: 2.2rem;
+  letter-spacing: 0.2em;
+  margin-bottom: 28px;
+  font-weight: 700;
 }
 
 .login-field {
-	margin-bottom: 18px;
+  margin-bottom: 18px;
 }
 
 .login-field label {
-	display: block;
-	margin-bottom: 6px;
-	font-size: 0.85rem;
-	font-weight: 700;
-	letter-spacing: 0.08rem;
-	color: #aaa;
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08rem;
+  color: #aaa;
 }
 
 .login-input {
-	width: 100%;
-	padding: 10px 12px;
-	background: #1a1a1a;
-	border: 1px solid #555;
-	color: #eee;
-	font-size: 1rem;
-	border-radius: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  color: #eee;
+  font-size: 1rem;
+  border-radius: 6px;
 }
 
 /* 入力欄 */
 .login-input::placeholder {
-	color: #666;
+  color: #666;
 }
 
 .login-input:focus {
-	outline: none;
-	border-color: #888;
-	background: #202020;
+  outline: none;
+  border-color: #888;
+  background: #202020;
 }
 
 .login-remember {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin: 10px 0 18px;
-	color: #ccc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 18px;
+  color: #ccc;
 }
 
 .login-form input[type="checkbox"] {
-	accent-color: #888;
+  accent-color: #888;
 }
 
 /* 送信ボタン */
 .login-submit {
-	width: 100%;
-	margin-top: 16px;
-	padding: 10px 0;
-	background: #333;
-	color: #eee;
-	border: 1px solid #666;
-	font-size: 1.05rem;
-	font-weight: 700;
-	letter-spacing: 0.15em;
-	cursor: pointer;
-	transition: all 0.2s ease;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px 0;
+  background: #333;
+  color: #eee;
+  border: 1px solid #666;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .login-submit:hover {
-	background: #444;
-	border-color: #aaa;
+  background: #444;
+  border-color: #aaa;
 }
 
 .login-submit:active {
-	transform: translateY(1px);
+  transform: translateY(1px);
 }
 
 .login-footer {
