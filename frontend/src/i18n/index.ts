@@ -1,22 +1,23 @@
-// src/i18n/index.ts
-import { en } from "./en";
-import { ja } from "./ja";
-import { edo } from "./edo";
+import { LangManager } from "./class/LangManager";
+import type { I18nKey } from "./lang";
 
-export const dict = { en, ja, edo} as const;
-export type Lang = "en" | "ja" | "edo";
-
-type I18nKey = keyof typeof en;
-let currentLang: Lang = "en";
-
+export const langManager = new LangManager("en");
 export function word(key: I18nKey): string {
-	return dict[currentLang][key];
+  return langManager.word(key);
 }
 
-export function setLang(lang: Lang) {
-	currentLang = lang;
+// DOMに紐づくi18nテキストノードを生成（data-i18n付与）
+export function t(key: I18nKey): string {
+  const text = langManager.word(key);
+  // Use a custom inline element with no semantics
+  return `<span data-i18n="${key}">${text}</span>`;
 }
 
-export function getLang(): Lang {
-	return currentLang;
+// 属性を翻訳する（例: `${i18nAttr('placeholder','username')}`）
+export function i18nAttr(
+  attr: "placeholder" | "title" | "aria-label" | "alt",
+  key: I18nKey,
+): string {
+  const val = langManager.word(key);
+  return `${attr}="${val}" data-i18n-attr="${attr}:${key}"`;
 }

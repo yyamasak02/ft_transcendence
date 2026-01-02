@@ -1,8 +1,9 @@
-import type { Routes } from "@/types/routes";
-import "./style.css";
+import type { Route } from "@/types/routes";
+
+import type { Component } from "@/types/component";
 import { word } from "@/i18n";
 
-class WebSocketComponent {
+class WebSocketComponent implements Component {
   private animationId: number | null = null;
   private ws: WebSocket | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -109,26 +110,24 @@ class WebSocketComponent {
 
 const wsComponent = new WebSocketComponent();
 
-export const WebSocketRoute: Routes = {
-  "/websocket": {
-    linkLabel: () => word("websocket"),
-    content: () => wsComponent.render(),
-    onMount: () => {
-      console.log("WebSocket page mounted");
-      document.body.classList.add("websocket-page", "overflow-hidden");
-      document.documentElement.classList.add("overflow-hidden");
+export const WebSocketRoute: Route = {
+  linkLabel: () => word("websocket"),
+  content: () => wsComponent.render(),
+  onMount: () => {
+    console.log("WebSocket page mounted");
+    document.body.classList.add("websocket-page", "overflow-hidden");
+    document.documentElement.classList.add("overflow-hidden");
 
-      wsComponent.init();
-    },
-    onUnmount: () => {
-      console.log("WebSocket page unmounted");
-      document.body.classList.remove("websocket-page", "overflow-hidden");
-      document.documentElement.classList.remove("overflow-hidden");
+    wsComponent.init();
+  },
+  onUnmount: () => {
+    console.log("WebSocket page unmounted");
+    document.body.classList.remove("websocket-page", "overflow-hidden");
+    document.documentElement.classList.remove("overflow-hidden");
 
-      wsComponent.stop();
-    },
-    head: {
-      title: "WebSocket Manual Control",
-    },
+    wsComponent.stop();
+  },
+  head: {
+    title: "WebSocket Manual Control",
   },
 };

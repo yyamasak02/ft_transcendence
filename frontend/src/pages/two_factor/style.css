@@ -1,0 +1,116 @@
+/* src/pages/two_factor/style.css */
+.two-factor-screen {
+  min-height: calc(100vh - 64px);
+  padding-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1c1c1c, #0b0b0b);
+}
+
+.two-factor-box {
+  width: 380px;
+  padding: 32px;
+  background: #111;
+  border: 2px solid #444;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.two-factor-title {
+  text-align: center;
+  color: #e6e6e6;
+  font-size: 1.9rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.two-factor-desc {
+  text-align: center;
+  color: #b5b5b5;
+  font-size: 0.9rem;
+  margin-bottom: 22px;
+}
+
+.two-factor-field {
+  margin-bottom: 18px;
+}
+
+.two-factor-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08rem;
+  color: #aaa;
+}
+
+.two-factor-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  color: #eee;
+  font-size: 1rem;
+  border-radius: 6px;
+  text-align: center;
+  letter-spacing: 0.2em;
+}
+
+.two-factor-input::placeholder {
+  color: #666;
+}
+
+.two-factor-input:focus {
+  outline: none;
+  border-color: #888;
+  background: #202020;
+}
+
+.two-factor-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 0;
+  background: #333;
+  color: #eee;
+  border: 1px solid #666;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.two-factor-submit:hover {
+  background: #444;
+  border-color: #aaa;
+}
+
+.two-factor-submit:active {
+  transform: translateY(1px);
+}
+
+.two-factor-footer {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.two-factor-link {
+  color: #bbb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.two-factor-link:hover {
+  color: #eee;
+  text-decoration: underline;
+}
+
+.two-factor-msg {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  text-align: center;
+  white-space: pre-wrap;
+}

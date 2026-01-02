@@ -74,6 +74,7 @@
     └── tsconfig.json          # TypeScript設定
 
 #### 3. フロントエンドフォルダ構造
+
 frontend
 ├── index.html # エントリーポイントHTML
 ├── package.json # プロジェクトの依存関係と設定

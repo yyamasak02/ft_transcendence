@@ -1,0 +1,49 @@
+/* Tailwind classes are now used directly in the components */
+/* This file can be kept for any custom navbar styles if needed */
+
+#nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  padding: 1rem;
+  backdrop-filter: blur(6px);
+  color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.nav-link {
+  color: #ef04c7;
+  font-size: 18px;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  padding: 0px 10px;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #ffd24d;
+  transform: scale(1.15);
+}
+
+.nav-link:active {
+  color: #ff9f00;
+}
+
+.lang-switcher {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 16px;
+}
+
+.lang-select {
+  background: #111;
+  color: #ddd;
+  border: 1px solid #555;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}

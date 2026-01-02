@@ -1,0 +1,47 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "nodemon --exec node --loader ts-node/esm ./srcs/index.ts",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/autoload": "^6.3.1",
+    "@fastify/env": "^5.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/type-provider-typebox": "^6.0.0",
+    "@fastify/websocket": "^11.2.0",
+    "@sinclair/typebox": "^0.34.41",
+    "@types/ws": "^8.18.1",
+    "clipboard": "^2.0.11",
+    "csv-parse": "^6.1.0",
+    "fastify": "^5.6.0",
+    "fastify-cli": "^7.4.0",
+    "fastify-env": "^2.1.1",
+    "json-schema-resolver": "^3.0.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "uri-js": "^4.4.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/csv-parse": "^1.2.5",
+    "@types/node": "^24.3.3",
+    "@types/sqlite3": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vite-node": "^3.2.4"
+  }
+}

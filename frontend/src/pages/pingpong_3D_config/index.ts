@@ -1,198 +1,245 @@
 // pingpong_3D_config/index.ts ルーティングと設定画面
 import type { Component } from "@/types/component";
-import type { Routes } from "@/types/routes";
-import { navigate } from "@/router/router";
-import "./style.css";
+import type { Route } from "@/types/routes";
+import { navigate } from "@/router";
+
 import { saveSettings } from "../pingpong_3D/core/gameSettings";
 import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
-import { word } from "@/i18n";
+import { t, word } from "@/i18n";
+import type { PlayerType } from "../pingpong_3D/core/gameSettings";
 
 let preview: PreviewScene | null = null;
 
 // ゲーム設定画面
 class PingPongComponent implements Component {
-	render(): string {
-		return `
-			<div id="pp3d-config-root" class="pp3d-config">
-				<div class="pp3d-config">
-					<h2>${word("pingpong3d_config")}</h2>
+  render(): string {
+    return `
+            <div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
+                <div class="pp3d-config">
+                    <h2>${t("pingpong3d_config")}</h2>
+                    <div class="pp3d-config-row">
+                        <label>${t("player2Type") || "Opponent"}</label>
+                        <select id="player2-type">
+                            <option value="Player">${t("player2")}</option>
+                            <option value="Easy">${t("easyLv")}</option>
+                            <option value="Normal" selected>${t("normalLv")}</option>
+                            <option value="Hard">${t("hardLv")}</option>
+                        </select>
+                    </div>
 
-					<div class="pp3d-config-row">
-						<label>${word("score_to_win")}</label>
-						<input id="winning-score" type="number" min="1" max="20" value="5" />
-					</div>
+                    <div class="pp3d-config-row">
+                        <label>${t("score_to_win")}</label>
+                        <input id="winning-score" type="number" min="1" max="20" value="3" />
+                    </div>
 
-					<div class="pp3d-config-row">
-						<label>${word("ball_speed")}</label>
-						<input id="ball-speed" type="range" min="10" max="100" step="10" value="50" />
-					</div>
-					
-				<div class="pp3d-config-row">
-					<label>${word("count_speed")}</label>
-					<select id="countdown-interval">
-						<option value="500">${word("fast")}</option>
-						<option value="1000" selected>${word("normal")}</option>
-						<option value="2000">${word("slow")}</option>
-					</select>
-				</div>
-					
-					<div class="pp3d-config-row">
-						<label>${word("stage")}</label>
-						<select id="stage-select">
-							<option value="0">${word("classic")}</option>
-							<option value="1">${word("shadow")}</option>
-							<option value="2">${word("warp")}</option>
-						</select>
-					</div>
+                    <div class="pp3d-config-row">
+                        <label>${t("count_speed")}</label>
+                        <select id="countdown-interval">
+                            <option value="500">${t("fast")}</option>
+                            <option value="1000" selected>${t("normal")}</option>
+                            <option value="2000">${t("slow")}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pp3d-config-row">
+                        <label>${t("stage")}</label>
+                        <select id="stage-select">
+                            <option value="0">${t("classic")}</option>
+                            <option value="1">${t("shadow")}</option>
+                            <option value="2">${t("warp")}</option>
+                        </select>
+                    </div>
 
-					<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">${word("color1")}</label>
-							<select id="paddle1-color" class="pp3d-color-select">
-								<option value="blue">${word("blue")}</option>
-								<option value="green">${word("green")}</option>
-								<option value="red">${word("red")}</option>
-								<option value="yellow">${word("yellow")}</option>
-								<option value="white">${word("white")}</option>
-								<option value="black">${word("black")}</option>
-								<option value="pink">${word("pink")}</option>
-							</select>
+                    <div class="pp3d-config-row pp3d-inline-row">
+                            <label class="pp3d-label">${t("color1")}</label>
+                            <select id="paddle1-color" class="pp3d-color-select">
+                                <option value="blue">${t("blue")}</option>
+                                <option value="green">${t("green")}</option>
+                                <option value="red">${t("red")}</option>
+                                <option value="yellow">${t("yellow")}</option>
+                                <option value="white">${t("white")}</option>
+                                <option value="black">${t("black")}</option>
+                                <option value="pink">${t("pink")}</option>
+                            </select>
 
-							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">${word("length")}</label>
-								<input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
-							</div>
-						</div>
+                            <div class="pp3d-length-group">
+                                <label class="pp3d-sub-label">${t("length")}</label>
+                                <input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
+                            </div>
+                        </div>
 
-						<div class="pp3d-config-row pp3d-inline-row">
-							<label class="pp3d-label">${word("color2")}</label>
-							<select id="paddle2-color" class="pp3d-color-select">
-								<option value="green">${word("green")}</option>
-								<option value="blue">${word("blue")}</option>
-								<option value="red">${word("red")}</option>
-								<option value="yellow">${word("yellow")}</option>
-								<option value="white">${word("white")}</option>
-								<option value="black">${word("black")}</option>
-								<option value="pink">${word("pink")}</option>
-							</select>
+                        <div class="pp3d-config-row pp3d-inline-row">
+                            <label class="pp3d-label">${t("color2")}</label>
+                            <select id="paddle2-color" class="pp3d-color-select">
+                                <option value="green">${t("green")}</option>
+                                <option value="blue">${t("blue")}</option>
+                                <option value="red">${t("red")}</option>
+                                <option value="yellow">${t("yellow")}</option>
+                                <option value="white">${t("white")}</option>
+                                <option value="black">${t("black")}</option>
+                                <option value="pink">${t("pink")}</option>
+                            </select>
 
-							<div class="pp3d-length-group">
-								<label class="pp3d-sub-label">${word("length")}</label>
-								<input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
-							</div>
-						</div>
+                            <div class="pp3d-length-group">
+                                <label class="pp3d-sub-label">${t("length")}</label>
+                                <input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
+                            </div>
+                        </div>
 
-					<div class="pp-preview-container">
-						<canvas id="previewCanvas3D"></canvas>
-					</div>
+                    <div class="pp3d-config-row">
+                        <label>${t("collapse_mode")}</label>
+                        <div class="pp3d-toggle-container">
+                            <input id="rally-rush-toggle" type="checkbox" checked class="pp3d-toggle-input" />
+                            <span class="pp3d-toggle-text">${t("collapse_explanation")}</span>
+                        </div>
+                    </div>
 
-					<div class="pp3d-config-row">
-						<button id="pingpong-start-btn">${word("start")}</button>
-					</div>
+                    <div class="pp-preview-container">
+                        <canvas id="previewCanvas3D"></canvas>
+                    </div>
 
-				</div>
-			</div>
-		`;
-	}
+                    <div class="pp3d-config-row pp3d-config-row--button">
+                        <button id="pingpong-start-btn">${t("start")}</button>
+                    </div>
+
+                </div>
+            </div>
+        `;
+  }
 }
 
 const pingPong3DSettingComponent = new PingPongComponent();
 
-export const PingPong3DSettingRoute: Routes = {
-  "/pingpong_3D_config": {
-    linkLabel: () => word("pingpong3d_config"),
-    content: () => pingPong3DSettingComponent.render(),
-    onMount: () => {
-			document.body.classList.add("pingpong-page");
-			document.body.classList.add("overflow-hidden");
-			document.documentElement.classList.add("overflow-hidden");
+export const PingPong3DSettingRoute: Route = {
+  linkLabel: () => word("pingpong3d_config"),
+  content: () => pingPong3DSettingComponent.render(),
+  onMount: () => {
+    document.body.classList.add("pingpong-page");
+    document.body.classList.add("overflow-hidden");
+    document.documentElement.classList.add("overflow-hidden");
 
-			const pp3dConfigRoot = document.getElementById("pp3d-config-root") as HTMLElement;
+    const pp3dConfigRoot = document.getElementById(
+      "pp3d-config-root",
+    ) as HTMLElement;
 
-			const startBtn = pp3dConfigRoot.querySelector<HTMLButtonElement>("#pingpong-start-btn");
-			const previewCanvas = pp3dConfigRoot.querySelector<HTMLCanvasElement>("#previewCanvas3D");
+    const startBtn = pp3dConfigRoot.querySelector<HTMLButtonElement>(
+      "#pingpong-start-btn",
+    );
+    const previewCanvas =
+      pp3dConfigRoot.querySelector<HTMLCanvasElement>("#previewCanvas3D");
 
-			if (!previewCanvas) {
-				console.error("previewCanvas3D not found");
-				return;	
-			}
-			preview = new PreviewScene(previewCanvas);
+    if (!previewCanvas) {
+      console.error("previewCanvas3D not found");
+      return;
+    }
+    preview = new PreviewScene(previewCanvas);
 
-			// 入力要素の参照を取る
-			const winningScoreInput	= pp3dConfigRoot.querySelector<HTMLInputElement>("#winning-score");
-			const ballSpeedInput		= pp3dConfigRoot.querySelector<HTMLInputElement>("#ball-speed");
-			const countdownSelect		= pp3dConfigRoot.querySelector<HTMLSelectElement>("#countdown-interval");
-			const stageSelect				= pp3dConfigRoot.querySelector<HTMLSelectElement>("#stage-select");
+    // 入力要素の参照を取る
+    const winningScoreInput =
+      pp3dConfigRoot.querySelector<HTMLInputElement>("#winning-score");
+    const rallyRushInput =
+      pp3dConfigRoot.querySelector<HTMLInputElement>("#rally-rush-toggle");
+    const countdownSelect = pp3dConfigRoot.querySelector<HTMLSelectElement>(
+      "#countdown-interval",
+    );
+    const stageSelect =
+      pp3dConfigRoot.querySelector<HTMLSelectElement>("#stage-select");
 
-			const p1LenInput				= pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle1-length");
-			const p1ColSelect				= pp3dConfigRoot.querySelector<HTMLSelectElement>("#paddle1-color");
-			const p2LenInput				= pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle2-length");
-			const p2ColSelect				= pp3dConfigRoot.querySelector<HTMLSelectElement>("#paddle2-color");
+    const p1LenInput =
+      pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle1-length");
+    const p1ColSelect =
+      pp3dConfigRoot.querySelector<HTMLSelectElement>("#paddle1-color");
+    const p2LenInput =
+      pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle2-length");
+    const p2ColSelect =
+      pp3dConfigRoot.querySelector<HTMLSelectElement>("#paddle2-color");
+    const p2TypeSelect =
+      pp3dConfigRoot.querySelector<HTMLSelectElement>("#player2-type");
 
-			// プレビュー更新関数
-			const updatePreview = () => {
-				if (!preview || !p1LenInput || !p1ColSelect || !p2LenInput || !p2ColSelect || !stageSelect) return;
+    // プレビュー更新関数
+    const updatePreview = () => {
+      if (
+        !preview ||
+        !p1LenInput ||
+        !p1ColSelect ||
+        !p2LenInput ||
+        !p2ColSelect ||
+        !stageSelect
+      )
+        return;
 
-				const p1Len			= Number(p1LenInput.value);
-				const p1Col			= p1ColSelect.value;
-				const p2Len			= Number(p2LenInput.value);
-				const p2Col			= p2ColSelect.value;
-				const stageIdx	= Number(stageSelect.value);
-				preview.updatePreview(p1Len, p1Col, p2Len, p2Col, stageIdx);
-			};
+      const p1Len = Number(p1LenInput.value);
+      const p1Col = p1ColSelect.value;
+      const p2Len = Number(p2LenInput.value);
+      const p2Col = p2ColSelect.value;
+      const stageIdx = Number(stageSelect.value);
+      preview.updatePreview(p1Len, p1Col, p2Len, p2Col, stageIdx);
+    };
 
-			// 入力更新時にプレビューを更新する
-			p1LenInput?.addEventListener("input", updatePreview);
-			p1ColSelect?.addEventListener("change", updatePreview);
-			p2LenInput?.addEventListener("input", updatePreview);
-			p2ColSelect?.addEventListener("change", updatePreview);
-			stageSelect?.addEventListener("change", updatePreview);
-			
-			// 初期表示
-			updatePreview();
-			
-			// Game Start ボタンが押された時
-			if (!startBtn) return;
-			startBtn.addEventListener("click", () => {
-				if (!winningScoreInput || !ballSpeedInput || !countdownSelect || !stageSelect ||
-						!p1LenInput || !p1ColSelect || !p2LenInput || !p2ColSelect) return;
+    // 入力更新時にプレビューを更新する
+    p1LenInput?.addEventListener("input", updatePreview);
+    p1ColSelect?.addEventListener("change", updatePreview);
+    p2LenInput?.addEventListener("input", updatePreview);
+    p2ColSelect?.addEventListener("change", updatePreview);
+    stageSelect?.addEventListener("change", updatePreview);
 
-				// Start Game が押された時の設定値を受け取る
-				const winningScore	= Number(winningScoreInput.value);
-				const ballSpeed			= Number(ballSpeedInput.value);
-				const countdown			= Number(countdownSelect.value);
-				const stage					= Number(stageSelect.value);
-				const p1Length			= Number(p1LenInput.value);
-				const p1Color				= p1ColSelect.value;
-				const p2Length			= Number(p2LenInput.value);
-				const p2Color				= p2ColSelect.value;
+    // 初期表示
+    updatePreview();
 
-				// 入力値を読み取る
-				saveSettings({
-					winningScore,
-					ballSpeed,
-					selectedCountdownSpeed: countdown,
-					selectedStageIndex: stage,
-					player1Color: p1Color,
-					player1Length: p1Length,
-					player2Color: p2Color,
-					player2Length: p2Length
-					});
+    // Game Start ボタンが押された時
+    if (!startBtn) return;
+    startBtn.addEventListener("click", () => {
+      if (
+        !winningScoreInput ||
+        !rallyRushInput ||
+        !countdownSelect ||
+        !stageSelect ||
+        !p1LenInput ||
+        !p1ColSelect ||
+        !p2LenInput ||
+        !p2ColSelect ||
+        !p2TypeSelect
+      )
+        return;
 
-				// ゲーム開始
-				navigate("/pingpong_3D");
-			});
-    },
-    onUnmount: () => {
-			if (preview) {
-				preview.dispose();
-				preview = null;
-			}
-      document.body.classList.remove("pingpong-page");
-      document.body.classList.remove("overflow-hidden");
-      document.documentElement.classList.remove("overflow-hidden");
-    },
-    head: {
-      title: "Setting PingPong 3D",
-    },
+      // Start Game が押された時の設定値を受け取る
+      const winningScore = Number(winningScoreInput.value);
+      const rallyRush = rallyRushInput ? rallyRushInput.checked : false;
+      const countdown = Number(countdownSelect.value);
+      const stage = Number(stageSelect.value);
+      const p1Length = Number(p1LenInput.value);
+      const p1Color = p1ColSelect.value;
+      const p2Length = Number(p2LenInput.value);
+      const p2Color = p2ColSelect.value;
+      const p2Type = p2TypeSelect.value as PlayerType;
+
+      // 入力値を読み取る
+      saveSettings({
+        winningScore,
+        rallyRush,
+        selectedCountdownSpeed: countdown,
+        selectedStageIndex: stage,
+        player1Color: p1Color,
+        player1Length: p1Length,
+        player2Color: p2Color,
+        player2Length: p2Length,
+        player2Type: p2Type,
+      });
+
+      // ゲーム開始
+      navigate("/pingpong_3D");
+    });
+  },
+  onUnmount: () => {
+    if (preview) {
+      preview.dispose();
+      preview = null;
+    }
+    document.body.classList.remove("pingpong-page");
+    document.body.classList.remove("overflow-hidden");
+    document.documentElement.classList.remove("overflow-hidden");
+  },
+  head: {
+    title: "Setting PingPong 3D",
   },
 };

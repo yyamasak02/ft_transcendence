@@ -1,22 +1,33 @@
-// src/layout/renderLayout.ts layout専用の描画関数
-import { renderNavbar } from "@/components/navbar";
-import { routes } from "@/router/routes";
-import { NotFoundPage } from "@/pages/404";
+// src/layout/renderLayout.ts
+import { routes } from "@/router/routers";
+import { domRoots } from "./root";
+// Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
+// レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
+export function buildLayout(_routePath: string) {
+  // 事前クリアのみ。共通UIのマウントはRouter側の責務。
+  domRoots.nav.innerHTML = "";
+  domRoots.app.innerHTML = "";
+}
 
-const navRoot = document.querySelector<HTMLElement>("#nav")!;
-const appRoot = document.querySelector<HTMLElement>("#app")!;
+// ルート固有のコンテンツを描画
+export function renderRouteContent(routePath: string) {
+  const route = routes[routePath];
 
-export function renderLayout(route: string) {
-	// navbarを毎回作り直す
-	navRoot.innerHTML = "";
-	navRoot.appendChild(renderNavbar());
+  const content =
+    typeof route.component.content === "function"
+      ? route.component.content()
+      : route.component.content;
 
-	const r = routes[route];
-	if (!r) {
-		appRoot.innerHTML = new NotFoundPage().render();
-		return;
-	}
+  switch (route.layout) {
+    case "auth":
+      domRoots.app.innerHTML = `<div class="auth-screen">${content}</div>`;
+      break;
 
-	appRoot.innerHTML = typeof r.content === "function" ? r.content() : r.content;
-	r.onMount?.();
+    case "center":
+      domRoots.app.innerHTML = `<div class="center-screen">${content}</div>`;
+      break;
+
+    default:
+      domRoots.app.innerHTML = content;
+  }
 }

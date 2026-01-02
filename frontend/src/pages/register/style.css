@@ -1,0 +1,147 @@
+/* src/pages/register/style.css */
+.register-screen {
+	min-height: calc(100vh - 64px);
+	padding-top: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: radial-gradient(circle at center, #1c1c1c, #0b0b0b);
+	/* font-family: */
+}
+
+/* メインボックス */
+.register-box {
+	width: 380px;
+	padding: 32px;
+	background: #111;
+	border: 2px solid #444;
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+/* タイトル */
+.register-title {
+	text-align: center;
+	color: #e6e6e6;
+	font-size: 2.2rem;
+	letter-spacing: 0.2em;
+	margin-bottom: 28px;
+	font-weight: 700;
+}
+
+.register-field {
+	margin-bottom: 18px;
+}
+
+.register-field label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.08rem;
+	color: #aaa;
+}
+
+.register-input {
+	width: 100%;
+	padding: 10px 12px;
+	background: #1a1a1a;
+	border: 1px solid #555;
+	color: #eee;
+	font-size: 1rem;
+	border-radius: 6px;
+}
+
+/* 入力欄 */
+.register-input::placeholder {
+	color: #666;
+}
+
+.register-input:focus {
+	outline: none;
+	border-color: #888;
+	background: #202020;
+}
+
+.register-form input[type="checkbox"] {
+	accent-color: #888;
+}
+
+/* 送信ボタン */
+.register-submit {
+	width: 100%;
+	margin-top: 16px;
+	padding: 10px 0;
+	background: #333;
+	color: #eee;
+	border: 1px solid #666;
+	font-size: 1.05rem;
+	font-weight: 700;
+	letter-spacing: 0.15em;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.register-submit:hover {
+	background: #444;
+	border-color: #aaa;
+}
+
+.register-submit:active {
+	transform: translateY(1px);
+}
+
+.register-footer {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.register-link {
+  color: #bbb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.register-link:hover {
+  color: #eee;
+  text-decoration: underline;
+}
+
+.register-divider {
+  margin: 18px 0 12px;
+  border-top: 1px solid #333;
+  position: relative;
+  text-align: center;
+}
+
+.register-divider span {
+  position: relative;
+  top: -10px;
+  background: #111;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  color: #888;
+  letter-spacing: 0.08em;
+}
+
+.register-alt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.register-google-msg {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #9a9a9a;
+  white-space: pre-wrap;
+  text-align: center;
+}
+
+.register-msg {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  text-align: center;
+  white-space: pre-wrap;
+}
