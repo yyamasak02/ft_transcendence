@@ -1,7 +1,10 @@
 import argon2 from "argon2";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import type { FastifyInstance } from "fastify";
-import type { AccessTokenPayload, TwoFactorTokenPayload } from "../types/jwt.js";
+import type {
+  AccessTokenPayload,
+  TwoFactorTokenPayload,
+} from "../types/jwt.js";
 
 export const ACCESS_TOKEN_EXPIRES_IN = "15m";
 export const LONG_TERM_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -23,7 +26,9 @@ const ARGON2_OPTIONS = {
 } as const;
 
 function legacyHashPassword(password: string, salt: string) {
-  return createHash("sha256").update(password + salt).digest("hex");
+  return createHash("sha256")
+    .update(password + salt)
+    .digest("hex");
 }
 
 function isArgonHash(hash: string) {
@@ -146,10 +151,7 @@ export async function removeLongTermToken(
   );
 }
 
-export async function findUserByName(
-  fastify: FastifyInstance,
-  name: string,
-) {
+export async function findUserByName(fastify: FastifyInstance, name: string) {
   return fastify.db.get<StoredUser>(
     "SELECT id, puid, name, password, salt FROM users WHERE name = ?",
     name,
@@ -186,10 +188,7 @@ export async function linkGoogleAccount(
   );
 }
 
-export async function findUserByPuid(
-  fastify: FastifyInstance,
-  puid: string,
-) {
+export async function findUserByPuid(fastify: FastifyInstance, puid: string) {
   return fastify.db.get<StoredUser>(
     "SELECT id, puid, name, password, salt FROM users WHERE puid = ?",
     puid,

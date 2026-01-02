@@ -113,19 +113,25 @@ export const userProfileImageResponseSchema = Type.Object({
   profileImage: Type.Union([profileImageSchema, Type.Null()]),
 });
 
-export type UserProfileImageResponse = Static<typeof userProfileImageResponseSchema>;
+export type UserProfileImageResponse = Static<
+  typeof userProfileImageResponseSchema
+>;
 
 export const updateProfileImageBodySchema = Type.Object({
   profileImage: profileImageSchema,
 });
 
-export type UpdateProfileImageBody = Static<typeof updateProfileImageBodySchema>;
+export type UpdateProfileImageBody = Static<
+  typeof updateProfileImageBodySchema
+>;
 
 export const uploadProfileImageBodySchema = Type.Object({
   imageBase64: Type.String({ minLength: 1 }),
 });
 
-export type UploadProfileImageBody = Static<typeof uploadProfileImageBodySchema>;
+export type UploadProfileImageBody = Static<
+  typeof uploadProfileImageBodySchema
+>;
 
 const friendStatusSchema = Type.Union([
   Type.Literal("accepted"),
@@ -163,7 +169,6 @@ export const friendRemoveBodySchema = Type.Object({
 });
 
 export type FriendRemoveBody = Static<typeof friendRemoveBodySchema>;
-
 
 export const userBanBodySchema = Type.Composite([
   userIdentifierSchema,
