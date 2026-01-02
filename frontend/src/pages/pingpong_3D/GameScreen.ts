@@ -59,7 +59,7 @@ export class GameScreen {
   private scene: Scene;
   private inputManager: InputManager;
   private gameRoot: HTMLElement;
-  private UILockController: any;
+  private uiLockController: any;
 
   constructor(canvas: HTMLCanvasElement, gameRoot: HTMLElement) {
     this.canvas = canvas;
@@ -76,7 +76,7 @@ export class GameScreen {
       },
     });
     this.gameRoot = gameRoot;
-    this.UILockController = {
+    this.uiLockController = {
       lock: () => {
         this.gameState.resetLocked = true;
         this.updateUIButtons();
@@ -262,7 +262,7 @@ export class GameScreen {
         this.gameState,
         this.hud,
         this.settings,
-        this.UILockController,
+        this.uiLockController,
       );
     }
   }
@@ -490,7 +490,7 @@ export class GameScreen {
         this.gameState,
         this.hud!,
         this.settings,
-        this.UILockController,
+        this.uiLockController,
       );
     });
   }
@@ -534,7 +534,7 @@ export class GameScreen {
       this.gameState,
       this.hud,
       this.settings,
-      this.UILockController,
+      this.uiLockController,
     );
   }
 
@@ -548,7 +548,7 @@ export class GameScreen {
     this.hud.setRallyCount(0);
     this.hud.hideRallyText();
 
-    this.UILockController.lock();
+    this.uiLockController.lock();
     this.isRunning = false;
     this.isPaused = false;
 
