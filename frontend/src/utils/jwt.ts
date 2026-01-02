@@ -1,6 +1,7 @@
 export type JwtPayload = {
   name?: string;
   puid?: string;
+  exp?: number;
 };
 
 export const decodeJwtPayload = (token: string): JwtPayload | null => {
@@ -13,4 +14,10 @@ export const decodeJwtPayload = (token: string): JwtPayload | null => {
   } catch {
     return null;
   }
+};
+
+export const isJwtExpired = (token: string) => {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return false;
+  return Date.now() >= payload.exp * 1000;
 };

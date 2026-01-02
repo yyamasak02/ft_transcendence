@@ -11,6 +11,7 @@ import me from "@/pages/me/style.css?url";
 import googleSignup from "@/pages/google_signup/style.css?url";
 import twoFactor from "@/pages/two_factor/style.css?url";
 import usernameChange from "@/pages/username_change/style.css?url";
+import userProfile from "@/pages/user_profile/style.css?url";
 
 export const routeStyles = {
   home,
@@ -26,4 +27,5 @@ export const routeStyles = {
   twoFactor,
   notFound,
   usernameChange,
+  userProfile,
 } as const;

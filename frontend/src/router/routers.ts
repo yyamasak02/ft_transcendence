@@ -13,6 +13,7 @@ import { TwoFactorRoute } from "@/pages/two_factor";
 import { TestWebRTCRoute } from "@/pages/test_webrtc";
 import { UsernameChangeRoute } from "@/pages/username_change";
 import { NotFoundRoute } from "@/pages/404";
+import { UserProfileRoute } from "@/pages/user_profile";
 
 import { routeStyles } from "./consts/routeStyles";
 
@@ -82,6 +83,12 @@ export const routes: Routes = {
     show_navbar: false,
     layout: "auth",
     css_path: routeStyles.usernameChange,
+  },
+  "/user": {
+    component: UserProfileRoute,
+    show_navbar: true,
+    layout: "center",
+    css_path: routeStyles.userProfile,
   },
   "/test_rtc": {
     component: TestWebRTCRoute,
