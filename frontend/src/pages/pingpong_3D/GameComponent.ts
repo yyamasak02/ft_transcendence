@@ -1,6 +1,6 @@
 import type { Component } from "@/types/component";
 import { t, word } from "@/i18n";
-import { GameScreen } from "./GameScreen";
+import { GameScreen } from "./object/GameScreen";
 import { navigate } from "@/router";
 
 export class GameComponent implements Component {
@@ -8,7 +8,6 @@ export class GameComponent implements Component {
   private _navElm: HTMLElement;
   private _gameInstance!: GameScreen;
   private _rootElm!: HTMLElement;
-  private _gameContainerElm!: HTMLElement;
 
   constructor(appElm: HTMLElement, navElm: HTMLElement) {
     this._appElm = appElm;
@@ -114,13 +113,10 @@ export class GameComponent implements Component {
     document.body.classList.add("game-body");
     this._navElm.style.display = "none";
     const root = this._appElm.querySelector<HTMLElement>("#pingpong-3d-root");
-    const gameContainer =
-      this._appElm.querySelector<HTMLElement>("#game-container-3d");
-    if (!root || !gameContainer) {
-      throw new Error("root or gameContainer not found");
+    if (!root) {
+      throw new Error("root element not found");
     }
     this._rootElm = root;
-    this._gameContainerElm = gameContainer;
     // SETTINGSボタン
     const btnSettingsNav = this._rootElm.querySelector("#btn-3d-settings-nav");
     const btnSettingsCentral = this._rootElm.querySelector("#btn-3d-settings");

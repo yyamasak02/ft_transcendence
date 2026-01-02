@@ -1,48 +1,44 @@
-// src/game-main.ts
+// src/pages/pingpong_3D/GameScreen.ts
 import { Vector3, Color4, Mesh, Engine, Scene } from "@babylonjs/core";
-import { loadSettings } from "../../utils/pingpong3D/gameSettings";
-import { Ball } from "./object/Ball";
-import { Paddle, createPaddles } from "./object/Paddle";
-import type { PaddleInput } from "./object/Paddle";
-import { Stage } from "./object/Stage";
-import {
-  checkPaddleCollision,
-  countdownAndServe,
-} from "./object/ballPaddleUtils";
-import { GameHUD } from "./object/ui3D/GameHUD";
-import type { GameState } from "./core/game";
-import { disposeWinEffect, createWinEffect } from "./object/effect/finEffect";
+import { loadSettings } from "../../../utils/pingpong3D/gameSettings";
+import { Ball } from "./Ball";
+import { createPaddles } from "./Paddle";
+import type { Paddle } from "./Paddle";
+import { Stage } from "./Stage";
+import { checkPaddleCollision, countdownAndServe } from "./ballPaddleUtils";
+import { GameHUD } from "./ui3D/GameHUD";
+import type { GameState } from "../core/game";
+import { disposeWinEffect, createWinEffect } from "./effect/finEffect";
 import {
   stopZoomOut,
   transitionToPlayView,
   cutIn,
   zoomOut,
-} from "./object/effect/cameraWork";
+} from "./effect/cameraWork";
 import { navigate } from "@/router";
-import { AIController } from "./object/AI/AI";
-import { GAME_CONFIG } from "./core/constants3D";
-import type { GameSettings } from "../../utils/pingpong3D/gameSettings";
-import { InputManager } from "./input/keyboard";
+import { GAME_CONFIG } from "../core/constants3D";
+import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
+import { InputManager } from "../input/keyboard";
+import { Player } from "./player/Player";
+import { HumanController } from "./player/HumanController";
+import { AIController } from "./player/AIController";
 
 const MAIN_CONSTS = {
   RALLY_DEBOUNCE_MS: 100,
   RALLY_NOTIFICATION: { INTERVAL: 10, MAX_LEVEL: 4 },
 } as const;
 
-// TODO 意味のある分割にする。データの扱う範囲の制限
 export class GameScreen {
   private settings: GameSettings = loadSettings();
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private paddle1: Paddle | null = null;
-  private paddle2: Paddle | null = null;
+  private player1: Player | null = null;
+  private player2: Player | null = null;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
-  private aiController: AIController | null = null;
   private p1Score: number = 0;
   private p2Score: number = 0;
-  private p2Input: PaddleInput = { up: false, down: false };
   private wasEnterDown: boolean = false;
   private lastRallyTime: number = 0;
   public gameState: GameState = {
@@ -89,37 +85,36 @@ export class GameScreen {
   }
 
   // ------------------------
-  // 設定をリロード
-  // ------------------------
-  reloadSettings() {
-    this.settings = loadSettings();
-  }
-
-  // ------------------------
   // ゲーム開始
   // ------------------------
   startGame() {
     if (this.isRunning) return;
 
-    this.reloadSettings();
+    this.settings = loadSettings();
     this.isRunning = true;
     this.isPaused = false;
     this.lastRallyTime = 0;
     this.p1Score = 0;
     this.p2Score = 0;
 
-    if (this.settings.player2Type !== "Player") {
-      this.aiController = new AIController(this.settings.player2Type);
-    } else {
-      this.aiController = null;
-    }
-
     this.hud = new GameHUD(this.scene);
     this.inputManager.setup();
 
+    // パドル生成
     const { p1, p2 } = createPaddles(this.scene, this.settings);
-    this.paddle1 = p1;
-    this.paddle2 = p2;
+
+    // Player 1: 常に人間
+    const humanController1 = new HumanController(this.inputManager, 1);
+    this.player1 = new Player(p1, humanController1, 1);
+
+    // Player 2: 設定に応じてAIまたは人間
+    if (this.settings.player2Type !== "Player") {
+      const aiController = new AIController(this.settings.player2Type);
+      this.player2 = new Player(p2, aiController, 2);
+    } else {
+      const humanController2 = new HumanController(this.inputManager, 2);
+      this.player2 = new Player(p2, humanController2, 2);
+    }
 
     this.ball = new Ball(
       this.scene,
@@ -128,13 +123,13 @@ export class GameScreen {
     );
     this.ball.stop();
     this.ball.velocity = new Vector3(0, 0, 0);
-    this.ball.reset("center", this.paddle1, this.paddle2);
+    this.ball.reset("center", this.player1.paddle, this.player2.paddle);
 
     this.stage = new Stage(
       this.scene,
       this.canvas,
-      this.paddle1,
-      this.paddle2,
+      this.player1.paddle,
+      this.player2.paddle,
       this.ball,
       this.settings,
     );
@@ -197,8 +192,14 @@ export class GameScreen {
       this.ball.stop();
       this.ball = null;
     }
-    this.paddle1 = null;
-    this.paddle2 = null;
+    if (this.player1) {
+      this.player1.dispose();
+      this.player1 = null;
+    }
+    if (this.player2) {
+      this.player2.dispose();
+      this.player2 = null;
+    }
     if (this.scene && !this.scene.isDisposed) this.scene.dispose();
     if (this.engine) {
       this.engine.stopRenderLoop();
@@ -219,7 +220,7 @@ export class GameScreen {
       return;
 
     this.gameState.countdownID++;
-    this.reloadSettings();
+    this.settings = loadSettings();
     this.isPaused = false;
     this.gameState.phase = "game";
     this.gameState.rallyActive = false;
@@ -237,28 +238,39 @@ export class GameScreen {
       this.hud.showRallyText();
     }
 
-    if (this.paddle1 && this.paddle2) {
+    if (this.player1 && this.player2) {
       const { p1, p2 } = createPaddles(this.scene, this.settings);
-      this.paddle1.mesh.dispose();
-      this.paddle2.mesh.dispose();
-      this.paddle1 = p1;
-      this.paddle2 = p2;
+
+      // 古いパドルを破棄
+      this.player1.paddle.mesh.dispose();
+      this.player2.paddle.mesh.dispose();
+
+      // 新しいパドルでプレイヤーを再生成
+      const humanController1 = new HumanController(this.inputManager, 1);
+      this.player1 = new Player(p1, humanController1, 1);
+
+      if (this.settings.player2Type !== "Player") {
+        const aiController = new AIController(this.settings.player2Type);
+        this.player2 = new Player(p2, aiController, 2);
+      } else {
+        const humanController2 = new HumanController(this.inputManager, 2);
+        this.player2 = new Player(p2, humanController2, 2);
+      }
     }
 
-    if (this.ball && this.paddle1 && this.paddle2) {
+    if (this.ball && this.player1 && this.player2) {
       this.ball.stop();
       this.ball.velocity = new Vector3(0, 0, 0);
-      this.ball.reset("center", this.paddle1, this.paddle2);
+      this.ball.reset("center", this.player1.paddle, this.player2.paddle);
     }
 
     if (this.stage) this.stage.resetCourt();
-    if (this.stage) this.stage.resetCourt();
-    if (this.hud && this.ball && this.paddle1 && this.paddle2) {
+    if (this.hud && this.ball && this.player1 && this.player2) {
       countdownAndServe(
         "center",
         this.ball,
-        this.paddle1,
-        this.paddle2,
+        this.player1.paddle,
+        this.player2.paddle,
         this.gameState,
         this.hud,
         this.settings,
@@ -386,7 +398,7 @@ export class GameScreen {
   // ゲームループ
   // ------------------------
   private gameLoop() {
-    if (!this.paddle1 || !this.paddle2 || !this.ball) return;
+    if (!this.player1 || !this.player2 || !this.ball) return;
 
     const deltaTime = this.engine.getDeltaTime();
 
@@ -409,33 +421,32 @@ export class GameScreen {
       this.wasEnterDown = isEnterDown;
     }
 
-    // ゲーム進行処理は元コードをほぼコピー
+    // ゲーム進行処理
     if (this.gameState.phase === "game" && !this.isPaused) {
-      const allInputs = this.inputManager.getPaddleInputs();
-      if (this.aiController)
-        this.p2Input = this.aiController.getInputs(this.ball, this.paddle2);
-      else this.p2Input = allInputs.p2;
+      // プレイヤー更新（入力取得 + パドル更新を統合）
+      this.player1.update(deltaTime, this.ball);
+      this.player2.update(deltaTime, this.ball);
 
       // ラリーラッシュによるX方向の前進とステージ崩壊の更新
       const isRallyRush = this.settings.rallyRush;
       const onPaddleMove = () => {
-        if (this.stage && this.paddle1 && this.paddle2) {
-          this.stage.updateDestruction(this.paddle1, this.paddle2);
+        if (this.stage && this.player1 && this.player2) {
+          this.stage.updateDestruction(
+            this.player1.paddle,
+            this.player2.paddle,
+          );
         }
       };
-      this.paddle1.updateRallyPosition(
+      this.player1.paddle.updateRallyPosition(
         this.gameState.rallyCount,
         isRallyRush,
         onPaddleMove,
       );
-      this.paddle2.updateRallyPosition(
+      this.player2.paddle.updateRallyPosition(
         this.gameState.rallyCount,
         isRallyRush,
         onPaddleMove,
       );
-
-      this.paddle1.update(deltaTime, allInputs.p1);
-      this.paddle2.update(deltaTime, this.p2Input);
 
       const collisionWrapper = (ballMesh: Mesh, paddle: Paddle) => {
         const hit = checkPaddleCollision(ballMesh, paddle);
@@ -450,8 +461,8 @@ export class GameScreen {
 
       const result = this.ball.update(
         deltaTime,
-        this.paddle1,
-        this.paddle2,
+        this.player1.paddle,
+        this.player2.paddle,
         this.gameState,
         collisionWrapper,
       );
@@ -469,8 +480,8 @@ export class GameScreen {
       !this.stage ||
       !this.stage.camera ||
       !this.ball ||
-      !this.paddle1 ||
-      !this.paddle2
+      !this.player1 ||
+      !this.player2
     )
       return;
 
@@ -478,6 +489,7 @@ export class GameScreen {
     this.hud.stopFloatingTextAnimation(this.scene);
 
     transitionToPlayView(this.stage.camera, 1500).then(() => {
+      if (!this.hud) return;
       this.hud.showScore();
       this.hud.showRallyText();
       this.gameState.phase = "game";
@@ -485,8 +497,8 @@ export class GameScreen {
       countdownAndServe(
         "center",
         this.ball!,
-        this.paddle1!,
-        this.paddle2!,
+        this.player1!.paddle,
+        this.player2!.paddle,
         this.gameState,
         this.hud!,
         this.settings,
@@ -496,14 +508,14 @@ export class GameScreen {
   }
 
   private onScore(scorer: 1 | 2) {
-    if (!this.hud || !this.ball || !this.paddle1 || !this.paddle2) return;
+    if (!this.hud || !this.ball || !this.player1 || !this.player2) return;
 
     // ラリーリセット
     this.gameState.rallyCount = 0;
     this.hud.setRallyCount(0);
 
     // 設定の再読込（勝利スコアなど反映）
-    this.reloadSettings();
+    this.settings = loadSettings();
     const winningScore = this.settings.winningScore;
 
     // スコア更新
@@ -523,14 +535,14 @@ export class GameScreen {
       return;
     }
     // パドルのX前進を元へ戻し、コートをリセット
-    this.paddle1.updateRallyPosition(0, this.settings.rallyRush);
-    this.paddle2.updateRallyPosition(0, this.settings.rallyRush);
+    this.player1.paddle.updateRallyPosition(0, this.settings.rallyRush);
+    this.player2.paddle.updateRallyPosition(0, this.settings.rallyRush);
     if (this.stage) this.stage.resetCourt();
     countdownAndServe(
       this.gameState.lastWinner!,
       this.ball,
-      this.paddle1,
-      this.paddle2,
+      this.player1.paddle,
+      this.player2.paddle,
       this.gameState,
       this.hud,
       this.settings,
