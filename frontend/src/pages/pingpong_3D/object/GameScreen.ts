@@ -6,6 +6,7 @@ import { createPaddles } from "./Paddle";
 import type { Paddle } from "./Paddle";
 import { Stage } from "./Stage";
 import { checkPaddleCollision, countdownAndServe } from "./ballPaddleUtils";
+import type { UILockController } from "./ballPaddleUtils";
 import { GameHUD } from "./ui3D/GameHUD";
 import type { GameState } from "../core/game";
 import { disposeWinEffect, createWinEffect } from "./effect/finEffect";
@@ -22,10 +23,25 @@ import { InputManager } from "../input/keyboard";
 import { Player } from "./player/Player";
 import { HumanController } from "./player/HumanController";
 import { AIController } from "./player/AIController";
+import type { GamePhase } from "../core/game";
 
 const MAIN_CONSTS = {
   RALLY_DEBOUNCE_MS: 100,
   RALLY_NOTIFICATION: { INTERVAL: 10, MAX_LEVEL: 4 },
+  MENU_CAMERA: {
+    ALPHA: -Math.PI / 4,
+    BETA: Math.PI / 3,
+    RADIUS: 450,
+  },
+  TRANSITION_DURATION: {
+    CAMERA_TO_PLAY: 1500,
+    RESULT_DISPLAY: 5000,
+    HOME_NAVIGATION: 15000,
+  },
+  END_GAME_CAMERA: {
+    TARGET_RADIUS: 150,
+    ZOOM_OUT_DURATION: 10000,
+  },
 } as const;
 
 export class GameScreen {
@@ -33,8 +49,8 @@ export class GameScreen {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private player1: Player | null = null;
-  private player2: Player | null = null;
+  private player1!: Player;
+  private player2!: Player;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
@@ -54,10 +70,13 @@ export class GameScreen {
   private engine: Engine;
   private scene: Scene;
   private inputManager: InputManager;
-  private gameRoot: HTMLElement;
-  private uiLockController: any;
+  private onUIUpdate?: (phase: GamePhase, resetLocked: boolean) => void;
+  private uiLockController: UILockController;
 
-  constructor(canvas: HTMLCanvasElement, gameRoot: HTMLElement) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    onUIUpdate?: (phase: GamePhase, resetLocked: boolean) => void,
+  ) {
     this.canvas = canvas;
     this.engine = new Engine(this.canvas, true);
     this.scene = new Scene(this.engine);
@@ -65,23 +84,38 @@ export class GameScreen {
       onResize: () => {
         this.engine.resize();
       },
-      onKeyDown: (keys) => {
-        if (keys["Enter"]) {
-          console.log("Enter pressed");
-        }
-      },
     });
-    this.gameRoot = gameRoot;
+    this.onUIUpdate = onUIUpdate;
     this.uiLockController = {
       lock: () => {
         this.gameState.resetLocked = true;
-        this.updateUIButtons();
+        this.notifyUIUpdate();
       },
       unlock: () => {
         this.gameState.resetLocked = false;
-        this.updateUIButtons();
+        this.notifyUIUpdate();
       },
     };
+  }
+
+  private initPlayers(p1: Paddle, p2: Paddle) {
+    const humanController1 = new HumanController(this.inputManager, 1);
+    this.player1 = new Player(p1, humanController1, 1);
+
+    if (this.settings.player2Type !== "Player") {
+      const aiController = new AIController(this.settings.player2Type);
+      this.player2 = new Player(p2, aiController, 2);
+    } else {
+      const humanController2 = new HumanController(this.inputManager, 2);
+      this.player2 = new Player(p2, humanController2, 2);
+    }
+  }
+
+  // ------------------------
+  // UI更新通知
+  // ------------------------
+  private notifyUIUpdate() {
+    this.onUIUpdate?.(this.gameState.phase, this.gameState.resetLocked);
   }
 
   // ------------------------
@@ -100,21 +134,9 @@ export class GameScreen {
     this.hud = new GameHUD(this.scene);
     this.inputManager.setup();
 
-    // パドル生成
+    // パドル生成 + プレイヤー生成（共通ロジック）
     const { p1, p2 } = createPaddles(this.scene, this.settings);
-
-    // Player 1: 常に人間
-    const humanController1 = new HumanController(this.inputManager, 1);
-    this.player1 = new Player(p1, humanController1, 1);
-
-    // Player 2: 設定に応じてAIまたは人間
-    if (this.settings.player2Type !== "Player") {
-      const aiController = new AIController(this.settings.player2Type);
-      this.player2 = new Player(p2, aiController, 2);
-    } else {
-      const humanController2 = new HumanController(this.inputManager, 2);
-      this.player2 = new Player(p2, humanController2, 2);
-    }
+    this.initPlayers(p1, p2);
 
     this.ball = new Ball(
       this.scene,
@@ -135,12 +157,9 @@ export class GameScreen {
     );
 
     if (this.stage.camera) {
-      const MENU_ALPHA = -Math.PI / 4;
-      const MENU_BETA = Math.PI / 3;
-      const MENU_RADIUS = 450;
-      this.stage.camera.alpha = MENU_ALPHA;
-      this.stage.camera.beta = MENU_BETA;
-      this.stage.camera.radius = MENU_RADIUS;
+      this.stage.camera.alpha = MAIN_CONSTS.MENU_CAMERA.ALPHA;
+      this.stage.camera.beta = MAIN_CONSTS.MENU_CAMERA.BETA;
+      this.stage.camera.radius = MAIN_CONSTS.MENU_CAMERA.RADIUS;
     }
 
     this.hud.setScore(this.p1Score, this.p2Score);
@@ -160,7 +179,7 @@ export class GameScreen {
 
     this.scene.clearColor = new Color4(0, 0, 0, 0.5);
     // 初期UI状態を反映（中央メニューを非表示など）
-    this.updateUIButtons();
+    this.notifyUIUpdate();
 
     this.engine.runRenderLoop(() => this.gameLoop());
   }
@@ -229,6 +248,7 @@ export class GameScreen {
     this.gameState.rallyCount = 0;
     this.p1Score = 0;
     this.p2Score = 0;
+    this.notifyUIUpdate();
 
     if (this.hud) {
       this.hud.setScore(0, 0);
@@ -245,17 +265,8 @@ export class GameScreen {
       this.player1.paddle.mesh.dispose();
       this.player2.paddle.mesh.dispose();
 
-      // 新しいパドルでプレイヤーを再生成
-      const humanController1 = new HumanController(this.inputManager, 1);
-      this.player1 = new Player(p1, humanController1, 1);
-
-      if (this.settings.player2Type !== "Player") {
-        const aiController = new AIController(this.settings.player2Type);
-        this.player2 = new Player(p2, aiController, 2);
-      } else {
-        const humanController2 = new HumanController(this.inputManager, 2);
-        this.player2 = new Player(p2, humanController2, 2);
-      }
+      // 新しいパドルでプレイヤーを再生成（共通ロジック）
+      this.initPlayers(p1, p2);
     }
 
     if (this.ball && this.player1 && this.player2) {
@@ -288,7 +299,7 @@ export class GameScreen {
 
     this.isPaused = true;
     this.gameState.phase = "pause";
-    this.updateUIButtons();
+    this.notifyUIUpdate();
   }
 
   resumeGame() {
@@ -297,7 +308,7 @@ export class GameScreen {
 
     this.isPaused = false;
     this.gameState.phase = "game";
-    this.updateUIButtons();
+    this.notifyUIUpdate();
   }
 
   // ------------------------
@@ -306,92 +317,6 @@ export class GameScreen {
   resetCamera() {
     if (!this.stage) return;
     this.stage.resetCamera();
-  }
-
-  // ------------------------
-  // UI更新
-  // ------------------------
-  updateUIButtons() {
-    const overlay = this.gameRoot.querySelector<HTMLElement>("#pause-overlay");
-    // 左上UI
-    const helpOverlay =
-      this.gameRoot.querySelector<HTMLElement>("#help-overlay");
-    const btnHelp =
-      this.gameRoot.querySelector<HTMLButtonElement>("#btn-3d-help");
-    const btnHomeNav =
-      this.gameRoot.querySelector<HTMLButtonElement>("#btn-3d-home-nav");
-    const btnSettingsNav = this.gameRoot.querySelector<HTMLButtonElement>(
-      "#btn-3d-settings-nav",
-    );
-    const btnPause =
-      this.gameRoot.querySelector<HTMLButtonElement>("#btn-3d-pause");
-    const btnCameraReset = this.gameRoot.querySelector<HTMLButtonElement>(
-      "#btn-3d-camera-reset",
-    );
-
-    // 中央ポーズメニュー
-    const centralBtns =
-      this.gameRoot.querySelectorAll<HTMLButtonElement>(".central-btn");
-    const btnReset =
-      this.gameRoot.querySelector<HTMLButtonElement>("#btn-3d-reset");
-
-    const hide = (el: HTMLElement | null) => el && (el.style.display = "none");
-    const show = (el: HTMLElement | null) =>
-      el && (el.style.display = "inline-flex");
-
-    const isHelpVisible = helpOverlay && helpOverlay.style.display === "flex";
-    if (this.gameState.phase === "menu") {
-      if (overlay) overlay.style.display = "none";
-      centralBtns.forEach((btn) => hide(btn));
-
-      if (isHelpVisible) {
-        hide(btnHomeNav);
-        hide(btnSettingsNav);
-        hide(btnHelp);
-      } else {
-        show(btnHomeNav);
-        show(btnSettingsNav);
-        show(btnHelp);
-      }
-
-      hide(btnPause);
-      hide(btnCameraReset);
-    } else if (this.gameState.phase === "game" && !this.isPaused) {
-      if (overlay) overlay.style.display = "none";
-      hide(helpOverlay);
-      centralBtns.forEach((btn) => hide(btn));
-
-      hide(btnHomeNav);
-      hide(btnSettingsNav);
-      hide(btnHelp);
-      show(btnPause);
-      show(btnCameraReset);
-    } else if (this.gameState.phase === "pause") {
-      if (overlay) overlay.style.display = "block";
-      hide(helpOverlay);
-      centralBtns.forEach((btn) => show(btn));
-
-      hide(btnHomeNav);
-      hide(btnSettingsNav);
-      hide(btnHelp);
-      hide(btnPause);
-      show(btnCameraReset);
-    } else {
-      if (overlay) overlay.style.display = "none";
-      hide(helpOverlay);
-      centralBtns.forEach((btn) => hide(btn));
-      hide(btnHomeNav);
-      hide(btnSettingsNav);
-      hide(btnHelp);
-      hide(btnPause);
-      hide(btnCameraReset);
-    }
-
-    if (btnReset) {
-      const locked = this.gameState.resetLocked;
-      btnReset.disabled = locked;
-      btnReset.classList.toggle("btn-disabled", locked);
-    }
   }
 
   // ------------------------
@@ -405,18 +330,8 @@ export class GameScreen {
     if (this.gameState.phase === "menu") {
       const isEnterDown = this.inputManager.isEnterPressed();
       if (isEnterDown && !this.wasEnterDown) {
-        const helpOverlay =
-          this.gameRoot.querySelector<HTMLElement>("#help-overlay");
-        const isHelpVisible =
-          helpOverlay && helpOverlay.style.display === "flex";
-
-        if (isHelpVisible) {
-          helpOverlay.style.display = "none";
-          this.updateUIButtons();
-        } else {
-          this.gameState.phase = "starting";
-          this.handleEnterToStart();
-        }
+        this.gameState.phase = "starting";
+        this.handleEnterToStart();
       }
       this.wasEnterDown = isEnterDown;
     }
@@ -488,11 +403,15 @@ export class GameScreen {
     this.hud.clearTitle();
     this.hud.stopFloatingTextAnimation(this.scene);
 
-    transitionToPlayView(this.stage.camera, 1500).then(() => {
+    transitionToPlayView(
+      this.stage.camera,
+      MAIN_CONSTS.TRANSITION_DURATION.CAMERA_TO_PLAY,
+    ).then(() => {
       if (!this.hud) return;
       this.hud.showScore();
       this.hud.showRallyText();
       this.gameState.phase = "game";
+      this.notifyUIUpdate();
 
       countdownAndServe(
         "center",
@@ -568,7 +487,7 @@ export class GameScreen {
 
     this.endGameDirection(winner);
 
-    // リザルト表示は5秒後
+    // リザルト表示
     window.setTimeout(() => {
       if (this.hud) {
         this.hud.showFinalResult(
@@ -577,22 +496,24 @@ export class GameScreen {
           this.p2Score,
         );
       }
-    }, 5000);
+    }, MAIN_CONSTS.TRANSITION_DURATION.RESULT_DISPLAY);
 
-    // 後始末＋Home遷移は15秒後
+    // 後始末＋Home遷移
     window.setTimeout(() => {
       this.cleanupAndGoHome();
-    }, 15000);
+    }, MAIN_CONSTS.TRANSITION_DURATION.HOME_NAVIGATION);
   }
 
   private async endGameDirection(winner: 1 | 2) {
     if (!this.scene || !this.stage || !this.stage.camera || !this.ball) return;
-    const TARGET_RADIUS = 150;
-    const ZOOM_OUT_DURATION_MS = 10000;
     createWinEffect(this.scene, winner);
     await cutIn(this.stage.camera, this.ball.mesh.position);
     stopZoomOut();
-    zoomOut(this.stage.camera, TARGET_RADIUS, ZOOM_OUT_DURATION_MS);
+    zoomOut(
+      this.stage.camera,
+      MAIN_CONSTS.END_GAME_CAMERA.TARGET_RADIUS,
+      MAIN_CONSTS.END_GAME_CAMERA.ZOOM_OUT_DURATION,
+    );
   }
 
   private cleanupAndGoHome() {

@@ -6,7 +6,6 @@ import { PingPong3DGameRoute } from "@/pages/pingpong_3D";
 import { PingPong3DSettingRoute } from "@/pages/pingpong_3D_config";
 import { LoginRoute } from "@/pages/login";
 import { RegisterRoute } from "@/pages/register";
-import { WebSocketRoute } from "@/pages/websocket";
 import { MeRoute } from "@/pages/me";
 import { GoogleSignupRoute } from "@/pages/google_signup";
 import { TwoFactorRoute } from "@/pages/two_factor";
@@ -53,12 +52,6 @@ export const routes: Routes = {
     show_navbar: false,
     layout: "auth",
     css_path: routeStyles.register,
-  },
-  "/websocket": {
-    component: WebSocketRoute,
-    show_navbar: true,
-    layout: "center",
-    css_path: routeStyles.websocket,
   },
   "/me": {
     component: MeRoute,
