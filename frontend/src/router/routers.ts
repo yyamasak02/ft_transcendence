@@ -4,6 +4,7 @@ import { HomeRoute } from "@/pages/home";
 import { PingPongRoute } from "@/pages/pingpong";
 import { PingPong3DGameRoute } from "@/pages/pingpong_3D";
 import { PingPong3DSettingRoute } from "@/pages/pingpong_3D_config";
+import { PingPong3DRemoteWaitingRoute } from "@/pages/pingpong_3D_remote";
 import { LoginRoute } from "@/pages/login";
 import { RegisterRoute } from "@/pages/register";
 import { MeRoute } from "@/pages/me";
@@ -40,6 +41,12 @@ export const routes: Routes = {
     show_navbar: true,
     layout: "center",
     css_path: routeStyles.pingpong3D,
+  },
+  "/pingpong_3D_remote": {
+    component: PingPong3DRemoteWaitingRoute,
+    show_navbar: true,
+    layout: "center",
+    css_path: routeStyles.pingpong3DConfig,
   },
   "/login": {
     component: LoginRoute,

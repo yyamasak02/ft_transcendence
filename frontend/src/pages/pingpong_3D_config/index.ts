@@ -255,7 +255,18 @@ class PingPongComponent implements Component {
 
     updatePreview();
 
-    this._startBtn.addEventListener("click", () => {
+    const ensureUserId = () => {
+      const KEY = "pp3d-remote-userId";
+      let id = localStorage.getItem(KEY);
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem(KEY, id);
+      }
+      return id;
+    };
+
+    this._startBtn.addEventListener("click", async () => {
+      // Always save local game settings
       saveSettings({
         winningScore: Number(this._ruleInputs.winningScore.value),
         rallyRush: this._ruleInputs.rallyRush.checked,
@@ -268,7 +279,49 @@ class PingPongComponent implements Component {
         player2Type: this._playerInputs.p2.type.value as PlayerType,
       });
 
-      navigate("/pingpong_3D");
+      const p2Type = this._playerInputs.p2.type.value;
+      if (p2Type !== "Remote") {
+        navigate("/pingpong_3D");
+        return;
+      }
+
+      // Remote flow
+      const role = this._remoteUI.modeSelect.value as "host" | "guest";
+      const userId = ensureUserId();
+      try {
+        if (role === "host") {
+          const res = await fetch("/api/connect/rooms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId }),
+          });
+          if (!res.ok) throw new Error("failed_create_room");
+          const data = await res.json();
+          const roomId = data.roomId as string;
+          this._remoteUI.roomInput.value = roomId;
+          navigate(
+            `/pingpong_3D_remote?roomId=${encodeURIComponent(roomId)}&role=host`,
+          );
+        } else {
+          const roomId = this._remoteUI.roomInput.value.trim();
+          if (!roomId) return;
+          const res = await fetch(
+            `/api/connect/rooms/${encodeURIComponent(roomId)}/join`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId }),
+            },
+          );
+          if (!res.ok) throw new Error("failed_join_room");
+          navigate(
+            `/pingpong_3D_remote?roomId=${encodeURIComponent(roomId)}&role=guest`,
+          );
+        }
+      } catch (e) {
+        // simple fallback: stay on page; optionally show alert
+        console.error(e);
+      }
     });
   }
 
@@ -279,7 +332,6 @@ class PingPongComponent implements Component {
     document.documentElement.classList.remove("overflow-hidden");
   }
 }
-
 
 const pingPong3DSettingComponent = new PingPongComponent(domRoots.app);
 

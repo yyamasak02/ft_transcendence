@@ -38,12 +38,15 @@ const AI_CONFIG = {
 export class AIController implements PlayerController {
   private lastSearchTime: number = 0;
   private targetPos: number = 0;
-  private difficulty: Exclude<PlayerType, "Player">;
+  private difficulty: Exclude<PlayerType, "Player" | "Remote">;
   private delayedTargetPos: number = 0;
   private lastActionTime: number = 0;
 
   constructor(difficulty: PlayerType) {
-    this.difficulty = difficulty === "Player" ? "Normal" : difficulty;
+    this.difficulty =
+      difficulty === "Player" || difficulty === "Remote"
+        ? "Normal"
+        : difficulty;
     this.lastSearchTime = 0;
   }
 

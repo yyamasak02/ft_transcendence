@@ -23,6 +23,7 @@ import { InputManager } from "../input/keyboard";
 import { Player } from "./player/Player";
 import { HumanController } from "./player/HumanController";
 import { AIController } from "./player/AIController";
+import { RemoteController } from "./player/RemoteController";
 import type { GamePhase } from "../core/game";
 
 const MAIN_CONSTS = {
@@ -72,6 +73,18 @@ export class GameScreen {
   private inputManager: InputManager;
   private onUIUpdate?: (phase: GamePhase, resetLocked: boolean) => void;
   private uiLockController: UILockController;
+  // Remote mode
+  private remoteMode: boolean = false;
+  private remoteRoomId: string | null = null;
+  private remoteUserId: string | null = null;
+  private remoteSide: "p1" | "p2" = "p1";
+  private remoteStartAt: number | null = null;
+  private remoteWS: WebSocket | null = null;
+  private remoteOpponentCtrl: RemoteController | null = null;
+  private lastSentDirection: "up" | "down" | "stop" = "stop";
+  private serverAuthority: boolean = false;
+  private serverState: any = null;
+  private serverStarted: boolean = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -96,9 +109,88 @@ export class GameScreen {
         this.notifyUIUpdate();
       },
     };
+
+    // parse remote mode query params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "remote") {
+      this.remoteMode = true;
+      this.remoteRoomId = params.get("roomId");
+      this.remoteUserId = params.get("userId");
+      const side = params.get("side");
+      this.remoteSide = side === "p2" ? "p2" : "p1";
+      const startAt = params.get("startAt");
+      this.remoteStartAt = startAt ? Number(startAt) : null;
+      this.serverAuthority = params.get("auth") === "server";
+    }
   }
 
+  private applyServerState() {
+    if (!this.serverState || !this.player1 || !this.player2 || !this.ball)
+      return;
+    const courtW = GAME_CONFIG.COURT_WIDTH;
+    const courtH = GAME_CONFIG.COURT_HEIGHT;
+
+    // Apply ball position from server
+    const x = (this.serverState.ball?.x ?? 0) * (courtW / 2);
+    const z = (this.serverState.ball?.y ?? 0) * (courtH / 2);
+    this.ball.mesh.position.x = x;
+    this.ball.mesh.position.z = z;
+
+    // Apply paddle positions from server
+    // NOTE: Server uses p1=left(-X), p2=right(+X), but client uses p1=right(+X), p2=left(-X)
+    // So we swap p1 and p2 when applying server state
+    const serverP1z = (this.serverState.players?.p1?.y ?? 0) * (courtH / 2);
+    const serverP2z = (this.serverState.players?.p2?.y ?? 0) * (courtH / 2);
+    this.player2.paddle.mesh.position.z = serverP1z; // server p1 (left) -> client p2 (left)
+    this.player1.paddle.mesh.position.z = serverP2z; // server p2 (right) -> client p1 (right)
+
+    // Apply score from server
+    if (this.serverState.score) {
+      const newP1Score = this.serverState.score.p1 ?? 0;
+      const newP2Score = this.serverState.score.p2 ?? 0;
+      if (newP1Score !== this.p1Score || newP2Score !== this.p2Score) {
+        this.p1Score = newP1Score;
+        this.p2Score = newP2Score;
+        if (this.hud) {
+          this.hud.setScore(this.p1Score, this.p2Score);
+        }
+      }
+    }
+
+    // Apply countdown from server (if in countdown phase)
+    if (
+      this.serverState.status === "countdown" &&
+      this.serverState.countdown > 0 &&
+      this.hud
+    ) {
+      const countdownValue = Math.ceil(this.serverState.countdown);
+      this.hud.setCountdown(String(countdownValue));
+    } else if (this.hud && this.serverState.status === "playing") {
+      this.hud.clearCountdown();
+    }
+  }
   private initPlayers(p1: Paddle, p2: Paddle) {
+    if (this.remoteMode) {
+      const oppCtrl = new RemoteController();
+      this.remoteOpponentCtrl = oppCtrl;
+      if (this.remoteSide === "p1") {
+        this.player1 = new Player(
+          p1,
+          new HumanController(this.inputManager, 1),
+          1,
+        );
+        this.player2 = new Player(p2, oppCtrl, 2);
+      } else {
+        this.player1 = new Player(p1, oppCtrl, 1);
+        this.player2 = new Player(
+          p2,
+          new HumanController(this.inputManager, 2),
+          2,
+        );
+      }
+      return;
+    }
+
     const humanController1 = new HumanController(this.inputManager, 1);
     this.player1 = new Player(p1, humanController1, 1);
 
@@ -182,6 +274,10 @@ export class GameScreen {
     this.notifyUIUpdate();
 
     this.engine.runRenderLoop(() => this.gameLoop());
+
+    if (this.remoteMode) {
+      this.setupRemoteWS();
+    }
   }
 
   // ------------------------
@@ -200,6 +296,12 @@ export class GameScreen {
     this.p1Score = 0;
     this.p2Score = 0;
     this.inputManager.cleanup();
+    if (this.remoteWS) {
+      try {
+        this.remoteWS.close();
+      } catch {}
+      this.remoteWS = null;
+    }
     stopZoomOut();
     disposeWinEffect();
 
@@ -328,65 +430,167 @@ export class GameScreen {
     const deltaTime = this.engine.getDeltaTime();
 
     if (this.gameState.phase === "menu") {
-      const isEnterDown = this.inputManager.isEnterPressed();
-      if (isEnterDown && !this.wasEnterDown) {
-        this.gameState.phase = "starting";
-        this.handleEnterToStart();
+      if (this.remoteMode) {
+        if (this.serverAuthority) {
+          // In server-authoritative mode, start when we receive the first game:state
+          if (
+            this.serverState &&
+            this.serverState.status &&
+            !this.serverStarted
+          ) {
+            this.serverStarted = true;
+            this.gameState.phase = "starting";
+            this.handleEnterToStart();
+          }
+        } else if (this.remoteStartAt && Date.now() >= this.remoteStartAt) {
+          this.gameState.phase = "starting";
+          this.handleEnterToStart();
+          this.remoteStartAt = null;
+        }
+      } else {
+        const isEnterDown = this.inputManager.isEnterPressed();
+        if (isEnterDown && !this.wasEnterDown) {
+          this.gameState.phase = "starting";
+          this.handleEnterToStart();
+        }
+        this.wasEnterDown = isEnterDown;
       }
-      this.wasEnterDown = isEnterDown;
     }
 
     // ゲーム進行処理
     if (this.gameState.phase === "game" && !this.isPaused) {
-      // プレイヤー更新（入力取得 + パドル更新を統合）
-      this.player1.update(deltaTime, this.ball);
-      this.player2.update(deltaTime, this.ball);
+      if (this.remoteMode && this.serverAuthority) {
+        // Server-authoritative mode: only apply server state, no local game logic
+        // All game logic (paddle movement, ball physics, scoring) is handled by server
+        this.applyServerState();
+      } else {
+        // Client-authoritative or local mode: run full game logic
+        // プレイヤー更新（入力取得 + パドル更新を統合）
+        this.player1.update(deltaTime, this.ball);
+        this.player2.update(deltaTime, this.ball);
 
-      // ラリーラッシュによるX方向の前進とステージ崩壊の更新
-      const isRallyRush = this.settings.rallyRush;
-      const onPaddleMove = () => {
-        if (this.stage && this.player1 && this.player2) {
-          this.stage.updateDestruction(
-            this.player1.paddle,
-            this.player2.paddle,
+        // ラリーラッシュによるX方向の前進とステージ崩壊の更新
+        const isRallyRush = this.settings.rallyRush;
+        const onPaddleMove = () => {
+          if (this.stage && this.player1 && this.player2) {
+            this.stage.updateDestruction(
+              this.player1.paddle,
+              this.player2.paddle,
+            );
+          }
+        };
+        this.player1.paddle.updateRallyPosition(
+          this.gameState.rallyCount,
+          isRallyRush,
+          onPaddleMove,
+        );
+        this.player2.paddle.updateRallyPosition(
+          this.gameState.rallyCount,
+          isRallyRush,
+          onPaddleMove,
+        );
+
+        const collisionWrapper = (ballMesh: Mesh, paddle: Paddle) => {
+          const hit = checkPaddleCollision(ballMesh, paddle);
+          const now = Date.now();
+          if (hit && now - this.lastRallyTime > MAIN_CONSTS.RALLY_DEBOUNCE_MS) {
+            this.lastRallyTime = now;
+            this.gameState.rallyCount++;
+            if (this.hud) this.hud.setRallyCount(this.gameState.rallyCount);
+          }
+          return hit;
+        };
+
+        const result = this.ball.update(
+          deltaTime,
+          this.player1.paddle,
+          this.player2.paddle,
+          this.gameState,
+          collisionWrapper,
+        );
+        if (result) {
+          this.onScore(result.scorer);
+        }
+      }
+    }
+
+    // remote: send local input changes (during game and countdown for server-authoritative mode)
+    if (
+      this.remoteMode &&
+      this.remoteWS &&
+      this.remoteWS.readyState === WebSocket.OPEN &&
+      (this.gameState.phase === "game" ||
+        (this.serverAuthority && this.gameState.phase !== "menu"))
+    ) {
+      const inputs = this.inputManager.getPaddleInputs();
+      const local = this.remoteSide === "p1" ? inputs.p1 : inputs.p2;
+      const direction: "up" | "down" | "stop" = local.up
+        ? "up"
+        : local.down
+          ? "down"
+          : "stop";
+      if (direction !== this.lastSentDirection) {
+        this.lastSentDirection = direction;
+        try {
+          this.remoteWS?.send(
+            JSON.stringify({
+              type: "input:paddle",
+              roomId: this.remoteRoomId,
+              userId: this.remoteUserId,
+              payload: { direction },
+            }),
           );
-        }
-      };
-      this.player1.paddle.updateRallyPosition(
-        this.gameState.rallyCount,
-        isRallyRush,
-        onPaddleMove,
-      );
-      this.player2.paddle.updateRallyPosition(
-        this.gameState.rallyCount,
-        isRallyRush,
-        onPaddleMove,
-      );
-
-      const collisionWrapper = (ballMesh: Mesh, paddle: Paddle) => {
-        const hit = checkPaddleCollision(ballMesh, paddle);
-        const now = Date.now();
-        if (hit && now - this.lastRallyTime > MAIN_CONSTS.RALLY_DEBOUNCE_MS) {
-          this.lastRallyTime = now;
-          this.gameState.rallyCount++;
-          if (this.hud) this.hud.setRallyCount(this.gameState.rallyCount);
-        }
-        return hit;
-      };
-
-      const result = this.ball.update(
-        deltaTime,
-        this.player1.paddle,
-        this.player2.paddle,
-        this.gameState,
-        collisionWrapper,
-      );
-      if (result) {
-        this.onScore(result.scorer);
+        } catch {}
       }
     }
 
     this.scene.render();
+  }
+
+  private setupRemoteWS() {
+    if (!this.remoteRoomId || !this.remoteUserId) return;
+    const proto = location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${proto}://${location.host}/ws/connect/ready`;
+    const ws = new WebSocket(wsUrl);
+    this.remoteWS = ws;
+    ws.onopen = () => {
+      ws.send(
+        JSON.stringify({
+          type: "connect",
+          roomId: this.remoteRoomId,
+          userId: this.remoteUserId,
+        }),
+      );
+    };
+    ws.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (!this.serverAuthority) {
+          // Client-authoritative mode: relay opponent paddle input
+          if (
+            msg?.type === "input:paddle" &&
+            msg?.payload?.direction &&
+            this.remoteOpponentCtrl
+          ) {
+            const dir = msg.payload.direction as "up" | "down" | "stop";
+            this.remoteOpponentCtrl.setDirection(dir);
+          }
+        }
+        if (this.serverAuthority) {
+          // Server-authoritative mode: receive complete game state
+          if (msg?.type === "game:state" && msg?.payload) {
+            this.serverState = msg.payload;
+            // applyServerState will handle all updates in the game loop
+          }
+          if (msg?.type === "game:end") {
+            setTimeout(() => this.cleanupAndGoHome(), 3000);
+          }
+        }
+      } catch {}
+    };
+    ws.onclose = () => {
+      this.remoteWS = null;
+    };
   }
 
   private handleEnterToStart() {
@@ -412,17 +616,18 @@ export class GameScreen {
       this.hud.showRallyText();
       this.gameState.phase = "game";
       this.notifyUIUpdate();
-
-      countdownAndServe(
-        "center",
-        this.ball!,
-        this.player1!.paddle,
-        this.player2!.paddle,
-        this.gameState,
-        this.hud!,
-        this.settings,
-        this.uiLockController,
-      );
+      if (!this.remoteMode || !this.serverAuthority) {
+        countdownAndServe(
+          "center",
+          this.ball!,
+          this.player1!.paddle,
+          this.player2!.paddle,
+          this.gameState,
+          this.hud!,
+          this.settings,
+          this.uiLockController,
+        );
+      }
     });
   }
 
