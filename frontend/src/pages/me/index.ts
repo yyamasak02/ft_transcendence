@@ -16,11 +16,13 @@ import { formatMatchDate } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
 
+const UPLOAD_IMAGE_SIZE = 256;
+
 class MeComponent {
   render = () => {
     const accessToken = getStoredAccessToken();
     const currentName = accessToken
-      ? decodeJwtPayload(accessToken)?.name ?? word("user_menu")
+      ? (decodeJwtPayload(accessToken)?.name ?? word("user_menu"))
       : word("user_menu");
     const pickerItems = PROFILE_IMAGES.map(
       (item) =>
@@ -45,7 +47,6 @@ class MeComponent {
           <h2 class="me-title">${currentName}</h2>
           <div class="me-avatar-row">
             <img class="me-avatar" id="me-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
-            <a class="me-avatar-link" href="#" id="me-avatar-change">${t("profile_image_change")}</a>
           </div>
           <div class="me-avatar-picker" id="me-avatar-picker">
             ${pickerItems}
@@ -250,7 +251,7 @@ const setupUserSearch = () => {
     if (!name) return;
     const accessToken = getStoredAccessToken();
     const currentName = accessToken
-      ? decodeJwtPayload(accessToken)?.name ?? ""
+      ? (decodeJwtPayload(accessToken)?.name ?? "")
       : "";
     if (currentName && currentName.toLowerCase() === name.toLowerCase()) {
       if (message) message.textContent = word("user_search_self");
@@ -386,8 +387,10 @@ const loadFriends = async () => {
       }
       if (a.status === "accepted") return -1;
       if (b.status === "accepted") return 1;
-      if (a.status === "pending_incoming" && b.status === "pending_outgoing") return -1;
-      if (a.status === "pending_outgoing" && b.status === "pending_incoming") return 1;
+      if (a.status === "pending_incoming" && b.status === "pending_outgoing")
+        return -1;
+      if (a.status === "pending_outgoing" && b.status === "pending_incoming")
+        return 1;
       return 0;
     });
     renderFriends(sorted as FriendItem[]);
@@ -431,7 +434,6 @@ const setupFriendActions = () => {
   });
 };
 
-
 const renderMatches = (
   items: Array<{
     id: number;
@@ -450,38 +452,61 @@ const renderMatches = (
     summary.textContent = "";
   }
   if (!items.length) {
-    container.textContent = word("no_matches");
+    container.innerHTML = `<div class="me-no-matches">${word("no_matches")}</div>`;
     return;
   }
   let wins = 0;
   let losses = 0;
-  let draws = 0;
+
   container.innerHTML = "";
   items.forEach((item) => {
     const row = document.createElement("div");
-    row.className = "me-match";
     const isOwner = currentName ? item.ownerName === currentName : true;
     const opponent = isOwner
       ? (item.guestName ?? word("ai_opponent"))
       : item.ownerName;
     const myScore = isOwner ? item.ownerScore : item.guestScore;
     const oppScore = isOwner ? item.guestScore : item.ownerScore;
-    const result =
-      myScore > oppScore
-        ? word("result_win")
-        : myScore < oppScore
-          ? word("result_lose")
-          : word("result_draw");
-    if (myScore > oppScore) wins += 1;
-    else if (myScore < oppScore) losses += 1;
-    else draws += 1;
-    const score = `${myScore} - ${oppScore}`;
+    let statusClass = "status-lose";
+    let symbol = "○";
+    let resultText = "LOSE";
+
+    if (myScore > oppScore) {
+      wins += 1;
+      statusClass = "status-win";
+      symbol = "●";
+      resultText = "WIN";
+    } else {
+      losses += 1;
+      statusClass = "status-lose";
+      symbol = "○";
+      resultText = "LOSE";
+    }
+
     const formattedDate = formatMatchDateByLang(item.createdAt);
-    row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
+
+    row.className = `me-match-card ${statusClass}`;
+
+    row.innerHTML = `
+      <div class="card-left">
+        <span class="result-symbol">${symbol}</span>
+        <span class="result-label">${resultText}</span>
+      </div>
+      <div class="card-center">
+        <div class="opponent-name">${opponent}</div>
+        <div class="match-date">${formattedDate}</div>
+      </div>
+      <div class="card-right">
+        <span class="score-num my-score">${myScore}</span>
+        <span class="score-sep">-</span>
+        <span class="score-num opp-score">${oppScore}</span>
+      </div>
+    `;
+
     container.appendChild(row);
   });
   if (summary) {
-    summary.textContent = `${word("match_summary")} ${word("result_win")}: ${wins} / ${word("result_lose")}: ${losses} / ${word("result_draw")}: ${draws}`;
+    summary.textContent = `${word("match_summary")} ${wins}W - ${losses}L`;
   }
 };
 
@@ -532,14 +557,18 @@ const loadProfileImage = async (name: string) => {
     if (!res.ok) return;
     const body = await res.json().catch(() => ({}));
     const profileImage = body?.profileImage ?? null;
-    const profileImageKey = typeof profileImage === "string" ? profileImage : null;
+    const profileImageKey =
+      typeof profileImage === "string" ? profileImage : null;
     setProfileImage(profileImageKey, name);
   } catch {
     return;
   }
 };
 
-const updateProfileImage = async (profileImage: ProfileImageKey, name: string | null) => {
+const updateProfileImage = async (
+  profileImage: ProfileImageKey,
+  name: string | null,
+) => {
   const accessToken = getStoredAccessToken();
   if (!accessToken) return;
   try {
@@ -584,14 +613,13 @@ const uploadProfileImage = async (imageBase64: string, name: string | null) => {
 };
 
 const setupProfileImagePicker = () => {
-  const toggle = document.querySelector<HTMLAnchorElement>("#me-avatar-change");
+  const avatarImg = document.querySelector<HTMLImageElement>("#me-avatar");
   const picker = document.querySelector<HTMLDivElement>("#me-avatar-picker");
-  const uploadInput = document.querySelector<HTMLInputElement>(
-    "#me-avatar-upload",
-  );
+  const uploadInput =
+    document.querySelector<HTMLInputElement>("#me-avatar-upload");
   const message = document.querySelector<HTMLDivElement>("#me-avatar-msg");
-  if (!toggle || !picker) return;
-  toggle.addEventListener("click", (event) => {
+  if (!avatarImg || !picker) return;
+  avatarImg.addEventListener("click", (event) => {
     event.preventDefault();
     picker.classList.toggle("is-open");
   });
@@ -604,7 +632,9 @@ const setupProfileImagePicker = () => {
     const isValid = PROFILE_IMAGES.some((item) => item.key === profileImage);
     if (!isValid) return;
     const accessToken = getStoredAccessToken();
-    const name = accessToken ? decodeJwtPayload(accessToken)?.name ?? null : null;
+    const name = accessToken
+      ? (decodeJwtPayload(accessToken)?.name ?? null)
+      : null;
     updateProfileImage(profileImage, name);
     picker.classList.remove("is-open");
   });
@@ -626,13 +656,45 @@ const setupProfileImagePicker = () => {
         uploadInput.value = "";
         return;
       }
+      picker.classList.remove("is-open");
       const reader = new FileReader();
       reader.onload = () => {
         const result = typeof reader.result === "string" ? reader.result : null;
         if (!result) return;
-        const accessToken = getStoredAccessToken();
-        const name = accessToken ? decodeJwtPayload(accessToken)?.name ?? null : null;
-        uploadProfileImage(result, name);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+
+          canvas.width = UPLOAD_IMAGE_SIZE;
+          canvas.height = UPLOAD_IMAGE_SIZE;
+
+          const minSize = Math.min(img.width, img.height);
+          const sx = (img.width - minSize) / 2;
+          const sy = (img.height - minSize) / 2;
+
+          ctx.drawImage(
+            img,
+            sx,
+            sy,
+            minSize,
+            minSize,
+            0,
+            0,
+            UPLOAD_IMAGE_SIZE,
+            UPLOAD_IMAGE_SIZE,
+          );
+
+          const resizedDataUrl = canvas.toDataURL("image/png");
+
+          const accessToken = getStoredAccessToken();
+          const name = accessToken
+            ? (decodeJwtPayload(accessToken)?.name ?? null)
+            : null;
+          uploadProfileImage(resizedDataUrl, name);
+        };
+        img.src = result;
       };
       reader.readAsDataURL(file);
     });
@@ -676,7 +738,7 @@ export const MeRoute: Route = {
     }
     const accessToken = getStoredAccessToken();
     const currentName = accessToken
-      ? decodeJwtPayload(accessToken)?.name ?? null
+      ? (decodeJwtPayload(accessToken)?.name ?? null)
       : null;
     if (currentName) loadProfileImage(currentName);
     setupTwoFactor();
