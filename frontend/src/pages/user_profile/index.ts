@@ -74,14 +74,23 @@ class UserProfileController {
 
   constructor() {
     this.nameEl = document.querySelector<HTMLDivElement>("#user-profile-name");
-    this.statusEl = document.querySelector<HTMLDivElement>("#user-profile-status");
-    this.avatarEl = document.querySelector<HTMLImageElement>("#user-profile-avatar");
+    this.statusEl = document.querySelector<HTMLDivElement>(
+      "#user-profile-status",
+    );
+    this.avatarEl = document.querySelector<HTMLImageElement>(
+      "#user-profile-avatar",
+    );
     this.friendButton = document.querySelector<HTMLButtonElement>(
       "#user-profile-friend-request",
     );
-    this.friendMsg = document.querySelector<HTMLDivElement>("#user-profile-friend-msg");
-    this.matchesEl = document.querySelector<HTMLDivElement>("#user-profile-matches");
-    this.backButton = document.querySelector<HTMLButtonElement>("#user-profile-back");
+    this.friendMsg = document.querySelector<HTMLDivElement>(
+      "#user-profile-friend-msg",
+    );
+    this.matchesEl = document.querySelector<HTMLDivElement>(
+      "#user-profile-matches",
+    );
+    this.backButton =
+      document.querySelector<HTMLButtonElement>("#user-profile-back");
   }
 
   setProfileMessage(message: string) {
@@ -134,22 +143,46 @@ class UserProfileController {
     this.matchesEl.innerHTML = "";
     items.forEach((item) => {
       const row = document.createElement("div");
-      row.className = "user-profile-match";
       const isOwner = item.ownerName === profileName;
       const opponent = isOwner
-        ? item.guestName ?? word("ai_opponent")
+        ? (item.guestName ?? word("ai_opponent"))
         : item.ownerName;
       const myScore = isOwner ? item.ownerScore : item.guestScore;
       const oppScore = isOwner ? item.guestScore : item.ownerScore;
-      const result =
-        myScore > oppScore
-          ? word("result_win")
-          : myScore < oppScore
-            ? word("result_lose")
-            : word("result_draw");
-      const score = `${myScore} - ${oppScore}`;
+      let statusClass = "status-lose";
+      let symbol = "○";
+      let resultText = "LOSE";
+
+      if (myScore > oppScore) {
+        statusClass = "status-win";
+        symbol = "●";
+        resultText = "WIN";
+      } else {
+        statusClass = "status-lose";
+        symbol = "○";
+        resultText = "LOSE";
+      }
+
       const formattedDate = formatMatchDateByLang(item.createdAt);
-      row.textContent = `${result} | ${opponent} | ${score} | ${formattedDate}`;
+
+      row.className = `user-profile-match ${statusClass}`;
+
+      row.innerHTML = `
+        <div class="card-left">
+          <span class="result-symbol">${symbol}</span>
+          <span class="result-label">${resultText}</span>
+        </div>
+        <div class="card-center">
+          <div class="opponent-name">${opponent}</div>
+          <div class="match-date">${formattedDate}</div>
+        </div>
+        <div class="card-right">
+          <span class="score-num my-score">${myScore}</span>
+          <span class="score-sep">-</span>
+          <span class="score-num opp-score">${oppScore}</span>
+        </div>
+      `;
+
       this.matchesEl?.appendChild(row);
     });
   }
@@ -161,11 +194,7 @@ class UserProfileController {
     });
   }
 
-  setupFriendAction(
-    name: string,
-    online: boolean,
-    friendInfo: FriendInfo,
-  ) {
+  setupFriendAction(name: string, online: boolean, friendInfo: FriendInfo) {
     if (!this.friendButton) return;
     const accessToken = getStoredAccessToken();
     if (!accessToken) {
@@ -181,28 +210,33 @@ class UserProfileController {
       this.friendButton!.disabled = true;
       this.setFriendMessage("");
       try {
-        const res = friendInfo.isFriend && friendInfo.friendId
-          ? await fetch("/api/common/user/friends/remove", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ friendId: friendInfo.friendId }),
-            })
-          : await fetch("/api/common/user/friends/request", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ name }),
-            });
+        const res =
+          friendInfo.isFriend && friendInfo.friendId
+            ? await fetch("/api/common/user/friends/remove", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ friendId: friendInfo.friendId }),
+              })
+            : await fetch("/api/common/user/friends/request", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name }),
+              });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) {
           this.setFriendMessage(
             body?.message ??
-              word(friendInfo.isFriend ? "friend_remove_failed" : "friend_request_failed"),
+              word(
+                friendInfo.isFriend
+                  ? "friend_remove_failed"
+                  : "friend_request_failed",
+              ),
           );
           this.friendButton!.disabled = false;
           return;
@@ -210,13 +244,20 @@ class UserProfileController {
         if (friendInfo.isFriend) {
           this.setFriendMessage(word("friend_remove_done"));
           this.setProfileHeader(name, online, false);
-          this.setupFriendAction(name, online, { isFriend: false, friendId: null });
+          this.setupFriendAction(name, online, {
+            isFriend: false,
+            friendId: null,
+          });
           return;
         }
         this.setFriendMessage(word("friend_request_sent"));
       } catch {
         this.setFriendMessage(
-          word(friendInfo.isFriend ? "friend_remove_failed" : "friend_request_failed"),
+          word(
+            friendInfo.isFriend
+              ? "friend_remove_failed"
+              : "friend_request_failed",
+          ),
         );
         this.friendButton!.disabled = false;
       }
@@ -269,7 +310,9 @@ class UserProfileController {
         return;
       }
       if (!res.ok) {
-        this.setProfileMessage(body?.message ?? word("match_results_fetch_failed"));
+        this.setProfileMessage(
+          body?.message ?? word("match_results_fetch_failed"),
+        );
         return;
       }
       const profileName = String(body.name ?? name);
@@ -278,7 +321,8 @@ class UserProfileController {
       this.setProfileHeader(profileName, online, friendInfo.isFriend);
       this.setupFriendAction(profileName, online, friendInfo);
       const profileImage = body?.profileImage ?? null;
-      const profileImageKey = typeof profileImage === "string" ? profileImage : null;
+      const profileImageKey =
+        typeof profileImage === "string" ? profileImage : null;
       this.setProfileImage(profileImageKey, profileName);
       if (Array.isArray(body.matches)) {
         this.renderMatches(body.matches as MatchItem[], profileName);
@@ -303,7 +347,9 @@ export const UserProfileRoute: Route = {
   onMount: () => {
     const name = getProfileNameFromQuery();
     if (!name) {
-      new UserProfileController().setProfileMessage(word("user_profile_not_found"));
+      new UserProfileController().setProfileMessage(
+        word("user_profile_not_found"),
+      );
       return;
     }
     const controller = new UserProfileController();
