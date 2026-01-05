@@ -5,26 +5,23 @@ import { WebSocket } from "@fastify/websocket";
 type ConnKey = string; // `${roomId}:${userId}`
 
 export default async function (fastify: FastifyInstance) {
-  // simpleRooms plugin is autoloaded in app.ts
-
+  type UserInput = "up" | "down" | "stop";
+  type GameStatus = "countdown" | "playing" | "ended";
   const roomSockets = new Map<string, Map<string, WebSocket>>();
   const readyUsers = new Map<string, Set<string>>();
-  const roomInputs = new Map<
-    string,
-    { p1: "up" | "down" | "stop"; p2: "up" | "down" | "stop" }
-  >();
+  const roomInputs = new Map<string, { p1: UserInput; p2: UserInput }>();
   const roomLoops = new Map<
     string,
     {
       timer: ReturnType<typeof setInterval>;
-      status: "countdown" | "playing" | "ended";
+      status: GameStatus;
     }
   >();
   const startedRooms = new Set<string>();
 
   type GameState = {
     roomId: string;
-    status: "countdown" | "playing" | "ended";
+    status: GameStatus;
     countdown: number;
     players: {
       p1: { y: number; velocity: number };
@@ -44,6 +41,11 @@ export default async function (fastify: FastifyInstance) {
   const BALL_X_LIMIT = 1.05; // scoring threshold
   const TICK_MS = 33;
   const WINNING_SCORE = 5;
+  const GAME_DELAY_TIME = 2000;
+  const INITIAL_COUNTDOWN_SECONDS = 3;
+  const BALL_DEFLECTION_FACTOR = 0.05;
+  const BALL_INITIAL_VY_RATIO = 0.6; // Vertical velocity ratio for game start
+  const BALL_RESET_VY_RATIO = 0.5;
 
   const registerSocket = (
     roomId: string,
@@ -79,7 +81,7 @@ export default async function (fastify: FastifyInstance) {
       } catch {}
     });
     // start loop after short delay
-    setTimeout(() => startGameLoop(roomId), 2000);
+    setTimeout(() => startGameLoop(roomId), GAME_DELAY_TIME);
   };
 
   function startGameLoop(roomId: string) {
@@ -88,12 +90,17 @@ export default async function (fastify: FastifyInstance) {
     const state: GameState = {
       roomId,
       status: "countdown",
-      countdown: 3,
+      countdown: INITIAL_COUNTDOWN_SECONDS,
       players: {
         p1: { y: 0, velocity: 0 },
         p2: { y: 0, velocity: 0 },
       },
-      ball: { x: 0, y: 0, vx: BALL_SPEED, vy: BALL_SPEED * 0.6 },
+      ball: {
+        x: 0,
+        y: 0,
+        vx: BALL_SPEED,
+        vy: BALL_SPEED * BALL_INITIAL_VY_RATIO,
+      },
       score: { p1: 0, p2: 0 },
     };
     gameStates.set(roomId, state);
@@ -110,7 +117,9 @@ export default async function (fastify: FastifyInstance) {
     sockets.forEach((ws) => {
       try {
         ws.send(payload);
-      } catch {}
+      } catch (e) {
+        console.error("[GameScreen] Failed to close WebSocket:", e);
+      }
     });
   }
 
@@ -176,7 +185,7 @@ export default async function (fastify: FastifyInstance) {
         state.ball.vx = Math.abs(state.ball.vx);
         // tweak vy based on impact
         const delta = state.ball.y - state.players.p2.y;
-        state.ball.vy += delta * 0.05;
+        state.ball.vy += delta * BALL_DEFLECTION_FACTOR;
       }
     }
     // right paddle
@@ -185,7 +194,7 @@ export default async function (fastify: FastifyInstance) {
         state.ball.x = PADDLE_X;
         state.ball.vx = -Math.abs(state.ball.vx);
         const delta = state.ball.y - state.players.p1.y;
-        state.ball.vy += delta * 0.05;
+        state.ball.vy += delta * BALL_DEFLECTION_FACTOR;
       }
     }
     // scoring
@@ -213,11 +222,14 @@ export default async function (fastify: FastifyInstance) {
 
   function resetAfterScore(state: GameState, dir: 1 | -1) {
     state.status = "countdown";
-    state.countdown = 3;
+    state.countdown = INITIAL_COUNTDOWN_SECONDS;
     state.ball.x = 0;
     state.ball.y = 0;
     state.ball.vx = BALL_SPEED * dir;
-    state.ball.vy = BALL_SPEED * 0.5 * (Math.random() > 0.5 ? 1 : -1);
+    state.ball.vy =
+      BALL_SPEED *
+      BALL_RESET_VY_RATIO *
+      (Math.random() > BALL_RESET_VY_RATIO ? 1 : -1);
   }
 
   function snapshot(state: GameState) {
@@ -279,11 +291,23 @@ export default async function (fastify: FastifyInstance) {
       // best-effort cleanup
       for (const [roomId, m] of roomSockets) {
         for (const [uid, ws] of m) {
-          if (ws === socket) m.delete(uid);
+          if (ws === socket) {
+            m.delete(uid);
+            if (m.size === 0) {
+              const loop = roomLoops.get(roomId);
+              if (loop) {
+                clearInterval(loop.timer);
+                roomLoops.delete(roomId);
+              }
+            }
+          }
         }
         if (m.size === 0) {
           roomSockets.delete(roomId);
           readyUsers.delete(roomId);
+          gameStates.delete(roomId);
+          roomInputs.delete(roomId);
+          startedRooms.delete(roomId);
         }
       }
     });

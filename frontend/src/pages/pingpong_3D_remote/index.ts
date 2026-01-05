@@ -97,13 +97,14 @@ class PingPong3DRemoteWaiting implements Component {
           banner?.classList.remove("hidden");
           const diff = Math.max(0, startAt - Date.now());
           this._statusEl.textContent = `開始まで ${Math.ceil(diff / 1000)} 秒`;
+          const COUNTDOWN_UPDATE_INTERVAL_MS = 200;
           const countdownTimer = window.setInterval(() => {
             const rest = Math.max(0, startAt - Date.now());
             this._statusEl.textContent =
               rest > 0
                 ? `開始まで ${Math.ceil(rest / 1000)} 秒`
                 : "ゲーム開始!";
-          }, 200);
+          }, COUNTDOWN_UPDATE_INTERVAL_MS);
           // determine side using current room status (host/guest)
           fetch(`/api/connect/rooms/${encodeURIComponent(this._roomId)}/status`)
             .then((r) => r.json())
@@ -157,6 +158,7 @@ class PingPong3DRemoteWaiting implements Component {
                 userId,
                 side: "p1",
               });
+              // URLパラメータをnavigate()で扱えるべきだがそうしてないのでいったんこれで
               location.href = `/pingpong_3D?${params.toString()}`;
             });
         }
