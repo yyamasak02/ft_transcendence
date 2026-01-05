@@ -10,7 +10,6 @@ import { RegisterRoute } from "@/pages/register";
 import { MeRoute } from "@/pages/me";
 import { GoogleSignupRoute } from "@/pages/google_signup";
 import { TwoFactorRoute } from "@/pages/two_factor";
-import { TestWebRTCRoute } from "@/pages/test_webrtc";
 import { UsernameChangeRoute } from "@/pages/username_change";
 import { NotFoundRoute } from "@/pages/404";
 import { UserProfileRoute } from "@/pages/user_profile";
@@ -89,12 +88,6 @@ export const routes: Routes = {
     show_navbar: true,
     layout: "center",
     css_path: routeStyles.userProfile,
-  },
-  "/test_rtc": {
-    component: TestWebRTCRoute,
-    show_navbar: true,
-    layout: "center",
-    css_path: routeStyles.testRtc,
   },
   "/not_found": {
     component: NotFoundRoute,
