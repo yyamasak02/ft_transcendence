@@ -1,12 +1,10 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Database } from "sqlite";
-import { WebSocket } from "@fastify/websocket";
-import { RoomManager } from "../plugins/app/room.js";
+import { SimpleRoomManager } from "../plugins/app/simpleRooms.js";
 
 declare module "fastify" {
   interface FastifyInstance {
     db: Database;
-    roomManager: RoomManager;
+    simpleRooms: SimpleRoomManager;
   }
 
   interface FastifyRequest {}

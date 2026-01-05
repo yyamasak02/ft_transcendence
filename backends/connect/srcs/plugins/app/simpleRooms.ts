@@ -10,7 +10,7 @@ export interface SimpleRoom {
   status: SimpleRoomStatus;
 }
 
-class SimpleRoomManager {
+export class SimpleRoomManager {
   private rooms = new Map<string, SimpleRoom>();
 
   create(roomId: string, hostUserId: string): SimpleRoom {
