@@ -136,13 +136,12 @@ export class GameScreen {
     this.ball.mesh.position.x = x;
     this.ball.mesh.position.z = z;
 
-    // Apply paddle positions from server
-    // NOTE: Server uses p1=left(-X), p2=right(+X), but client uses p1=right(+X), p2=left(-X)
-    // So we swap p1 and p2 when applying server state
-    const serverP1z = (this.serverState.players?.p1?.y ?? 0) * (courtH / 2);
-    const serverP2z = (this.serverState.players?.p2?.y ?? 0) * (courtH / 2);
-    this.player2.paddle.mesh.position.z = serverP1z; // server p1 (left) -> client p2 (left)
-    this.player1.paddle.mesh.position.z = serverP2z; // server p2 (right) -> client p1 (right)
+    const serverP1y = this.serverState.players?.p1?.y ?? 0;
+    const serverP2y = this.serverState.players?.p2?.y ?? 0;
+
+    // Direct: server p1(left) -> client player1(left), server p2(right) -> client player2(right)
+    this.player1.paddle.mesh.position.z = serverP1y * (courtH / 2);
+    this.player2.paddle.mesh.position.z = serverP2y * (courtH / 2);
 
     // Apply score from server
     if (this.serverState.score) {
@@ -174,13 +173,15 @@ export class GameScreen {
       const oppCtrl = new RemoteController();
       this.remoteOpponentCtrl = oppCtrl;
       if (this.remoteSide === "p1") {
+        // Host (side="p1"): control player1(left) with ArrowUp/Down
         this.player1 = new Player(
           p1,
-          new HumanController(this.inputManager, 1),
+          new HumanController(this.inputManager, 2),
           1,
         );
         this.player2 = new Player(p2, oppCtrl, 2);
       } else {
+        // Guest (side="p2"): control player2(right) with ArrowUp/Down
         this.player1 = new Player(p1, oppCtrl, 1);
         this.player2 = new Player(
           p2,
@@ -429,6 +430,11 @@ export class GameScreen {
 
     const deltaTime = this.engine.getDeltaTime();
 
+    // Apply server state early in server-authoritative mode (for countdown display)
+    if (this.remoteMode && this.serverAuthority && this.serverState) {
+      this.applyServerState();
+    }
+
     if (this.gameState.phase === "menu") {
       if (this.remoteMode) {
         if (this.serverAuthority) {
@@ -460,9 +466,8 @@ export class GameScreen {
     // ゲーム進行処理
     if (this.gameState.phase === "game" && !this.isPaused) {
       if (this.remoteMode && this.serverAuthority) {
-        // Server-authoritative mode: only apply server state, no local game logic
-        // All game logic (paddle movement, ball physics, scoring) is handled by server
-        this.applyServerState();
+        // Server-authoritative mode: server state already applied above
+        // pass
       } else {
         // Client-authoritative or local mode: run full game logic
         // プレイヤー更新（入力取得 + パドル更新を統合）
@@ -523,7 +528,8 @@ export class GameScreen {
         (this.serverAuthority && this.gameState.phase !== "menu"))
     ) {
       const inputs = this.inputManager.getPaddleInputs();
-      const local = this.remoteSide === "p1" ? inputs.p1 : inputs.p2;
+      // Both players use inputs.p2 (ArrowUp/ArrowDown)
+      const local = inputs.p2;
       const direction: "up" | "down" | "stop" = local.up
         ? "up"
         : local.down

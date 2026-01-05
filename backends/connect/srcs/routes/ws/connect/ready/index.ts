@@ -171,29 +171,29 @@ export default async function (fastify: FastifyInstance) {
     // paddle collision
     // left paddle
     if (state.ball.x < -PADDLE_X && state.ball.x > -PADDLE_X - 0.05) {
-      if (Math.abs(state.ball.y - state.players.p1.y) <= PADDLE_HITBOX) {
+      if (Math.abs(state.ball.y - state.players.p2.y) <= PADDLE_HITBOX) {
         state.ball.x = -PADDLE_X;
         state.ball.vx = Math.abs(state.ball.vx);
         // tweak vy based on impact
-        const delta = state.ball.y - state.players.p1.y;
+        const delta = state.ball.y - state.players.p2.y;
         state.ball.vy += delta * 0.05;
       }
     }
     // right paddle
     if (state.ball.x > PADDLE_X && state.ball.x < PADDLE_X + 0.05) {
-      if (Math.abs(state.ball.y - state.players.p2.y) <= PADDLE_HITBOX) {
+      if (Math.abs(state.ball.y - state.players.p1.y) <= PADDLE_HITBOX) {
         state.ball.x = PADDLE_X;
         state.ball.vx = -Math.abs(state.ball.vx);
-        const delta = state.ball.y - state.players.p2.y;
+        const delta = state.ball.y - state.players.p1.y;
         state.ball.vy += delta * 0.05;
       }
     }
     // scoring
     if (state.ball.x < -BALL_X_LIMIT) {
-      state.score.p2 += 1;
+      state.score.p1 += 1;
       resetAfterScore(state, +1);
     } else if (state.ball.x > BALL_X_LIMIT) {
-      state.score.p1 += 1;
+      state.score.p2 += 1;
       resetAfterScore(state, -1);
     }
     // end game
@@ -212,6 +212,8 @@ export default async function (fastify: FastifyInstance) {
   }
 
   function resetAfterScore(state: GameState, dir: 1 | -1) {
+    state.status = "countdown";
+    state.countdown = 3;
     state.ball.x = 0;
     state.ball.y = 0;
     state.ball.vx = BALL_SPEED * dir;

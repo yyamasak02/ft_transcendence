@@ -108,9 +108,7 @@ class PingPong3DRemoteWaiting implements Component {
           fetch(`/api/connect/rooms/${encodeURIComponent(this._roomId)}/status`)
             .then((r) => r.json())
             .then((info) => {
-              // NOTE: Server uses host=p1(left), guest=p2(right)
-              // But client uses p1=right, p2=left, so we swap
-              const side = info?.hostUserId === userId ? "p2" : "p1";
+              const side = info?.hostUserId === userId ? "p1" : "p2";
               const params = new URLSearchParams({
                 mode: "remote",
                 roomId: this._roomId,
@@ -141,9 +139,7 @@ class PingPong3DRemoteWaiting implements Component {
           fetch(`/api/connect/rooms/${encodeURIComponent(this._roomId)}/status`)
             .then((r) => r.json())
             .then((info) => {
-              // NOTE: Server uses host=p1(left), guest=p2(right)
-              // But client uses p1=right, p2=left, so we swap
-              const side = info?.hostUserId === userId ? "p2" : "p1";
+              const side = info?.hostUserId === userId ? "p1" : "p2";
               const params = new URLSearchParams({
                 mode: "remote",
                 auth: "server",
