@@ -6,5 +6,5 @@ export type KeyHandler<T = void> = (
 export interface KeyboardHandlers {
   onKeyDown?: KeyHandler;
   onKeyUp?: KeyHandler;
-  onResize?: (...args: any[]) => void;
+  onResize?: () => void;
 }

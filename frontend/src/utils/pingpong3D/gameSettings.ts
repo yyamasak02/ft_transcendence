@@ -1,6 +1,6 @@
 // utils/pingpong3D/gameSettings.ts
 
-export type PlayerType = "Player" | "Easy" | "Normal" | "Hard";
+export type PlayerType = "Player" | "Easy" | "Normal" | "Hard" | "Remote";
 
 export type GameSettings = {
   winningScore: number;
@@ -28,7 +28,13 @@ const DEFAULT_SETTINGS: GameSettings = {
 
 const STORAGE_KEY = "pingpong-3D-settings";
 
-const VALID_PLAYER_TYPES: PlayerType[] = ["Player", "Easy", "Normal", "Hard"];
+const VALID_PLAYER_TYPES: PlayerType[] = [
+  "Player",
+  "Easy",
+  "Normal",
+  "Hard",
+  "Remote",
+];
 
 export function loadSettings(): GameSettings {
   const raw = localStorage.getItem(STORAGE_KEY);
