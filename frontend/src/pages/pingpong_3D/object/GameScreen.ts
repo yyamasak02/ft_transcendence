@@ -176,7 +176,7 @@ export class GameScreen {
         // Host (side="p1"): control player1(left) with ArrowUp/Down
         this.player1 = new Player(
           p1,
-          new HumanController(this.inputManager, 2),
+          new HumanController(this.inputManager, 1),
           1,
         );
         this.player2 = new Player(p2, oppCtrl, 2);
@@ -529,7 +529,7 @@ export class GameScreen {
     ) {
       const inputs = this.inputManager.getPaddleInputs();
       // Both players use inputs.p2 (ArrowUp/ArrowDown)
-      const local = inputs.p2;
+      const local = inputs.p1;
       const direction: "up" | "down" | "stop" = local.up
         ? "up"
         : local.down
