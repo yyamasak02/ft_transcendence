@@ -2,7 +2,10 @@ import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { domRoots } from "@/layout/root";
 import { isLoggedIn, userName } from "@/utils/auth-util";
-import { setRemoteUserId } from "@/utils/pingpong3D/remoteSetting";
+import {
+  getRemoteUserId,
+  setRemoteUserId,
+} from "@/utils/pingpong3D/remoteSetting";
 
 type RoomJoinContext = {
   roomId: string;
@@ -18,7 +21,7 @@ class PingPong3DRemoteWaiting implements Component {
   private _readyBtn!: HTMLButtonElement;
   private _ws: WebSocket | null = null;
   private _wsReady: boolean = false;
-  private _tmpUserId: string;
+  private _tmpUserId!: string;
   private _pollTimer: number | null = null;
 
   constructor(root: HTMLElement) {
@@ -43,7 +46,7 @@ class PingPong3DRemoteWaiting implements Component {
     this._readyBtn = this._root.querySelector<HTMLButtonElement>("#ready-btn")!;
     this._tmpUserId = isLoggedIn()
       ? (userName() as string)
-      : crypto.randomUUID();
+      : (getRemoteUserId() as string);
     setRemoteUserId(this._tmpUserId);
   }
 

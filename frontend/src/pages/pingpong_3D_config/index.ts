@@ -9,6 +9,7 @@ import { t, word } from "@/i18n";
 import type { PlayerType } from "../../utils/pingpong3D/gameSettings";
 import { domRoots } from "@/layout/root";
 import { isLoggedIn, userName } from "@/utils/auth-util";
+import { setRemoteUserId } from "@/utils/pingpong3D/remoteSetting";
 
 // ゲーム設定画面
 class PingPongComponent implements Component {
@@ -280,6 +281,7 @@ class PingPongComponent implements Component {
       const userId = isLoggedIn()
         ? (userName() as string)
         : crypto.randomUUID();
+      setRemoteUserId(userId);
       try {
         if (role === "host") {
           const res = await fetch("/api/connect/rooms", {
