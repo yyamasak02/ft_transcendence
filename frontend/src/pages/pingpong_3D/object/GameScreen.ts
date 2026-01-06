@@ -300,7 +300,9 @@ export class GameScreen {
     if (this.remoteWS) {
       try {
         this.remoteWS.close();
-      } catch {}
+      } catch {
+        // TODO error handling
+      }
       this.remoteWS = null;
     }
     stopZoomOut();
@@ -546,7 +548,9 @@ export class GameScreen {
               payload: { direction },
             }),
           );
-        } catch {}
+        } catch {
+          // TODO error handling
+        }
       }
     }
 
@@ -592,7 +596,9 @@ export class GameScreen {
             setTimeout(() => this.cleanupAndGoHome(), 3000);
           }
         }
-      } catch {}
+      } catch {
+        // TODO error handling
+      }
     };
     ws.onclose = () => {
       this.remoteWS = null;

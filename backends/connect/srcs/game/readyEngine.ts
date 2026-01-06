@@ -116,7 +116,9 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
     sockets.forEach((ws) => {
       try {
         ws.send(countdownMsg);
-      } catch {}
+      } catch {
+        // TODO error handling
+      }
     });
 
     setTimeout(() => {

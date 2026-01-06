@@ -1,17 +1,14 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { domRoots } from "@/layout/root";
+import { isLoggedIn, userName } from "@/utils/auth-util";
+import { setRemoteUserId } from "@/utils/pingpong3D/remoteSetting";
 
-function ensureUserId(): string {
-  const KEY = "pp3d-remote-userId";
-  let id = localStorage.getItem(KEY);
-  if (!id) {
-    // simple uuid v4 fallback
-    id = crypto.randomUUID();
-    localStorage.setItem(KEY, id);
-  }
-  return id;
-}
+type RoomJoinContext = {
+  roomId: string;
+  userId: string;
+  side: "p1" | "p2";
+};
 
 class PingPong3DRemoteWaiting implements Component {
   private _root: HTMLElement;
@@ -21,6 +18,7 @@ class PingPong3DRemoteWaiting implements Component {
   private _readyBtn!: HTMLButtonElement;
   private _ws: WebSocket | null = null;
   private _wsReady: boolean = false;
+  private _tmpUserId: string;
   private _pollTimer: number | null = null;
 
   constructor(root: HTMLElement) {
@@ -43,6 +41,10 @@ class PingPong3DRemoteWaiting implements Component {
     this._roomEl = this._root.querySelector<HTMLElement>("#room-id")!;
     this._statusEl = this._root.querySelector<HTMLElement>("#status")!;
     this._readyBtn = this._root.querySelector<HTMLButtonElement>("#ready-btn")!;
+    this._tmpUserId = isLoggedIn()
+      ? (userName() as string)
+      : crypto.randomUUID();
+    setRemoteUserId(this._tmpUserId);
   }
 
   private startPolling() {
@@ -73,25 +75,60 @@ class PingPong3DRemoteWaiting implements Component {
     this._pollTimer = window.setInterval(poll, 1500);
   }
 
+  private async fetchRoomSide(
+    roomId: string,
+    userId: string,
+  ): Promise<RoomJoinContext> {
+    return fetch(`/api/connect/rooms/${encodeURIComponent(roomId)}/status`)
+      .then((r) => r.json())
+      .then((info) => {
+        const side: "p1" | "p2" = info?.hostUserId === userId ? "p1" : "p2";
+        return { roomId, userId, side };
+      })
+      .catch(() => ({
+        roomId,
+        userId,
+        side: "p1",
+      }));
+  }
+  private buildGameParams(
+    ctx: RoomJoinContext,
+    opts: {
+      mode: "remote" | "local";
+      auth?: "server";
+      startAt?: number;
+    },
+  ) {
+    return new URLSearchParams({
+      mode: opts.mode,
+      auth: opts.auth ?? "",
+      roomId: ctx.roomId,
+      userId: ctx.userId,
+      side: ctx.side,
+      ...(opts.startAt ? { startAt: String(opts.startAt) } : {}),
+    });
+  }
   private connectWS() {
     if (this._ws) return;
     const proto = location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${proto}://${location.host}/ws/connect/ready`;
     const ws = new WebSocket(wsUrl);
     this._ws = ws;
-    const userId = ensureUserId();
     ws.onopen = () => {
       this._wsReady = true;
       ws.send(
-        JSON.stringify({ type: "connect", roomId: this._roomId, userId }),
+        JSON.stringify({
+          type: "connect",
+          roomId: this._roomId,
+          userId: this._tmpUserId,
+        }),
       );
     };
-    ws.onmessage = (ev) => {
+    ws.onmessage = async (ev) => {
       try {
         const msg = JSON.parse(ev.data);
         if (msg?.type === "game:start" && msg?.payload?.startAt) {
           const startAt: number = msg.payload.startAt as number;
-          const userId = ensureUserId();
           // show simple countdown on this screen, then navigate to game with params
           const banner = this._root.querySelector<HTMLElement>("#start-banner");
           banner?.classList.remove("hidden");
@@ -106,63 +143,27 @@ class PingPong3DRemoteWaiting implements Component {
                 : "ゲーム開始!";
           }, COUNTDOWN_UPDATE_INTERVAL_MS);
           // determine side using current room status (host/guest)
-          fetch(`/api/connect/rooms/${encodeURIComponent(this._roomId)}/status`)
-            .then((r) => r.json())
-            .then((info) => {
-              const side = info?.hostUserId === userId ? "p1" : "p2";
-              const params = new URLSearchParams({
-                mode: "remote",
-                roomId: this._roomId,
-                userId,
-                side,
-                startAt: String(startAt),
-              });
-              // navigate immediately; the game page will wait until startAt
-              window.clearInterval(countdownTimer);
-              location.href = `/pingpong_3D?${params.toString()}`;
-            })
-            .catch(() => {
-              // fallback: assume host=player1
-              const params = new URLSearchParams({
-                mode: "remote",
-                roomId: this._roomId,
-                userId,
-                side: "p1",
-                startAt: String(startAt),
-              });
-              window.clearInterval(countdownTimer);
-              location.href = `/pingpong_3D?${params.toString()}`;
-            });
+          const ctx = await this.fetchRoomSide(this._roomId, this._tmpUserId);
+          const params = this.buildGameParams(ctx, {
+            mode: "remote",
+            startAt: startAt,
+          });
+          window.clearInterval(countdownTimer);
+          location.href = `/pingpong_3D?${params.toString()}`;
         }
         if (msg?.type === "game:countdown") {
-          const userId = ensureUserId();
           // Navigate immediately to server-authoritative remote mode
-          fetch(`/api/connect/rooms/${encodeURIComponent(this._roomId)}/status`)
-            .then((r) => r.json())
-            .then((info) => {
-              const side = info?.hostUserId === userId ? "p1" : "p2";
-              const params = new URLSearchParams({
-                mode: "remote",
-                auth: "server",
-                roomId: this._roomId,
-                userId,
-                side,
-              });
-              location.href = `/pingpong_3D?${params.toString()}`;
-            })
-            .catch(() => {
-              const params = new URLSearchParams({
-                mode: "remote",
-                auth: "server",
-                roomId: this._roomId,
-                userId,
-                side: "p1",
-              });
-              // URLパラメータをnavigate()で扱えるべきだがそうしてないのでいったんこれで
-              location.href = `/pingpong_3D?${params.toString()}`;
-            });
+          const ctx = await this.fetchRoomSide(this._roomId, this._tmpUserId);
+          const params = this.buildGameParams(ctx, {
+            mode: "remote",
+            auth: "server",
+          });
+          // TODO URLパラメータをnavigate()で扱えるべきだがそうしてないのでいったんこれで
+          location.href = `/pingpong_3D?${params.toString()}`;
         }
-      } catch {}
+      } catch (error) {
+        console.warn(error);
+      }
     };
     ws.onclose = () => {
       this._ws = null;
@@ -181,10 +182,13 @@ class PingPong3DRemoteWaiting implements Component {
     this._roomId = roomId;
     this._roomEl.textContent = roomId;
     this._readyBtn.addEventListener("click", () => {
-      const userId = ensureUserId();
       const sendReady = () => {
         this._ws?.send(
-          JSON.stringify({ type: "game:ready", roomId: this._roomId, userId }),
+          JSON.stringify({
+            type: "game:ready",
+            roomId: this._roomId,
+            userId: this._tmpUserId,
+          }),
         );
         this._readyBtn.disabled = true;
         this._statusEl.textContent = "READY 済み。相手を待っています...";

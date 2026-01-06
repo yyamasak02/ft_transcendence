@@ -8,6 +8,7 @@ import { PreviewScene } from "./preview/PreviewScene";
 import { t, word } from "@/i18n";
 import type { PlayerType } from "../../utils/pingpong3D/gameSettings";
 import { domRoots } from "@/layout/root";
+import { isLoggedIn, userName } from "@/utils/auth-util";
 
 // ゲーム設定画面
 class PingPongComponent implements Component {
@@ -254,17 +255,6 @@ class PingPongComponent implements Component {
     this._ruleInputs.stage.addEventListener("change", updatePreview);
 
     updatePreview();
-
-    const ensureUserId = () => {
-      const KEY = "pp3d-remote-userId";
-      let id = localStorage.getItem(KEY);
-      if (!id) {
-        id = crypto.randomUUID();
-        localStorage.setItem(KEY, id);
-      }
-      return id;
-    };
-
     this._startBtn.addEventListener("click", async () => {
       // Always save local game settings
       saveSettings({
@@ -287,7 +277,9 @@ class PingPongComponent implements Component {
 
       // Remote flow
       const role = this._remoteUI.modeSelect.value as "host" | "guest";
-      const userId = ensureUserId();
+      const userId = isLoggedIn()
+        ? (userName() as string)
+        : crypto.randomUUID();
       try {
         if (role === "host") {
           const res = await fetch("/api/connect/rooms", {
