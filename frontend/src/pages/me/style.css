@@ -20,6 +20,7 @@
 .me-avatar:hover {
   opacity: 0.8;
   border-color: #777;
+  cursor: pointer;
 }
 
 .me-avatar-row {
