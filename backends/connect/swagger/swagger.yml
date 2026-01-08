@@ -5,4 +5,172 @@ info:
   version: 0.1.0
 components:
   schemas: {}
-paths: {}
+paths:
+  /api/connect/rooms/:
+    post:
+      tags:
+        - Rooms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minLength: 1
+                  type: string
+              required:
+                - userId
+        required: true
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roomId:
+                    minLength: 1
+                    type: string
+                  status:
+                    anyOf:
+                      - type: string
+                        enum:
+                          - waiting
+                      - type: string
+                        enum:
+                          - matched
+                required:
+                  - roomId
+                  - status
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+        "500":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+  /api/connect/rooms/{roomId}/join:
+    post:
+      tags:
+        - Rooms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  minLength: 1
+                  type: string
+              required:
+                - userId
+        required: true
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: roomId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roomId:
+                    minLength: 1
+                    type: string
+                  status:
+                    anyOf:
+                      - type: string
+                        enum:
+                          - waiting
+                      - type: string
+                        enum:
+                          - matched
+                required:
+                  - roomId
+                  - status
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+  /api/connect/rooms/{roomId}/status:
+    get:
+      tags:
+        - Rooms
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: roomId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roomId:
+                    minLength: 1
+                    type: string
+                  hostUserId:
+                    minLength: 1
+                    type: string
+                  guestUserId:
+                    anyOf:
+                      - minLength: 1
+                        type: string
+                      - type: "null"
+                  status:
+                    anyOf:
+                      - type: string
+                        enum:
+                          - waiting
+                      - type: string
+                        enum:
+                          - matched
+                required:
+                  - roomId
+                  - hostUserId
+                  - guestUserId
+                  - status
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message

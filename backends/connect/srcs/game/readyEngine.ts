@@ -14,6 +14,7 @@ type GameState = {
   };
   ball: { x: number; y: number; vx: number; vy: number };
   score: { p1: number; p2: number };
+  rallyCount: number;
 };
 
 // Tunables
@@ -82,11 +83,13 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
       vy: state.ball.vy,
     },
     score: { p1: state.score.p1, p2: state.score.p2 },
+    rallyCount: state.rallyCount, // ★追加: クライアントへ送信
   });
 
   const resetAfterScore = (state: GameState, dir: 1 | -1) => {
     state.status = "countdown";
     state.countdown = INITIAL_COUNTDOWN_SECONDS;
+    state.rallyCount = 0; // ★追加: 得点が入ったらラリーリセット
     state.ball.x = 0;
     state.ball.y = 0;
     state.ball.vx = BALL_SPEED * dir;
@@ -141,6 +144,7 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
             BALL_SPEED * BALL_INITIAL_VY_RATIO * (Math.random() > 0.5 ? 1 : -1),
         },
         score: { p1: 0, p2: 0 },
+        rallyCount: 0, // ★追加: 初期化
       };
       gameStates.set(roomId, state);
 
@@ -202,6 +206,7 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
         state.ball.vx = Math.abs(state.ball.vx);
         const delta = state.ball.y - state.players.p2.y;
         state.ball.vy += delta * BALL_DEFLECTION_FACTOR;
+        state.rallyCount++; // ★追加: 左パドル衝突でカウントアップ
       }
     }
     if (state.ball.x > PADDLE_X && state.ball.x < PADDLE_X + 0.05) {
@@ -210,6 +215,7 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
         state.ball.vx = -Math.abs(state.ball.vx);
         const delta = state.ball.y - state.players.p1.y;
         state.ball.vy += delta * BALL_DEFLECTION_FACTOR;
+        state.rallyCount++; // ★追加: 右パドル衝突でカウントアップ
       }
     }
     // scoring
