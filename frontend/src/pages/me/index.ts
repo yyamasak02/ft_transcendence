@@ -665,7 +665,13 @@ const setupProfileImagePicker = () => {
         img.onload = () => {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
-          if (!ctx) return;
+          if (!ctx) {
+            if (message) {
+              message.textContent = word("profile_image_invalid_type");
+            }
+            uploadInput.value = "";
+            return;
+          }
 
           canvas.width = UPLOAD_IMAGE_SIZE;
           canvas.height = UPLOAD_IMAGE_SIZE;
