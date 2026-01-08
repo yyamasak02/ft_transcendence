@@ -17,6 +17,15 @@
   letter-spacing: 0.08em;
 }
 
+.me-avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
 .me-avatar:hover {
   opacity: 0.8;
   border-color: #777;
