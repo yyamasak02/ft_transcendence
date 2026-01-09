@@ -58,6 +58,19 @@ class UserProfileComponent {
 const formatMatchDateByLang = (createdAt: string) =>
   formatMatchDate(createdAt, langManager.lang);
 
+const MATCH_RESULT_CONFIG = {
+  win: {
+    statusClass: "status-win",
+    symbol: "●",
+    resultText: "WIN",
+  },
+  lose: {
+    statusClass: "status-lose",
+    symbol: "○",
+    resultText: "LOSE",
+  },
+} as const;
+
 type FriendInfo = {
   isFriend: boolean;
   friendId: number | null;
@@ -149,19 +162,11 @@ class UserProfileController {
         : item.ownerName;
       const myScore = isOwner ? item.ownerScore : item.guestScore;
       const oppScore = isOwner ? item.guestScore : item.ownerScore;
-      let statusClass = "status-lose";
-      let symbol = "○";
-      let resultText = "LOSE";
 
-      if (myScore > oppScore) {
-        statusClass = "status-win";
-        symbol = "●";
-        resultText = "WIN";
-      } else {
-        statusClass = "status-lose";
-        symbol = "○";
-        resultText = "LOSE";
-      }
+      const isWin = myScore > oppScore;
+      const { statusClass, symbol, resultText } = isWin
+        ? MATCH_RESULT_CONFIG.win
+        : MATCH_RESULT_CONFIG.lose;
 
       const formattedDate = formatMatchDateByLang(item.createdAt);
 
