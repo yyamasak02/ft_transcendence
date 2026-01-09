@@ -434,6 +434,19 @@ const setupFriendActions = () => {
   });
 };
 
+const MATCH_RESULT_CONFIG = {
+  win: {
+    statusClass: "status-win",
+    symbol: "●",
+    resultText: "WIN",
+  },
+  lose: {
+    statusClass: "status-lose",
+    symbol: "○",
+    resultText: "LOSE",
+  },
+} as const;
+
 const renderMatches = (
   items: Array<{
     id: number;
@@ -467,22 +480,17 @@ const renderMatches = (
       : item.ownerName;
     const myScore = isOwner ? item.ownerScore : item.guestScore;
     const oppScore = isOwner ? item.guestScore : item.ownerScore;
-    let statusClass = "status-lose";
-    let symbol = "○";
-    let resultText = "LOSE";
+    const isWin = myScore > oppScore;
 
-    if (myScore > oppScore) {
+    if (isWin) {
       wins += 1;
-      statusClass = "status-win";
-      symbol = "●";
-      resultText = "WIN";
     } else {
       losses += 1;
-      statusClass = "status-lose";
-      symbol = "○";
-      resultText = "LOSE";
     }
 
+    const { statusClass, symbol, resultText } = isWin
+      ? MATCH_RESULT_CONFIG.win
+      : MATCH_RESULT_CONFIG.lose;
     const formattedDate = formatMatchDateByLang(item.createdAt);
 
     row.className = `me-match-card ${statusClass}`;
