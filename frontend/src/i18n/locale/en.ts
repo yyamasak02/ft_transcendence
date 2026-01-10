@@ -145,4 +145,5 @@ export const en = {
   collapse_explanation: "A stage collapses every 10 rallies",
   further: "further forward!!!",
   logout: "Logout",
+  unknown_user: "Unknown user",
 } as const;

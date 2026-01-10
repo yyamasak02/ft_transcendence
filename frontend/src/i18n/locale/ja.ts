@@ -149,4 +149,5 @@ export const ja = {
   collapse_explanation: "10ラリー毎にステージが崩落する",
   further: "もっと前へ!!!",
   logout: "ログアウト",
+  unknown_user: "不明なユーザー",
 } as const;
