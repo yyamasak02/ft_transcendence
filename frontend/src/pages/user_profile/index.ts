@@ -158,7 +158,7 @@ class UserProfileController {
       const row = document.createElement("div");
       const isOwner = item.ownerName === profileName;
       const opponent = isOwner
-        ? (item.guestName ?? word("ai_opponent"))
+        ? (item.guestName ?? word("unknown_user"))
         : item.ownerName;
       const myScore = isOwner ? item.ownerScore : item.guestScore;
       const oppScore = isOwner ? item.guestScore : item.ownerScore;
