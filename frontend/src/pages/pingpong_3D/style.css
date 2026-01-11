@@ -79,8 +79,8 @@
 }
 
 .central-btn {
+  display: none; /* 初期は非表示（pause時に表示制御） */
   pointer-events: auto;
-  display: inline-flex;
   align-items: center;
   justify-content: flex-start;
 

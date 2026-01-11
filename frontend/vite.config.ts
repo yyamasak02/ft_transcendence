@@ -26,6 +26,13 @@ export default defineConfig({
         secure: false,
         ws: true,
       },
+      // For test_webrtc adapter using "/ws/connect/*" path
+      "/ws/connect": {
+        target: "http://ft_be_connect",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
     },
   },
   plugins: [tsconfigPaths(), tailwindcss()],

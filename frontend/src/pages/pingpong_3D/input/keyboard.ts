@@ -1,57 +1,63 @@
-// pingpong_3D/input/keyboard.ts
-import { engine } from "../core/data";
 import type { PaddleInput } from "../object/Paddle";
+import type { KeyboardHandlers } from "./key";
 
-const keysPressed: Record<string, boolean> = {};
-let isSetup = false;
+export class InputManager {
+  private isSetup = false;
+  private keysPressed: Record<string, boolean> = {};
+  private handlers: KeyboardHandlers;
 
-function handleKeyDown(e: KeyboardEvent) {
-  keysPressed[e.key] = true;
-}
-function handleKeyUp(e: KeyboardEvent) {
-  keysPressed[e.key] = false;
-}
-function handleResize() {
-  engine.resize();
-}
+  constructor(handlers: KeyboardHandlers) {
+    this.handlers = handlers;
+  }
 
-// 初期化
-export function setupKeyboardListener() {
-  if (isSetup) return;
-  isSetup = true;
-
-  document.addEventListener("keydown", handleKeyDown);
-  document.addEventListener("keyup", handleKeyUp);
-  window.addEventListener("resize", handleResize);
-}
-
-// cleanup
-export function cleanupKeyboardListener() {
-  if (!isSetup) return;
-  isSetup = false;
-
-  document.removeEventListener("keydown", handleKeyDown);
-  document.removeEventListener("keyup", handleKeyUp);
-  document.removeEventListener("resize", handleResize);
-
-  // キー状態リセット
-  Object.keys(keysPressed).forEach((k) => (keysPressed[k] = false));
-}
-
-// paddle移動
-export function getPaddleInputs(): { p1: PaddleInput; p2: PaddleInput } {
-  return {
-    p1: {
-      up: keysPressed["w"],
-      down: keysPressed["s"],
-    },
-    p2: {
-      up: keysPressed["ArrowUp"],
-      down: keysPressed["ArrowDown"],
-    },
+  private handleKeyDown = (e: KeyboardEvent) => {
+    this.keysPressed[e.key] = true;
+    this.handlers.onKeyDown?.(this.keysPressed);
   };
-}
 
-export function isEnterPressed(): boolean {
-  return keysPressed["Enter"] === true;
+  private handleKeyUp = (e: KeyboardEvent) => {
+    this.keysPressed[e.key] = false;
+    this.handlers.onKeyUp?.(this.keysPressed);
+  };
+
+  private handleResize = () => {
+    this.handlers.onResize?.();
+  };
+
+  setup() {
+    if (this.isSetup) return;
+    this.isSetup = true;
+
+    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keyup", this.handleKeyUp);
+    window.addEventListener("resize", this.handleResize);
+  }
+
+  cleanup() {
+    if (!this.isSetup) return;
+    this.isSetup = false;
+
+    document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener("keyup", this.handleKeyUp);
+    window.removeEventListener("resize", this.handleResize);
+
+    Object.keys(this.keysPressed).forEach((k) => (this.keysPressed[k] = false));
+  }
+
+  getPaddleInputs(): { p1: PaddleInput; p2: PaddleInput } {
+    return {
+      p1: {
+        up: !!this.keysPressed["w"],
+        down: !!this.keysPressed["s"],
+      },
+      p2: {
+        up: !!this.keysPressed["ArrowUp"],
+        down: !!this.keysPressed["ArrowDown"],
+      },
+    };
+  }
+
+  isEnterPressed(): boolean {
+    return this.keysPressed["Enter"] === true;
+  }
 }

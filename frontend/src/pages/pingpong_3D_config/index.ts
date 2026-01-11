@@ -3,15 +3,55 @@ import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { navigate } from "@/router";
 
-import { saveSettings } from "../pingpong_3D/core/gameSettings";
-import { PreviewScene } from "../pingpong_3D/object/preview/PreviewScene";
+import { saveSettings } from "../../utils/pingpong3D/gameSettings";
+import { PreviewScene } from "./preview/PreviewScene";
 import { t, word } from "@/i18n";
-import type { PlayerType } from "../pingpong_3D/core/gameSettings";
-
-let preview: PreviewScene | null = null;
+import type { PlayerType } from "../../utils/pingpong3D/gameSettings";
+import { domRoots } from "@/layout/root";
+import { isLoggedIn, userName } from "@/utils/auth-util";
+import { setRemoteUserId } from "@/utils/pingpong3D/remoteSetting";
 
 // ゲーム設定画面
 class PingPongComponent implements Component {
+  private _root: HTMLElement;
+  private _pp3dConfigRoot!: HTMLElement;
+
+  private _remoteUI!: {
+    container: HTMLElement;
+    modeSelect: HTMLSelectElement;
+    roomInput: HTMLInputElement;
+  };
+
+  private _ruleInputs!: {
+    winningScore: HTMLInputElement;
+    rallyRush: HTMLInputElement;
+    countdown: HTMLSelectElement;
+    stage: HTMLSelectElement;
+  };
+
+  private _playerInputs!: {
+    p1: {
+      length: HTMLInputElement;
+      color: HTMLSelectElement;
+    };
+    p2: {
+      length: HTMLInputElement;
+      color: HTMLSelectElement;
+      type: HTMLSelectElement;
+    };
+  };
+
+  private _previewUI!: {
+    canvas: HTMLCanvasElement;
+    scene: PreviewScene | null;
+  };
+
+  private _startBtn!: HTMLButtonElement;
+
+  constructor(root: HTMLElement) {
+    this._root = root;
+  }
+
   render(): string {
     return `
             <div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
@@ -24,8 +64,24 @@ class PingPongComponent implements Component {
                             <option value="Easy">${t("easyLv")}</option>
                             <option value="Normal" selected>${t("normalLv")}</option>
                             <option value="Hard">${t("hardLv")}</option>
+                            <option value="Remote">Remote</option>
                         </select>
                     </div>
+                    <!-- Remote Config -->
+                    <div id="remote-config" class="hidden">
+                      <div class="pp3d-config-row">
+                        <label class="pp3d-label">接続モード</label>
+                        <select id="remote-mode">
+                          <option value="guest">ゲスト</option>
+                          <option value="host">ホスト</option>
+                        </select>
+                      </div>
+                      <div class="pp3d-config-row">
+                        <label class="pp3d-label">ルームID</label>
+                        <input id="remote-room-id" type="text" placeholder="例: ABCD-1234" />
+                      </div>
+                    </div>
+
 
                     <div class="pp3d-config-row">
                         <label>${t("score_to_win")}</label>
@@ -106,139 +162,178 @@ class PingPongComponent implements Component {
             </div>
         `;
   }
+
+  private _get<T extends HTMLElement>(selector: string): T {
+    const el = this._pp3dConfigRoot.querySelector<T>(selector);
+    if (!el) throw new Error(`Missing DOM: ${selector}`);
+    return el;
+  }
+
+  init() {
+    const root = this._root.querySelector<HTMLElement>("#pp3d-config-root");
+    if (!root) throw new Error("Failed to get DOM pp3dConfigRoot");
+    this._pp3dConfigRoot = root;
+
+    this._remoteUI = {
+      container: this._get("#remote-config"),
+      modeSelect: this._get("#remote-mode"),
+      roomInput: this._get("#remote-room-id"),
+    };
+
+    this._ruleInputs = {
+      winningScore: this._get("#winning-score"),
+      rallyRush: this._get("#rally-rush-toggle"),
+      countdown: this._get("#countdown-interval"),
+      stage: this._get("#stage-select"),
+    };
+
+    this._playerInputs = {
+      p1: {
+        length: this._get("#paddle1-length"),
+        color: this._get("#paddle1-color"),
+      },
+      p2: {
+        length: this._get("#paddle2-length"),
+        color: this._get("#paddle2-color"),
+        type: this._get("#player2-type"),
+      },
+    };
+
+    this._previewUI = {
+      canvas: this._get("#previewCanvas3D"),
+      scene: null,
+    };
+
+    this._startBtn = this._get("#pingpong-start-btn");
+  }
+
+  onMount() {
+    document.body.classList.add("pingpong-page", "overflow-hidden");
+    document.documentElement.classList.add("overflow-hidden");
+
+    this.init();
+
+    this._previewUI.scene = new PreviewScene(this._previewUI.canvas);
+
+    const updatePreview = () => {
+      const { p1, p2 } = this._playerInputs;
+      const stage = Number(this._ruleInputs.stage.value);
+
+      this._previewUI.scene?.updatePreview(
+        Number(p1.length.value),
+        p1.color.value,
+        Number(p2.length.value),
+        p2.color.value,
+        stage,
+      );
+    };
+
+    this._playerInputs.p2.type.addEventListener("change", () => {
+      const isRemote = this._playerInputs.p2.type.value === "Remote";
+      this._remoteUI.container.classList.toggle("hidden", !isRemote);
+      if (isRemote) {
+        // Default to guest for editable ID input
+        this._remoteUI.modeSelect.value = "guest";
+        this._remoteUI.roomInput.readOnly = false;
+        this._remoteUI.roomInput.placeholder = "例: ABCD-1234";
+      }
+    });
+
+    this._remoteUI.modeSelect.addEventListener("change", () => {
+      const isHost = this._remoteUI.modeSelect.value === "host";
+      this._remoteUI.roomInput.readOnly = isHost;
+      if (isHost) {
+        this._remoteUI.roomInput.placeholder = "ホストIDは自動生成されます";
+      } else {
+        this._remoteUI.roomInput.placeholder = "例: ABCD-1234";
+      }
+    });
+
+    this._playerInputs.p1.length.addEventListener("input", updatePreview);
+    this._playerInputs.p1.color.addEventListener("change", updatePreview);
+    this._playerInputs.p2.length.addEventListener("input", updatePreview);
+    this._playerInputs.p2.color.addEventListener("change", updatePreview);
+    this._ruleInputs.stage.addEventListener("change", updatePreview);
+
+    updatePreview();
+    this._startBtn.addEventListener("click", async () => {
+      // Always save local game settings
+      saveSettings({
+        winningScore: Number(this._ruleInputs.winningScore.value),
+        rallyRush: this._ruleInputs.rallyRush.checked,
+        selectedCountdownSpeed: Number(this._ruleInputs.countdown.value),
+        selectedStageIndex: Number(this._ruleInputs.stage.value),
+        player1Color: this._playerInputs.p1.color.value,
+        player1Length: Number(this._playerInputs.p1.length.value),
+        player2Color: this._playerInputs.p2.color.value,
+        player2Length: Number(this._playerInputs.p2.length.value),
+        player2Type: this._playerInputs.p2.type.value as PlayerType,
+      });
+
+      const p2Type = this._playerInputs.p2.type.value;
+      if (p2Type !== "Remote") {
+        navigate("/pingpong_3D");
+        return;
+      }
+
+      // Remote flow
+      const role = this._remoteUI.modeSelect.value as "host" | "guest";
+      const userId = isLoggedIn()
+        ? (userName() as string)
+        : crypto.randomUUID();
+      setRemoteUserId(userId);
+      try {
+        if (role === "host") {
+          const res = await fetch("/api/connect/rooms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId }),
+          });
+          if (!res.ok) throw new Error("failed_create_room");
+          const data = await res.json();
+          const roomId = data.roomId as string;
+          this._remoteUI.roomInput.value = roomId;
+          navigate(
+            `/pingpong_3D_remote?roomId=${encodeURIComponent(roomId)}&role=host`,
+          );
+        } else {
+          const roomId = this._remoteUI.roomInput.value.trim();
+          if (!roomId) return;
+          const res = await fetch(
+            `/api/connect/rooms/${encodeURIComponent(roomId)}/join`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId }),
+            },
+          );
+          if (!res.ok) throw new Error("failed_join_room");
+          navigate(
+            `/pingpong_3D_remote?roomId=${encodeURIComponent(roomId)}&role=guest`,
+          );
+        }
+      } catch (e) {
+        // simple fallback: stay on page; optionally show alert
+        console.error(e);
+      }
+    });
+  }
+
+  onUnmount() {
+    this._previewUI.scene?.dispose();
+    this._previewUI.scene = null;
+    document.body.classList.remove("pingpong-page", "overflow-hidden");
+    document.documentElement.classList.remove("overflow-hidden");
+  }
 }
 
-const pingPong3DSettingComponent = new PingPongComponent();
+const pingPong3DSettingComponent = new PingPongComponent(domRoots.app);
 
 export const PingPong3DSettingRoute: Route = {
   linkLabel: () => word("pingpong3d_config"),
   content: () => pingPong3DSettingComponent.render(),
-  onMount: () => {
-    document.body.classList.add("pingpong-page");
-    document.body.classList.add("overflow-hidden");
-    document.documentElement.classList.add("overflow-hidden");
-
-    const pp3dConfigRoot = document.getElementById(
-      "pp3d-config-root",
-    ) as HTMLElement;
-
-    const startBtn = pp3dConfigRoot.querySelector<HTMLButtonElement>(
-      "#pingpong-start-btn",
-    );
-    const previewCanvas =
-      pp3dConfigRoot.querySelector<HTMLCanvasElement>("#previewCanvas3D");
-
-    if (!previewCanvas) {
-      console.error("previewCanvas3D not found");
-      return;
-    }
-    preview = new PreviewScene(previewCanvas);
-
-    // 入力要素の参照を取る
-    const winningScoreInput =
-      pp3dConfigRoot.querySelector<HTMLInputElement>("#winning-score");
-    const rallyRushInput =
-      pp3dConfigRoot.querySelector<HTMLInputElement>("#rally-rush-toggle");
-    const countdownSelect = pp3dConfigRoot.querySelector<HTMLSelectElement>(
-      "#countdown-interval",
-    );
-    const stageSelect =
-      pp3dConfigRoot.querySelector<HTMLSelectElement>("#stage-select");
-
-    const p1LenInput =
-      pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle1-length");
-    const p1ColSelect =
-      pp3dConfigRoot.querySelector<HTMLSelectElement>("#paddle1-color");
-    const p2LenInput =
-      pp3dConfigRoot.querySelector<HTMLInputElement>("#paddle2-length");
-    const p2ColSelect =
-      pp3dConfigRoot.querySelector<HTMLSelectElement>("#paddle2-color");
-    const p2TypeSelect =
-      pp3dConfigRoot.querySelector<HTMLSelectElement>("#player2-type");
-
-    // プレビュー更新関数
-    const updatePreview = () => {
-      if (
-        !preview ||
-        !p1LenInput ||
-        !p1ColSelect ||
-        !p2LenInput ||
-        !p2ColSelect ||
-        !stageSelect
-      )
-        return;
-
-      const p1Len = Number(p1LenInput.value);
-      const p1Col = p1ColSelect.value;
-      const p2Len = Number(p2LenInput.value);
-      const p2Col = p2ColSelect.value;
-      const stageIdx = Number(stageSelect.value);
-      preview.updatePreview(p1Len, p1Col, p2Len, p2Col, stageIdx);
-    };
-
-    // 入力更新時にプレビューを更新する
-    p1LenInput?.addEventListener("input", updatePreview);
-    p1ColSelect?.addEventListener("change", updatePreview);
-    p2LenInput?.addEventListener("input", updatePreview);
-    p2ColSelect?.addEventListener("change", updatePreview);
-    stageSelect?.addEventListener("change", updatePreview);
-
-    // 初期表示
-    updatePreview();
-
-    // Game Start ボタンが押された時
-    if (!startBtn) return;
-    startBtn.addEventListener("click", () => {
-      if (
-        !winningScoreInput ||
-        !rallyRushInput ||
-        !countdownSelect ||
-        !stageSelect ||
-        !p1LenInput ||
-        !p1ColSelect ||
-        !p2LenInput ||
-        !p2ColSelect ||
-        !p2TypeSelect
-      )
-        return;
-
-      // Start Game が押された時の設定値を受け取る
-      const winningScore = Number(winningScoreInput.value);
-      const rallyRush = rallyRushInput ? rallyRushInput.checked : false;
-      const countdown = Number(countdownSelect.value);
-      const stage = Number(stageSelect.value);
-      const p1Length = Number(p1LenInput.value);
-      const p1Color = p1ColSelect.value;
-      const p2Length = Number(p2LenInput.value);
-      const p2Color = p2ColSelect.value;
-      const p2Type = p2TypeSelect.value as PlayerType;
-
-      // 入力値を読み取る
-      saveSettings({
-        winningScore,
-        rallyRush,
-        selectedCountdownSpeed: countdown,
-        selectedStageIndex: stage,
-        player1Color: p1Color,
-        player1Length: p1Length,
-        player2Color: p2Color,
-        player2Length: p2Length,
-        player2Type: p2Type,
-      });
-
-      // ゲーム開始
-      navigate("/pingpong_3D");
-    });
-  },
-  onUnmount: () => {
-    if (preview) {
-      preview.dispose();
-      preview = null;
-    }
-    document.body.classList.remove("pingpong-page");
-    document.body.classList.remove("overflow-hidden");
-    document.documentElement.classList.remove("overflow-hidden");
-  },
+  onMount: () => pingPong3DSettingComponent.onMount(),
+  onUnmount: () => pingPong3DSettingComponent.onUnmount(),
   head: {
     title: "Setting PingPong 3D",
   },
