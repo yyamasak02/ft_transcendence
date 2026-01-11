@@ -145,4 +145,5 @@ export const edo = {
   collapse_explanation: "前進する他、助かるすべなし",
   further: "進め!!!",
   logout: "お暇（いとま）する",
+  unknown_user: "名無しの権兵衛",
 } as const;
