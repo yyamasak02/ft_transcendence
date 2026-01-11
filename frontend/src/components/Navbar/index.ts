@@ -34,7 +34,6 @@ export class NavBar {
       "/",
       "/pingpong",
       "/pingpong_3D",
-      "/websocket",
       "/pingpong_3D_config",
       "/login",
       "/register",

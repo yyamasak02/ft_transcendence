@@ -2,7 +2,8 @@ import { Ball } from "../Ball";
 import { Paddle } from "../Paddle";
 import type { PaddleInput } from "../Paddle";
 import { GAME_CONFIG } from "../../core/constants3D";
-import type { PlayerType } from "../../core/gameSettings";
+import type { PlayerType } from "../../../../utils/pingpong3D/gameSettings";
+import type { PlayerController } from "./PlayerController";
 
 const AI_CONFIG = {
   SCAN_INTERVAL: 1000,
@@ -30,19 +31,29 @@ const AI_CONFIG = {
   },
 } as const;
 
-export class AIController {
+/**
+ * AI用コントローラー
+ * PlayerControllerインターフェースを実装し、AI判断による入力を提供します
+ */
+export class AIController implements PlayerController {
   private lastSearchTime: number = 0;
   private targetPos: number = 0;
-  private difficulty: Exclude<PlayerType, "Player">;
+  private difficulty: Exclude<PlayerType, "Player" | "Remote">;
   private delayedTargetPos: number = 0;
   private lastActionTime: number = 0;
 
   constructor(difficulty: PlayerType) {
-    this.difficulty = difficulty === "Player" ? "Normal" : difficulty;
+    this.difficulty =
+      difficulty === "Player" || difficulty === "Remote"
+        ? "Normal"
+        : difficulty;
     this.lastSearchTime = 0;
   }
 
-  public getInputs(ball: Ball, paddle: Paddle): PaddleInput {
+  /**
+   * AI判断による入力を取得（PlayerControllerインターフェース実装）
+   */
+  public getInput(ball: Ball, paddle: Paddle): PaddleInput {
     const now = Date.now();
     const config = AI_CONFIG[this.difficulty];
 
@@ -67,6 +78,10 @@ export class AIController {
       up: currentZ > this.delayedTargetPos + AI_CONFIG.TOLERANCE,
       down: currentZ < this.delayedTargetPos - AI_CONFIG.TOLERANCE,
     };
+  }
+
+  dispose(): void {
+    // クリーンアップ処理（現状は不要）
   }
 
   private calculatePredictedZ(ball: Ball, paddle: Paddle): number {

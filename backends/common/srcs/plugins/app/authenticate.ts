@@ -1,9 +1,5 @@
 import fp from "fastify-plugin";
-import type {
-  FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
-} from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { AccessTokenPayload } from "../../types/jwt.js";
 
 export default fp(
@@ -23,7 +19,10 @@ export default fp(
               payload.userId,
             );
           } catch (error) {
-            fastify.log.error({ err: error }, "Failed to update last access time.");
+            fastify.log.error(
+              { err: error },
+              "Failed to update last access time.",
+            );
           }
         } catch (error) {
           return reply.send(error);

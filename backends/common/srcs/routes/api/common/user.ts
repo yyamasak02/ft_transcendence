@@ -103,9 +103,9 @@ export default async function (fastify: FastifyInstance) {
     "Suicider",
     "Queen",
   ]);
-  const PNG_SIGNATURE = Buffer.from(
-    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-  );
+  const PNG_SIGNATURE = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ]);
   const MAX_PROFILE_IMAGE_BYTES = 1024 * 1024;
   const FRIEND_STATUS = {
     PENDING: "pending",
@@ -166,7 +166,7 @@ export default async function (fastify: FastifyInstance) {
 
       fastify.log.error(
         { username: name },
-        "Failed to generate unique PUID after 5 attempts during user registration."
+        "Failed to generate unique PUID after 5 attempts during user registration.",
       );
       reply.code(500);
       return { message: "Failed to generate unique PUID." };
@@ -251,7 +251,10 @@ export default async function (fastify: FastifyInstance) {
         request.body.idToken,
         clientId,
         (error) => {
-          fastify.log.error({ err: error }, "Failed to verify Google ID token.");
+          fastify.log.error(
+            { err: error },
+            "Failed to verify Google ID token.",
+          );
         },
       );
 
@@ -323,7 +326,10 @@ export default async function (fastify: FastifyInstance) {
         request.body.idToken,
         clientId,
         (error) => {
-          fastify.log.error({ err: error }, "Failed to verify Google ID token.");
+          fastify.log.error(
+            { err: error },
+            "Failed to verify Google ID token.",
+          );
         },
       );
 
@@ -390,10 +396,11 @@ export default async function (fastify: FastifyInstance) {
         googleProfile.emailVerified,
       );
 
-      const user = await fastify.db.get<{ id: number; puid: string; name: string }>(
-        "SELECT id, puid, name FROM users WHERE id = ?",
-        userId,
-      );
+      const user = await fastify.db.get<{
+        id: number;
+        puid: string;
+        name: string;
+      }>("SELECT id, puid, name FROM users WHERE id = ?", userId);
 
       if (!user) {
         reply.code(500);
@@ -470,16 +477,21 @@ export default async function (fastify: FastifyInstance) {
         return { message: "User not found." };
       }
 
-      const online = isRecentlyActive(user.last_accessed_at, ONLINE_THRESHOLD_MS);
+      const online = isRecentlyActive(
+        user.last_accessed_at,
+        ONLINE_THRESHOLD_MS,
+      );
 
-      const rows = await fastify.db.all<Array<{
-        id: number;
-        owner_name: string;
-        guest_name: string | null;
-        owner_score: number;
-        guest_score: number;
-        created_at: string;
-      }>>(
+      const rows = await fastify.db.all<
+        Array<{
+          id: number;
+          owner_name: string;
+          guest_name: string | null;
+          owner_score: number;
+          guest_score: number;
+          created_at: string;
+        }>
+      >(
         `SELECT
            match_results.id,
            owner.name AS owner_name,
@@ -600,7 +612,10 @@ export default async function (fastify: FastifyInstance) {
         reply.code(400);
         return { message: "Image is required." };
       }
-      if (buffer.length < PNG_SIGNATURE.length || !buffer.subarray(0, 8).equals(PNG_SIGNATURE)) {
+      if (
+        buffer.length < PNG_SIGNATURE.length ||
+        !buffer.subarray(0, 8).equals(PNG_SIGNATURE)
+      ) {
         reply.code(400);
         return { message: "PNG format is required." };
       }
@@ -660,18 +675,20 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const rows = await fastify.db.all<Array<{
-        id: number;
-        status: string;
-        requester_puid: string;
-        addressee_puid: string;
-        requester_name: string;
-        addressee_name: string;
-        requester_image: string | null;
-        addressee_image: string | null;
-        requester_access: string | null;
-        addressee_access: string | null;
-      }>>(
+      const rows = await fastify.db.all<
+        Array<{
+          id: number;
+          status: string;
+          requester_puid: string;
+          addressee_puid: string;
+          requester_name: string;
+          addressee_name: string;
+          requester_image: string | null;
+          addressee_image: string | null;
+          requester_access: string | null;
+          addressee_access: string | null;
+        }>
+      >(
         `SELECT
            f.id,
            f.status,
@@ -695,7 +712,13 @@ export default async function (fastify: FastifyInstance) {
       const friends: Array<{
         id: number;
         name: string;
-        profileImage: "Robot" | "Snowman" | "Sniper" | "Suicider" | "Queen" | null;
+        profileImage:
+          | "Robot"
+          | "Snowman"
+          | "Sniper"
+          | "Suicider"
+          | "Queen"
+          | null;
         online: boolean;
         status: "accepted" | "pending_incoming" | "pending_outgoing";
       }> = rows.map((row) => {
@@ -760,7 +783,7 @@ export default async function (fastify: FastifyInstance) {
       const existing = await fastify.db.get<{ id: number }>(
         `SELECT id FROM friends
          WHERE (requester_puid = ? AND addressee_puid = ?)
-            OR (requester_puid = ? AND addressee_puid = ?)` ,
+            OR (requester_puid = ? AND addressee_puid = ?)`,
         request.user.puid,
         target.puid,
         target.puid,
@@ -797,7 +820,11 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { requestId, accept } = request.body;
-      const row = await fastify.db.get<{ requester_puid: string; addressee_puid: string; status: string }>(
+      const row = await fastify.db.get<{
+        requester_puid: string;
+        addressee_puid: string;
+        status: string;
+      }>(
         "SELECT requester_puid, addressee_puid, status FROM friends WHERE id = ?",
         requestId,
       );
@@ -805,7 +832,10 @@ export default async function (fastify: FastifyInstance) {
         reply.code(404);
         return { message: "Friend request not found." };
       }
-      if (row.addressee_puid !== request.user.puid || row.status !== FRIEND_STATUS.PENDING) {
+      if (
+        row.addressee_puid !== request.user.puid ||
+        row.status !== FRIEND_STATUS.PENDING
+      ) {
         reply.code(400);
         return { message: "Invalid friend request." };
       }
@@ -839,7 +869,11 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { friendId } = request.body;
-      const row = await fastify.db.get<{ requester_puid: string; addressee_puid: string; status: string }>(
+      const row = await fastify.db.get<{
+        requester_puid: string;
+        addressee_puid: string;
+        status: string;
+      }>(
         "SELECT requester_puid, addressee_puid, status FROM friends WHERE id = ?",
         friendId,
       );
@@ -851,7 +885,10 @@ export default async function (fastify: FastifyInstance) {
         reply.code(400);
         return { message: "Friend is not accepted." };
       }
-      if (row.requester_puid !== request.user.puid && row.addressee_puid !== request.user.puid) {
+      if (
+        row.requester_puid !== request.user.puid &&
+        row.addressee_puid !== request.user.puid
+      ) {
         reply.code(400);
         return { message: "Invalid friend request." };
       }
@@ -1011,17 +1048,17 @@ export default async function (fastify: FastifyInstance) {
     async (request, reply) => {
       const { longTermToken } = request.body;
 
-
       const verified = await verifyLongTermToken(fastify, longTermToken);
       if (!verified) {
         reply.code(401);
         return { message: "Invalid long-term token." };
       }
 
-      const user = await fastify.db.get<{ id: number; name: string; puid: string }>(
-        "SELECT id, name, puid FROM users WHERE id = ?",
-        verified.userId,
-      );
+      const user = await fastify.db.get<{
+        id: number;
+        name: string;
+        puid: string;
+      }>("SELECT id, name, puid FROM users WHERE id = ?", verified.userId);
 
       if (!user) {
         await removeLongTermToken(fastify, longTermToken);
@@ -1079,10 +1116,11 @@ export default async function (fastify: FastifyInstance) {
         return { message: "Name is required." };
       }
 
-      const user = await fastify.db.get<{ id: number; name: string; puid: string }>(
-        "SELECT id, name, puid FROM users WHERE id = ?",
-        request.user.userId,
-      );
+      const user = await fastify.db.get<{
+        id: number;
+        name: string;
+        puid: string;
+      }>("SELECT id, name, puid FROM users WHERE id = ?", request.user.userId);
       if (!user) {
         reply.code(404);
         return { message: "User not found." };
@@ -1102,7 +1140,6 @@ export default async function (fastify: FastifyInstance) {
           }
           throw error;
         }
-
       }
 
       const tokens = await issueTokens(fastify, {
@@ -1180,7 +1217,9 @@ export default async function (fastify: FastifyInstance) {
         "SELECT two_factor_enabled, two_factor_secret FROM users WHERE id = ?",
         request.user.userId,
       );
-      const enabled = Boolean(row?.two_factor_enabled && row?.two_factor_secret);
+      const enabled = Boolean(
+        row?.two_factor_enabled && row?.two_factor_secret,
+      );
       return { enabled };
     },
   );
@@ -1231,10 +1270,7 @@ export default async function (fastify: FastifyInstance) {
 
       const totpValid = verifyTotp(user.two_factor_secret, code);
       if (totpValid === null) {
-        fastify.log.error(
-          { userId: user.id },
-          "Invalid 2FA secret format.",
-        );
+        fastify.log.error({ userId: user.id }, "Invalid 2FA secret format.");
         reply.code(500);
         return { message: "Invalid 2FA configuration." };
       }
