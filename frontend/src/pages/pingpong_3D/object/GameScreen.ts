@@ -156,6 +156,25 @@ export class GameScreen {
       }
     }
 
+    // ラリー数カウント
+    if (typeof this.serverState.rallyCount === "number") {
+      if (this.gameState.rallyCount !== this.serverState.rallyCount) {
+        this.gameState.rallyCount = this.serverState.rallyCount;
+        if (this.hud) {
+          this.hud.setRallyCount(this.gameState.rallyCount);
+        }
+        const isRallyRush = this.settings.rallyRush;
+        this.player1.paddle.updateRallyPosition(
+          this.gameState.rallyCount,
+          isRallyRush,
+        );
+        this.player2.paddle.updateRallyPosition(
+          this.gameState.rallyCount,
+          isRallyRush,
+        );
+      }
+    }
+
     // Apply countdown from server (if in countdown phase)
     if (
       this.serverState.status === "countdown" &&
