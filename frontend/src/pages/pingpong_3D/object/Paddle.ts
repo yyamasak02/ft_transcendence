@@ -1,7 +1,7 @@
 // pingpong_3D/object/Paddle.ts
 import { Mesh, MeshBuilder, Vector3, Scene } from "@babylonjs/core";
 import { GAME_CONFIG } from "../core/constants3D";
-import type { GameSettings } from "../core/gameSettings";
+import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
 import { createPaddleMaterial } from "./materials/paddleMaterial";
 
 export type PaddleInput = {

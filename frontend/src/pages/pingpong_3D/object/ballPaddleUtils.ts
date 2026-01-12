@@ -1,7 +1,7 @@
 // pingpong_3D/object/ballPaddleUtils.ts // game-main.ts用のutility関数
 import { Mesh, Vector3 } from "@babylonjs/core";
 import { GAME_CONFIG } from "../core/constants3D";
-import type { GameSettings } from "../core/gameSettings";
+import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
 import type { Ball } from "./Ball";
 import type { Paddle } from "./Paddle";
 import { GameHUD } from "./ui3D/GameHUD";
@@ -13,6 +13,13 @@ export type UILockController = {
   lock: () => void;
   unlock: () => void;
 };
+
+const SERVE_CONSTS = {
+  INITIAL_SPEED: 0.8,
+  MIN_ANGLE: Math.PI / 12,
+  MAX_ANGLE: Math.PI / 4,
+  DELAY_TICK_MS: 50,
+} as const;
 
 // 衝突判定
 export function checkPaddleCollision(ballMesh: Mesh, paddle: Paddle): boolean {
@@ -42,7 +49,7 @@ export function checkPaddleCollision(ballMesh: Mesh, paddle: Paddle): boolean {
 
 // サーブ初速・角度
 export function randomServeVelocity(startFrom: "center" | 1 | 2): Vector3 {
-  const speed = 0.8; // 初速
+  const speed = SERVE_CONSTS.INITIAL_SPEED; // 初速
 
   let dirX: number;
 
@@ -53,8 +60,8 @@ export function randomServeVelocity(startFrom: "center" | 1 | 2): Vector3 {
   if (startFrom === "center") return new Vector3(dirX * speed, 0, 0);
 
   // 2回目以降は角度をつける
-  const minAngle = Math.PI / 12;
-  const maxAngle = Math.PI / 4;
+  const minAngle = SERVE_CONSTS.MIN_ANGLE;
+  const maxAngle = SERVE_CONSTS.MAX_ANGLE;
   const angle =
     (Math.random() * (maxAngle - minAngle) + minAngle) *
     (Math.random() > 0.5 ? 1 : -1);
@@ -79,7 +86,7 @@ async function delayWithPause(
   isCanceled: () => boolean,
 ): Promise<boolean> {
   let elapsed = 0;
-  const tick = 50;
+  const tick = SERVE_CONSTS.DELAY_TICK_MS;
 
   while (elapsed < ms) {
     if (isCanceled()) return true;

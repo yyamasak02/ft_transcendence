@@ -12,3 +12,5 @@ node_modules
 *.sqlite
 
 memo.*
+new_pingpong_3D/
+infra/

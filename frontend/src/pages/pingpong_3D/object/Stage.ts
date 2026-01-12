@@ -20,7 +20,7 @@ import {
   createShadowLight,
   createGlowLayer,
 } from "./stageControl/lightControl";
-import type { GameSettings } from "../core/gameSettings";
+import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
 
 const STAGE_CONSTS = {
   DEBRIS: {
