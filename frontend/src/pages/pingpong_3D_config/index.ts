@@ -64,21 +64,21 @@ class PingPongComponent implements Component {
                             <option value="Easy">${t("easyLv")}</option>
                             <option value="Normal" selected>${t("normalLv")}</option>
                             <option value="Hard">${t("hardLv")}</option>
-                            <option value="Remote">Remote</option>
+                            <option value="Remote">${t("remote")}</option>
                         </select>
                     </div>
                     <!-- Remote Config -->
                     <div id="remote-config" class="hidden">
                       <div class="pp3d-config-row">
-                        <label class="pp3d-label">接続モード</label>
+                        <label class="pp3d-label">${t("connection_mode")}</label>
                         <select id="remote-mode">
-                          <option value="guest">ゲスト</option>
-                          <option value="host">ホスト</option>
+                          <option value="guest">${t("guest")}</option>
+                          <option value="host">${t("host")}</option>
                         </select>
                       </div>
                       <div class="pp3d-config-row">
-                        <label class="pp3d-label">ルームID</label>
-                        <input id="remote-room-id" type="text" placeholder="例: ABCD-1234" />
+                        <label class="pp3d-label">${t("room_id")}</label>
+                        <input id="remote-room-id" type="text" placeholder="ABCD-1234" />
                       </div>
                     </div>
 
@@ -235,18 +235,14 @@ class PingPongComponent implements Component {
         // Default to guest for editable ID input
         this._remoteUI.modeSelect.value = "guest";
         this._remoteUI.roomInput.readOnly = false;
-        this._remoteUI.roomInput.placeholder = "例: ABCD-1234";
+        this._remoteUI.roomInput.placeholder = "ABCD-1234";
       }
     });
 
     this._remoteUI.modeSelect.addEventListener("change", () => {
       const isHost = this._remoteUI.modeSelect.value === "host";
       this._remoteUI.roomInput.readOnly = isHost;
-      if (isHost) {
-        this._remoteUI.roomInput.placeholder = "ホストIDは自動生成されます";
-      } else {
-        this._remoteUI.roomInput.placeholder = "例: ABCD-1234";
-      }
+      this._remoteUI.roomInput.placeholder = "ABCD-1234";
     });
 
     this._playerInputs.p1.length.addEventListener("input", updatePreview);

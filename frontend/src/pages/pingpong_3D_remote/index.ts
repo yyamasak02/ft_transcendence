@@ -6,6 +6,7 @@ import {
   getRemoteUserId,
   setRemoteUserId,
 } from "@/utils/pingpong3D/remoteSetting";
+import { t, word } from "@/i18n";
 
 type RoomJoinContext = {
   roomId: string;
@@ -31,9 +32,9 @@ class PingPong3DRemoteWaiting implements Component {
   render(): string {
     return `
       <div class="w-[800px] max-w-full p-6 space-y-4">
-        <h2 class="text-xl font-semibold">Remote 対戦 待機中</h2>
-        <div>Room ID: <span id="room-id" class="font-mono"></span></div>
-        <div id="status" class="text-sm">ステータス: 準備中...</div>
+        <h2 class="text-xl font-semibold">${t("remote_wait_for")}</h2>
+        <div>${t("room_id")}: <span id="room-id" class="font-mono"></span></div>
+        <div class="text-sm">${t("remote_status")}: <span id="status" class="font-mono"></span>...</div>
         <button id="ready-btn" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" disabled>READY</button>
         <div id="start-banner" class="hidden text-green-600 font-bold">START!</div>
       </div>
@@ -59,8 +60,7 @@ class PingPong3DRemoteWaiting implements Component {
         if (!res.ok) return;
         const data = await res.json();
         if (data.status === "matched") {
-          this._statusEl.textContent =
-            "ステータス: マッチ成立。READYを押してください。";
+          this._statusEl.textContent = `${word("remote_ready_message")}`;
           this._readyBtn.disabled = false;
           if (this._pollTimer !== null) {
             clearInterval(this._pollTimer);
@@ -68,7 +68,7 @@ class PingPong3DRemoteWaiting implements Component {
           }
           this.connectWS();
         } else {
-          this._statusEl.textContent = "ステータス: 相手待ち...";
+          this._statusEl.textContent = `${word("remote_wait_for")}`;
         }
       } catch (e) {
         // ignore transient errors
@@ -142,8 +142,8 @@ class PingPong3DRemoteWaiting implements Component {
             const rest = Math.max(0, startAt - Date.now());
             this._statusEl.textContent =
               rest > 0
-                ? `開始まで ${Math.ceil(rest / 1000)} 秒`
-                : "ゲーム開始!";
+                ? `${word("remote_game_starting_in")} ${Math.ceil(rest / 1000)} ${word("seconds_unit")}`
+                : word("remote_game_started");
           }, COUNTDOWN_UPDATE_INTERVAL_MS);
           // determine side using current room status (host/guest)
           const ctx = await this.fetchRoomSide(this._roomId, this._tmpUserId);
@@ -179,7 +179,7 @@ class PingPong3DRemoteWaiting implements Component {
     const params = new URLSearchParams(window.location.search);
     const roomId = params.get("roomId");
     if (!roomId) {
-      this._statusEl.textContent = "RoomID がありません。";
+      this._statusEl.textContent = word("remote_no_room_id_message");
       return;
     }
     this._roomId = roomId;
@@ -194,7 +194,7 @@ class PingPong3DRemoteWaiting implements Component {
           }),
         );
         this._readyBtn.disabled = true;
-        this._statusEl.textContent = "READY 済み。相手を待っています...";
+        this._statusEl.textContent = word("remote_ready_done_waiting_message");
       };
 
       const ws = this._ws;
@@ -204,7 +204,9 @@ class PingPong3DRemoteWaiting implements Component {
       }
       // If connecting, wait for open; if not present, (re)connect and then send
       this._readyBtn.disabled = true;
-      this._statusEl.textContent = "接続中... READY を送信します";
+      this._statusEl.textContent = word(
+        "remote_connecting_and_send_ready_message",
+      );
       if (
         !ws ||
         ws.readyState === WebSocket.CLOSING ||
