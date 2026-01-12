@@ -2,36 +2,38 @@
 import { getStoredAccessToken } from "@/utils/token-storage";
 
 export const matchService = {
-  async createSession(guestName: string): Promise<number | null> {
+  // セッション作成
+  async createSession(opponentName: string): Promise<number | null> {
     const token = getStoredAccessToken();
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
-    let guestPuid = guestName;
-    let isGuest = false;
+    let targetPuid: string | null = null;
 
     try {
-      const puidRes = await fetch(`/api/common/user/puid?name=${guestName}`);
-      if (puidRes.ok) {
-        const puidData = await puidRes.json();
-        if (puidData.puid) {
-          guestPuid = puidData.puid;
-        } else {
-          isGuest = true;
+      const res = await fetch(`/api/common/user/puid?name=${opponentName}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.puid) {
+          targetPuid = data.puid;
         }
-      } else {
-        isGuest = true;
       }
-    } catch (e) {
-      isGuest = true;
+    } catch (e) {}
+
+    if (!targetPuid) {
+      try {
+        const guestRes = await fetch(`/api/common/user/puid?name=guest`);
+        if (guestRes.ok) {
+          const guestData = await guestRes.json();
+          if (guestData.puid) {
+            targetPuid = guestData.puid;
+          }
+        }
+      } catch (e) {}
     }
 
-    if (isGuest) {
+    if (!targetPuid) {
       return null;
     }
-
-    // セッション作成
     try {
       const res = await fetch("/api/common/match_session", {
         method: "POST",
@@ -39,15 +41,13 @@ export const matchService = {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ guestPuid }),
+        body: JSON.stringify({ guestPuid: targetPuid }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        return data.id;
-      } else {
-        return null;
-      }
+      if (!res.ok) return null;
+
+      const data = await res.json();
+      return data.id;
     } catch (e) {
       return null;
     }
@@ -63,16 +63,16 @@ export const matchService = {
     if (!token) return;
 
     try {
-      const res = await fetch("/api/common/match_result", {
+      await fetch("/api/common/match_result", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          matchId: matchId,
-          ownerScore: ownerScore,
-          guestScore: guestScore,
+          matchId,
+          ownerScore,
+          guestScore,
         }),
       });
     } catch (error) {
