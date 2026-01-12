@@ -161,4 +161,5 @@ export const edo = {
   remote_game_starting_in: "始まりまであと",
   seconds_unit: "秒",
   remote_game_started: "勝負、始まりだ！",
+  unknown_user: "名無しの権兵衛",
 } as const;

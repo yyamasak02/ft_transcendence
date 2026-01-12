@@ -165,4 +165,5 @@ export const ja = {
   remote_game_starting_in: "開始まで",
   seconds_unit: "秒",
   remote_game_started: "ゲーム開始！",
+  unknown_user: "不明なユーザー",
 } as const;

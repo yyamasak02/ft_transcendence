@@ -127,15 +127,96 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 0.85rem;
-  color: #d0d0d0;
-  word-break: break-word;
+  width: 100%;
 }
 
 .user-profile-match {
-  padding: 8px 10px;
-  border: 1px solid #222;
-  background: #121212;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s;
+  color: #d0d0d0;
+}
+
+.user-profile-match:hover {
+  transform: translateY(-1px);
+  border-color: #555;
+}
+
+.card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  margin-right: 12px;
+}
+
+.result-symbol {
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-bottom: 2px;
+  color: #eee;
+}
+
+.result-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #aaa;
+}
+
+.card-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.opponent-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #eee;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-date {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-left: 12px;
+}
+
+.score-num {
+  min-width: 20px;
+  text-align: center;
+}
+
+.my-score {
+  color: #fff;
+}
+.opp-score {
+  color: #888;
+}
+.score-sep {
+  color: #555;
+  font-size: 1rem;
 }
 
 .user-profile-back {

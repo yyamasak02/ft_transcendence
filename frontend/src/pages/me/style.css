@@ -8,7 +8,7 @@
 .me-layout {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 520px) 1fr;
-  gap: 24px;
+  gap: 60px;
   align-items: flex-start;
 }
 
@@ -18,12 +18,18 @@
 }
 
 .me-avatar {
-  margin-top: 10px;
   width: 120px;
   height: 120px;
   object-fit: cover;
   border: 1px solid #333;
   border-radius: 8px;
+  margin-top: 10px;
+}
+
+.me-avatar:hover {
+  opacity: 0.8;
+  border-color: #777;
+  cursor: pointer;
 }
 
 .me-avatar-row {
@@ -263,28 +269,125 @@
   color: #d2d2d2;
 }
 
-.me-matches-summary {
-  margin-bottom: 10px;
-  font-size: 0.85rem;
-  color: #c8c8c8;
-  letter-spacing: 0.04em;
-}
-
 .me-matches {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 0.85rem;
-  color: #d0d0d0;
-  word-break: break-word;
 }
 
-.me-match {
-  padding: 8px 10px;
-  border: 1px solid #222;
-  background: #121212;
+.me-match-card {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  padding: 14px 18px;
+  background: #000;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  transition: border-color 0.2s;
 }
 
+.me-match-card:hover {
+  border-color: #777;
+}
+
+.card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  gap: 4px;
+}
+
+.result-symbol {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.result-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.card-center {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.opponent-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-date {
+  font-size: 0.7rem;
+  color: #666;
+  font-family: monospace;
+}
+
+.card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+}
+
+.score-sep {
+  color: #444;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.status-win .result-symbol,
+.status-win .result-label {
+  color: #ffffff;
+}
+.status-win .opponent-name {
+  color: #cccccc;
+}
+.status-win .my-score {
+  color: #ffffff;
+  font-weight: bold;
+}
+.status-win .opp-score {
+  color: #666666;
+}
+
+.status-lose {
+  border-color: #222;
+}
+.status-lose .result-symbol,
+.status-lose .result-label {
+  color: #666666;
+}
+.status-lose .opponent-name {
+  color: #888888;
+}
+.status-lose .my-score {
+  color: #888888;
+}
+.status-lose .opp-score {
+  color: #cccccc;
+}
+
+.status-draw .result-symbol,
+.status-draw .result-label {
+  color: #999999;
+}
+.status-draw .my-score,
+.status-draw .opp-score {
+  color: #bbbbbb;
+}
 
 .me-friends-list {
   display: flex;

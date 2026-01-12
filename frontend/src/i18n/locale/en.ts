@@ -161,4 +161,5 @@ export const en = {
   remote_game_starting_in: "Starting in",
   seconds_unit: "seconds",
   remote_game_started: "Game started!",
+  unknown_user: "Unknown user",
 } as const;
