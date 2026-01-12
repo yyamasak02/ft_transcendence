@@ -136,11 +136,14 @@ export class GameScreen {
     this.ball.mesh.position.x = x;
     this.ball.mesh.position.z = z;
 
+    const serverP1x = this.serverState.players?.p1?.x ?? 0;
     const serverP1y = this.serverState.players?.p1?.y ?? 0;
+    const serverP2x = this.serverState.players?.p2?.x ?? 0;
     const serverP2y = this.serverState.players?.p2?.y ?? 0;
 
-    // Direct: server p1(left) -> client player1(left), server p2(right) -> client player2(right)
+    this.player1.paddle.mesh.position.x = serverP1x * (courtW / 2);
     this.player1.paddle.mesh.position.z = serverP1y * (courtH / 2);
+    this.player2.paddle.mesh.position.x = serverP2x * (courtW / 2);
     this.player2.paddle.mesh.position.z = serverP2y * (courtH / 2);
 
     // Apply score from server
@@ -163,15 +166,6 @@ export class GameScreen {
         if (this.hud) {
           this.hud.setRallyCount(this.gameState.rallyCount);
         }
-        const isRallyRush = this.settings.rallyRush;
-        this.player1.paddle.updateRallyPosition(
-          this.gameState.rallyCount,
-          isRallyRush,
-        );
-        this.player2.paddle.updateRallyPosition(
-          this.gameState.rallyCount,
-          isRallyRush,
-        );
       }
     }
 
