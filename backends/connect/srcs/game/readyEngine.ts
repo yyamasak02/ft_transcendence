@@ -115,7 +115,13 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
     if (!sockets) return;
 
     // notify countdown
-    const countdownMsg = JSON.stringify({ type: "game:countdown" });
+    const countdownMsg = JSON.stringify({
+      type: "game:countdown",
+      payload: {
+        p1: room.hostUserId,
+        p2: room.guestUserId,
+      },
+    });
     sockets.forEach((ws) => {
       try {
         ws.send(countdownMsg);

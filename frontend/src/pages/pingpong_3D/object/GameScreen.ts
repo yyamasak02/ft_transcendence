@@ -25,6 +25,7 @@ import { HumanController } from "./player/HumanController";
 import { AIController } from "./player/AIController";
 import { RemoteController } from "./player/RemoteController";
 import type { GamePhase } from "../core/game";
+import { matchService } from "./match/match";
 
 const MAIN_CONSTS = {
   RALLY_DEBOUNCE_MS: 100,
@@ -85,6 +86,7 @@ export class GameScreen {
   private serverAuthority: boolean = false;
   private serverState: any = null;
   private serverStarted: boolean = false;
+  private remoteMatchId: number | null = null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -125,6 +127,9 @@ export class GameScreen {
   }
 
   private applyServerState() {
+    // ゲームオーバー後はサーバーからの同期を無視
+    if (this.gameState.phase === "gameover") return;
+
     if (!this.serverState || !this.player1 || !this.player2 || !this.ball)
       return;
     const courtW = GAME_CONFIG.COURT_WIDTH;
@@ -590,6 +595,13 @@ export class GameScreen {
           userId: this.remoteUserId,
         }),
       );
+      ws.send(
+        JSON.stringify({
+          type: "game:ready",
+          roomId: this.remoteRoomId,
+          userId: this.remoteUserId,
+        }),
+      );
     };
     ws.onmessage = (ev) => {
       try {
@@ -612,7 +624,33 @@ export class GameScreen {
             // applyServerState will handle all updates in the game loop
           }
           if (msg?.type === "game:end") {
-            setTimeout(() => this.cleanupAndGoHome(), 3000);
+            this.gameState.phase = "gameover";
+
+            const winnerSide = msg.payload?.winner;
+            const SERVER_WINNING_SCORE = 5;
+
+            if (winnerSide === "p1") {
+              this.p1Score = SERVER_WINNING_SCORE;
+            } else if (winnerSide === "p2") {
+              this.p2Score = SERVER_WINNING_SCORE;
+            }
+            if (this.remoteSide === "p1") {
+              this.saveRemoteMatchResult();
+            }
+
+            setTimeout(() => this.cleanupAndGoHome());
+          }
+        }
+
+        if (msg?.type === "game:countdown") {
+          if (msg.payload) {
+            const { p1, p2 } = msg.payload;
+            if (this.remoteSide === "p1") {
+              if (p1 && p2) {
+                console.log(`create session. Host:${p1}, Guest:${p2}`);
+                this.createRemoteSession(p2);
+              }
+            }
           }
         }
       } catch {
@@ -622,6 +660,20 @@ export class GameScreen {
     ws.onclose = () => {
       this.remoteWS = null;
     };
+  }
+
+  private async createRemoteSession(guestIdOrName: string) {
+    if (this.remoteMatchId || this.remoteSide !== "p1") return;
+    this.remoteMatchId = await matchService.createSession(guestIdOrName);
+  }
+
+  private async saveRemoteMatchResult() {
+    if (!this.remoteMatchId || this.remoteSide !== "p1") return;
+    await matchService.saveResult(
+      this.remoteMatchId,
+      this.p1Score,
+      this.p2Score,
+    );
   }
 
   private handleEnterToStart() {
@@ -720,6 +772,10 @@ export class GameScreen {
     this.isPaused = false;
 
     if (this.ball) this.ball.stop();
+
+    if (this.remoteMode) {
+      this.saveRemoteMatchResult();
+    }
 
     this.endGameDirection(winner);
 
