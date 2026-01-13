@@ -14,6 +14,7 @@ import {
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
+import { matchService } from "@/pages/pingpong_3D/object/match/match";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
@@ -137,6 +138,7 @@ const handleGoogleCredential = async (
       return;
     }
     storeTokens(body.accessToken, body.longTermToken);
+    await matchService.retryPendingResults();
     setGoogleMsg(word("google_login_success"));
     navigate("/");
   } catch (error) {
@@ -230,6 +232,7 @@ const setupLoginForm = () => {
         return;
       }
       storeTokens(body.accessToken, body.longTermToken);
+      await matchService.retryPendingResults();
       setLoginMsg(word("login_success"));
       navigate("/");
     } catch (error) {
