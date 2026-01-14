@@ -103,6 +103,11 @@
   text-align: center;
 }
 
+#google-btn {
+  display: flex;
+  justify-content: center;
+}
+
 .login-link {
   color: #bbb;
   text-decoration: none;
