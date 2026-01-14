@@ -76,6 +76,10 @@ class LoginComponent implements Component {
 									</div>
 
 									<div class="login-footer">
+										<a class="login-link" href="/" data-nav>${t("home_return")}</a>
+									</div>
+
+									<div class="login-footer">
 										<div id="google-btn"></div>
 										<p id="google-msg" class="login-google-msg"></p>
 									</div>
@@ -178,11 +182,21 @@ const setupLoginForm = () => {
   const toSignupLink = document.querySelector<HTMLAnchorElement>(
     ".login-link[href='/register']",
   );
+  const toHomeLink = document.querySelector<HTMLAnchorElement>(
+    ".login-link[href='/']",
+  );
 
   if (toSignupLink) {
     toSignupLink.addEventListener("click", (event) => {
       event.preventDefault();
       navigate("/register");
+    });
+  }
+
+  if (toHomeLink) {
+    toHomeLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate("/");
     });
   }
 

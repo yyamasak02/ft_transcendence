@@ -67,6 +67,10 @@ class RegisterComponent implements Component {
 										<a class="register-link" href="/login">${t("to_login")}</a>
 									</div>
 
+									<div class="register-footer">
+										<a class="register-link" href="/">${t("home_return")}</a>
+									</div>
+
 									<div class="register-divider">
 										<span>${t("other_signup_methods")}</span>
 									</div>
@@ -163,11 +167,21 @@ const setupRegisterForm = () => {
   const toLoginLink = document.querySelector<HTMLAnchorElement>(
     ".register-link[href='/login']",
   );
+  const toHomeLink = document.querySelector<HTMLAnchorElement>(
+    ".register-link[href='/']",
+  );
 
   if (toLoginLink) {
     toLoginLink.addEventListener("click", (event) => {
       event.preventDefault();
       navigate("/login");
+    });
+  }
+
+  if (toHomeLink) {
+    toHomeLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate("/");
     });
   }
 
