@@ -5,6 +5,7 @@ import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { getStoredAccessToken } from "@/utils/token-storage";
+import { appendReturnTo, getCurrentPath } from "@/utils/return-to";
 import {
   DEFAULT_PROFILE_IMAGE,
   PROFILE_IMAGES,
@@ -258,7 +259,7 @@ const setupUserSearch = () => {
       return;
     }
     if (!accessToken) {
-      navigate("/login");
+      navigate(appendReturnTo("/login", getCurrentPath()));
       return;
     }
     try {
@@ -747,7 +748,7 @@ export const MeRoute: Route = {
   content: () => new MeComponent().render(),
   onMount: () => {
     if (!getStoredAccessToken()) {
-      navigate("/login");
+      navigate(appendReturnTo("/login", getCurrentPath()));
       return;
     }
     const accessToken = getStoredAccessToken();

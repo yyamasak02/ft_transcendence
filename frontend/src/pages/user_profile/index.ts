@@ -2,6 +2,7 @@ import type { Route } from "@/types/routes";
 import { langManager, word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { getStoredAccessToken } from "@/utils/token-storage";
+import { appendReturnTo, getCurrentPath } from "@/utils/return-to";
 import {
   DEFAULT_PROFILE_IMAGE,
   getProfileImageSrc,
@@ -296,7 +297,7 @@ class UserProfileController {
   async loadProfile(name: string) {
     const accessToken = getStoredAccessToken();
     if (!accessToken) {
-      navigate("/login");
+      navigate(appendReturnTo("/login", getCurrentPath()));
       return;
     }
     try {

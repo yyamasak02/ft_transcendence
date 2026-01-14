@@ -7,6 +7,7 @@ import {
   USERNAME_ROMAN_PATTERN,
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
+import { appendReturnTo, getReturnTo } from "@/utils/return-to";
 import "./style.css";
 
 const API_BASE = "/api/common";
@@ -85,7 +86,7 @@ const setupGoogleSignupForm = () => {
   if (toLoginLink) {
     toLoginLink.addEventListener("click", (event) => {
       event.preventDefault();
-      navigate("/login");
+      navigate(appendReturnTo("/login", getReturnTo()));
     });
   }
 
@@ -147,7 +148,7 @@ const setupGoogleSignupForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       clearPendingGoogleSignup();
-      navigate("/");
+      navigate(getReturnTo());
     } catch (error) {
       setGoogleSignupMsg(`${word("register_error")}: ${error}`);
     } finally {

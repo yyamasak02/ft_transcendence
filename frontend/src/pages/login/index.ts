@@ -14,6 +14,7 @@ import {
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
+import { appendReturnTo, getReturnTo } from "@/utils/return-to";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
@@ -117,6 +118,7 @@ const handleGoogleCredential = async (
 ) => {
   setGoogleMsg(word("google_login_processing"));
   try {
+    const returnTo = getReturnTo();
     const res = await fetch(`${API_BASE}/user/google_login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -125,12 +127,12 @@ const handleGoogleCredential = async (
     const body = await res.json().catch(() => ({}));
     if (res.status === 404) {
       storePendingGoogleSignup(credential, longTerm);
-      navigate("/google-signup");
+      navigate(appendReturnTo("/google-signup", returnTo));
       return;
     }
     if (body?.twoFactorRequired && body?.twoFactorToken) {
       storeTwoFactorChallenge(body.twoFactorToken, longTerm);
-      navigate("/two-factor");
+      navigate(appendReturnTo("/two-factor", returnTo));
       return;
     }
     if (!res.ok) {
@@ -142,7 +144,7 @@ const handleGoogleCredential = async (
     }
     storeTokens(body.accessToken, body.longTermToken);
     setGoogleMsg(word("google_login_success"));
-    navigate("/");
+    navigate(returnTo);
   } catch (error) {
     setGoogleMsg(`${word("google_login_error")}: ${error}`);
   }
@@ -225,6 +227,7 @@ const setupLoginForm = () => {
 
     if (submitButton) submitButton.disabled = true;
     try {
+      const returnTo = getReturnTo();
       const res = await fetch(`${API_BASE}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -233,7 +236,7 @@ const setupLoginForm = () => {
       const body = await res.json().catch(() => ({}));
       if (body?.twoFactorRequired && body?.twoFactorToken) {
         storeTwoFactorChallenge(body.twoFactorToken, longTerm);
-        navigate("/two-factor");
+        navigate(appendReturnTo("/two-factor", returnTo));
         return;
       }
       if (!res.ok) {
@@ -244,7 +247,7 @@ const setupLoginForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       setLoginMsg(word("login_success"));
-      navigate("/");
+      navigate(returnTo);
     } catch (error) {
       setLoginMsg(`${word("login_error")}: ${error}`);
     } finally {

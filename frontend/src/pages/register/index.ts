@@ -11,6 +11,7 @@ import {
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
+import { appendReturnTo, getReturnTo } from "@/utils/return-to";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
@@ -106,6 +107,7 @@ const storePendingGoogleSignup = (idToken: string, longTerm: boolean) => {
 const handleGoogleCredential = async (credential: string) => {
   setGoogleMsg(word("google_login_processing"));
   try {
+    const returnTo = getReturnTo();
     const res = await fetch(`${API_BASE}/user/google_login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -114,7 +116,7 @@ const handleGoogleCredential = async (credential: string) => {
     const body = await res.json().catch(() => ({}));
     if (res.status === 404) {
       storePendingGoogleSignup(credential, false);
-      navigate("/google-signup");
+      navigate(appendReturnTo("/google-signup", returnTo));
       return;
     }
     if (!res.ok) {
@@ -126,7 +128,7 @@ const handleGoogleCredential = async (credential: string) => {
     }
     storeTokens(body.accessToken, body.longTermToken);
     setGoogleMsg(word("google_login_success"));
-    navigate("/");
+    navigate(returnTo);
   } catch (error) {
     setGoogleMsg(`${word("google_login_error")}: ${error}`);
   }
