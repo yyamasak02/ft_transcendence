@@ -154,7 +154,6 @@ const setupGoogleRegister = async () => {
       text: "continue_with",
     },
   );
-  google.accounts.id.prompt();
 };
 
 const setupRegisterForm = () => {

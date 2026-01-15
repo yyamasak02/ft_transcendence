@@ -170,7 +170,6 @@ const setupGoogleLogin = async () => {
     type: "standard",
     text: "continue_with",
   });
-  google.accounts.id.prompt();
 };
 
 const setupLoginForm = () => {
