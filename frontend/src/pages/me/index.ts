@@ -92,6 +92,27 @@ const setTwoFactorMsg = (message: string) => {
   if (el) el.textContent = message;
 };
 
+const renderTwoFactorSecret = (secret: string) => {
+  const container = document.querySelector<HTMLDivElement>("#me-qr");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="me-qr-token">${secret}</div>
+    <button type="button" class="me-qr-copy">Copy</button>
+    <div class="me-qr-copy-msg" aria-live="polite"></div>
+  `;
+  const copyButton = container.querySelector<HTMLButtonElement>(".me-qr-copy");
+  const copyMsg = container.querySelector<HTMLDivElement>(".me-qr-copy-msg");
+  if (!copyButton) return;
+  copyButton.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(secret);
+      if (copyMsg) copyMsg.textContent = "Copied";
+    } catch {
+      if (copyMsg) copyMsg.textContent = "Copy failed";
+    }
+  });
+};
+
 const revokeLongTermToken = async () => {
   const accessToken =
     sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
@@ -185,6 +206,7 @@ const setupTwoFactor = () => {
         setTwoFactorMsg(word("two_factor_failed"));
         return;
       }
+      renderTwoFactorSecret(token);
       setTwoFactorMsg(word("two_factor_enabled"));
       button.disabled = true;
       button.style.display = "none";

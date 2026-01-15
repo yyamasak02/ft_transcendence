@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import base64
-import getpass
 import hmac
 import struct
 import sys
@@ -33,7 +32,7 @@ def main() -> int:
 
     secret = args.secret
     if not secret:
-        secret = getpass.getpass("Secret (base32): ")
+        secret = input("Secret (base32): ")
 
     secret = _clean_secret(secret)
     if not secret:
