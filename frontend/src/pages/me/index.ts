@@ -92,36 +92,6 @@ const setTwoFactorMsg = (message: string) => {
   if (el) el.textContent = message;
 };
 
-const QR_CODE_SIZE = 200;
-
-const renderQr = (data: string) => {
-  const container = document.querySelector<HTMLDivElement>("#me-qr");
-  if (!container) return;
-  const src =
-    "https://api.qrserver.com/v1/create-qr-code/?" +
-    `size=${QR_CODE_SIZE}x${QR_CODE_SIZE}&data=${encodeURIComponent(data)}`;
-  container.innerHTML = "";
-  const img = document.createElement("img");
-  img.src = src;
-  img.alt = "2FA QR";
-  img.width = QR_CODE_SIZE;
-  img.height = QR_CODE_SIZE;
-  const tokenText = document.createElement("div");
-  tokenText.className = "me-qr-token";
-  tokenText.textContent = data;
-  container.append(img, tokenText);
-};
-
-const buildOtpAuthUri = (secret: string, name?: string) => {
-  const issuer = "ft_transcendence";
-  const label = `${issuer}:${name ?? "user"}`;
-  return (
-    `otpauth://totp/${encodeURIComponent(label)}` +
-    `?secret=${encodeURIComponent(secret)}` +
-    `&issuer=${encodeURIComponent(issuer)}`
-  );
-};
-
 const revokeLongTermToken = async () => {
   const accessToken =
     sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
@@ -201,7 +171,6 @@ const setupTwoFactor = () => {
         setTwoFactorMsg(word("two_factor_failed"));
         return;
       }
-      renderQr(buildOtpAuthUri(token, payload.name));
       setTwoFactorMsg(word("two_factor_enabled"));
       button.disabled = true;
       button.style.display = "none";
