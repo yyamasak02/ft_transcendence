@@ -80,7 +80,11 @@ class LoginComponent implements Component {
 										<a class="login-link" href="/" data-nav>${t("home_return")}</a>
 									</div>
 
-									<div class="login-footer">
+									<div class="login-divider">
+										<span>${t("other_login_methods")}</span>
+									</div>
+
+									<div class="login-alt">
 										<div id="google-btn"></div>
 										<p id="google-msg" class="login-google-msg"></p>
 									</div>

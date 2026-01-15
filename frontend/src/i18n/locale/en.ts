@@ -51,6 +51,7 @@ export const en = {
   register: "Create an account",
   to_signup: "Create an account",
   to_login: "to Login page",
+  other_login_methods: "Other login methods",
   google_signup: "Google Signup",
   google_signup_desc: "Google authentication is complete. Choose a username.",
   google_signup_missing: "Google sign-in not found. Please log in again.",

@@ -51,6 +51,7 @@ export const edo = {
   register: "これで決まりじゃ",
   to_signup: "名を刻みに行く",
   to_login: "名乗り口に戻る",
+  other_login_methods: "他の名乗り方",
   google_signup: "Googleで名を刻む",
   google_signup_desc: "Googleの見届けは済んだ。名を決めなされ。",
   google_signup_missing: "Googleの見届けが無い。もう一度名乗るのじゃ。",

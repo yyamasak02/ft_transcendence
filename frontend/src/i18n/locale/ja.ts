@@ -51,6 +51,7 @@ export const ja = {
   register: "登録",
   to_signup: "新規登録へ",
   to_login: "ログインページへ",
+  other_login_methods: "その他のログイン方法",
   google_signup: "Google登録",
   google_signup_desc:
     "Google認証が完了しました。ユーザー名を入力してください。",
