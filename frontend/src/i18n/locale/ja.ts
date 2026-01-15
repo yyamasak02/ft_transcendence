@@ -166,4 +166,12 @@ export const ja = {
   seconds_unit: "秒",
   remote_game_started: "ゲーム開始！",
   unknown_user: "不明なユーザー",
+  mode_local: "ローカル対戦",
+  mode_local_desc: "1台で対戦",
+  mode_host: "ルーム作成",
+  mode_host_desc: "ホストになる",
+  mode_guest: "ルーム参加",
+  mode_guest_desc: "IDを入力して参加",
+  room_id_placeholder_host: "自動生成されます...",
+  room_id_placeholder_guest: "ルームIDを入力",
 } as const;

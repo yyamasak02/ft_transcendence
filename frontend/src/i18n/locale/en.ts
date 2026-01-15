@@ -162,4 +162,12 @@ export const en = {
   seconds_unit: "seconds",
   remote_game_started: "Game started!",
   unknown_user: "Unknown user",
+  mode_local: "LOCAL MATCH",
+  mode_local_desc: "1 PC, 2 Players or CPU",
+  mode_host: "CREATE ROOM",
+  mode_host_desc: "Be the Host",
+  mode_guest: "JOIN ROOM",
+  mode_guest_desc: "Join a Friend",
+  room_id_placeholder_host: "Auto Generated...",
+  room_id_placeholder_guest: "Enter Room ID",
 } as const;
