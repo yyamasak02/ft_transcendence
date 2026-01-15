@@ -54,6 +54,7 @@ import {
   puidLookupQuerySchema,
   puidLookupResponseSchema,
   googleLoginBodySchema,
+  googleLoginResponseSchema,
   googleRegisterBodySchema,
   twoFactorEnableResponseSchema,
   twoFactorVerifyBodySchema,
@@ -232,9 +233,8 @@ export default async function (fastify: FastifyInstance) {
         tags: ["User"],
         body: googleLoginBodySchema,
         response: {
-          200: loginResponseSchema,
+          200: googleLoginResponseSchema,
           401: errorResponseSchema,
-          404: errorResponseSchema,
           409: errorResponseSchema,
           500: errorResponseSchema,
         },
@@ -265,8 +265,7 @@ export default async function (fastify: FastifyInstance) {
 
       const user = await findUserByGoogleSub(fastify, googleProfile.sub);
       if (!user) {
-        reply.code(404);
-        return { message: "Google account not registered." };
+        return { requiresSignup: true };
       }
 
       const twoFactor = await fastify.db.get<{

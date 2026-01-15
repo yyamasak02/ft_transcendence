@@ -34,9 +34,19 @@ export const twoFactorRequiredSchema = Type.Object({
   twoFactorToken: Type.String({ minLength: 1 }),
 });
 
+export const googleSignupRequiredSchema = Type.Object({
+  requiresSignup: Type.Literal(true),
+});
+
 export const loginResponseSchema = Type.Union([
   loginSuccessSchema,
   twoFactorRequiredSchema,
+]);
+
+export const googleLoginResponseSchema = Type.Union([
+  loginSuccessSchema,
+  twoFactorRequiredSchema,
+  googleSignupRequiredSchema,
 ]);
 
 export const googleLoginBodySchema = Type.Object({

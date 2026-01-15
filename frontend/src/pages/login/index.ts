@@ -125,7 +125,7 @@ const handleGoogleCredential = async (
       body: JSON.stringify({ idToken: credential, longTerm }),
     });
     const body = await res.json().catch(() => ({}));
-    if (res.status === 404) {
+    if (body?.requiresSignup || res.status === 404) {
       storePendingGoogleSignup(credential, longTerm);
       navigate(appendReturnTo("/google-signup", returnTo));
       return;
