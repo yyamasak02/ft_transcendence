@@ -117,12 +117,11 @@ const clearTokens = () => {
 const setupTwoFactor = () => {
   const button = document.querySelector<HTMLButtonElement>("#me-2fa");
   if (!button) return;
-  const accessToken =
-    sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
-    localStorage.getItem(ACCESS_TOKEN_KEY);
+  const accessToken = getStoredAccessToken();
   if (!accessToken) {
     setTwoFactorMsg(word("two_factor_missing_login"));
     button.disabled = true;
+    navigate(appendReturnTo("/login", getCurrentPath()));
     return;
   }
 
@@ -134,7 +133,12 @@ const setupTwoFactor = () => {
   })
     .then(async (res) => {
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (res.status === 401) {
+          navigate(appendReturnTo("/login", getCurrentPath()));
+        }
+        return;
+      }
       if (body?.enabled) {
         button.disabled = true;
         button.style.display = "none";
@@ -145,9 +149,16 @@ const setupTwoFactor = () => {
 
   button.addEventListener("click", async () => {
     setTwoFactorMsg("");
-    const payload = decodeJwtPayload(accessToken);
+    const currentToken = getStoredAccessToken();
+    if (!currentToken) {
+      setTwoFactorMsg(word("two_factor_missing_login"));
+      navigate(appendReturnTo("/login", getCurrentPath()));
+      return;
+    }
+    const payload = decodeJwtPayload(currentToken);
     if (!payload?.name) {
       setTwoFactorMsg(word("two_factor_missing_login"));
+      navigate(appendReturnTo("/login", getCurrentPath()));
       return;
     }
     button.disabled = true;
@@ -155,7 +166,7 @@ const setupTwoFactor = () => {
       const res = await fetch("/api/common/user/enable_2fa", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${currentToken}`,
         },
       });
       const body = await res.json().catch(() => ({}));
@@ -164,6 +175,9 @@ const setupTwoFactor = () => {
           body?.message ??
             `${word("two_factor_failed")} (status ${res.status})`,
         );
+        if (res.status === 401) {
+          navigate(appendReturnTo("/login", getCurrentPath()));
+        }
         return;
       }
       const token = String(body.token ?? "");
@@ -339,7 +353,10 @@ const renderFriends = (items: FriendItem[]) => {
 
 const loadFriends = async () => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   try {
     const res = await fetch("/api/common/user/friends", {
       method: "GET",
@@ -347,7 +364,12 @@ const loadFriends = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        navigate(appendReturnTo("/login", getCurrentPath()));
+      }
+      return;
+    }
     const body = await res.json().catch(() => ({}));
     const items = Array.isArray(body?.friends) ? body.friends : [];
     const sorted = [...items].sort((a, b) => {
@@ -371,8 +393,11 @@ const loadFriends = async () => {
 
 const respondFriendRequest = async (requestId: number, accept: boolean) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
-  await fetch("/api/common/user/friends/respond", {
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
+  const res = await fetch("/api/common/user/friends/respond", {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -380,6 +405,10 @@ const respondFriendRequest = async (requestId: number, accept: boolean) => {
     },
     body: JSON.stringify({ requestId, accept }),
   }).catch(() => null);
+  if (res?.status === 401) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   loadFriends();
 };
 
@@ -499,7 +528,10 @@ const setMatchesMessage = (message: string) => {
 
 const loadCustomProfileImage = async (name: string) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   const img = document.querySelector<HTMLImageElement>("#me-avatar");
   if (!img) return;
   const blob = await fetchProfileImageBlob(name, accessToken);
@@ -521,7 +553,10 @@ const setProfileImage = (profileImage: string | null, name: string | null) => {
 
 const loadProfileImage = async (name: string) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   try {
     const res = await fetch(
       `/api/common/user/profile_image?name=${encodeURIComponent(name)}`,
@@ -532,7 +567,12 @@ const loadProfileImage = async (name: string) => {
         },
       },
     );
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        navigate(appendReturnTo("/login", getCurrentPath()));
+      }
+      return;
+    }
     const body = await res.json().catch(() => ({}));
     const profileImage = body?.profileImage ?? null;
     const profileImageKey =
@@ -548,7 +588,10 @@ const updateProfileImage = async (
   name: string | null,
 ) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   try {
     const res = await fetch("/api/common/user/profile_image", {
       method: "PATCH",
@@ -558,7 +601,12 @@ const updateProfileImage = async (
       },
       body: JSON.stringify({ profileImage }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        navigate(appendReturnTo("/login", getCurrentPath()));
+      }
+      return;
+    }
     setProfileImage(profileImage, name);
   } catch {
     return;
@@ -567,7 +615,10 @@ const updateProfileImage = async (
 
 const uploadProfileImage = async (imageBase64: string, name: string | null) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   try {
     const res = await fetch("/api/common/user/profile_image_upload", {
       method: "POST",
@@ -577,7 +628,12 @@ const uploadProfileImage = async (imageBase64: string, name: string | null) => {
       },
       body: JSON.stringify({ imageBase64 }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        navigate(appendReturnTo("/login", getCurrentPath()));
+      }
+      return;
+    }
     const img = document.querySelector<HTMLImageElement>("#me-avatar");
     if (img) {
       img.src = imageBase64;
@@ -687,7 +743,10 @@ const setupProfileImagePicker = () => {
 
 const setupRecentMatches = () => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    navigate(appendReturnTo("/login", getCurrentPath()));
+    return;
+  }
   const currentName = decodeJwtPayload(accessToken)?.name ?? null;
   fetch("/api/common/match_results?limit=10", {
     method: "GET",
@@ -697,6 +756,10 @@ const setupRecentMatches = () => {
   })
     .then(async (res) => {
       if (!res.ok) {
+        if (res.status === 401) {
+          navigate(appendReturnTo("/login", getCurrentPath()));
+          return;
+        }
         setMatchesMessage(word("match_results_fetch_failed"));
         return;
       }
