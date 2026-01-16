@@ -187,28 +187,27 @@
 
 .pp3d-config button#pingpong-start-btn {
   padding: 10px 40px;
-  background: linear-gradient(135deg, #fc0, #f77001);
-  color: #000;
+  background: #f77001;
+  color: #fff;
   border: none;
   border-radius: 8px;
   font-family: "Bebas Neue", sans-serif;
   font-size: 22px;
   letter-spacing: 1px;
   cursor: pointer;
-  box-shadow: 0 0 12px rgba(255, 204, 0, 0.7);
-  transition:
-    transform 0.1s,
-    box-shadow 0.2s;
+  box-shadow: none;
+  transition: all 0.2s;
 }
 
 .pp3d-config button#pingpong-start-btn:hover {
-  background: linear-gradient(135deg, #ffdb4d, #ff8c00);
-  box-shadow: 0 0 25px rgba(247, 112, 1, 0.8);
+  background: #ff8c00;
   transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .pp3d-config button#pingpong-start-btn:active {
   transform: scale(0.98);
+  box-shadow: none;
 }
 
 .pp-preview-container {
