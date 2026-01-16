@@ -1,7 +1,7 @@
 // ユーザー登録・ログインAPI例
-// Register: curl -X POST http://localhost:8080/api/common/user/register -H "Content-Type: application/json" -d '{"name":"foo","password":"barbazqux"}'
-// Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"name":"admin","password":"42admin"}'
-// Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"name":"foo","password":"barbazqux"}'
+// Register: curl -X POST http://localhost:8080/api/common/user/register -H "Content-Type: application/json" -d '{"email":"foo@example.com","name":"foo","password":"barbazqux"}'
+// Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"email":"admin@example.com","password":"42admin"}'
+// Login:    curl -X POST http://localhost:8080/api/common/user/login    -H "Content-Type: application/json" -d '{"email":"foo@example.com","password":"barbazqux"}'
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyInstance } from "fastify";
 import { randomBytes } from "node:crypto";
@@ -131,7 +131,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password } = request.body;
+      const { email, name, password } = request.body;
       const salt = randomBytes(16).toString("hex");
       const hashedPassword = await hashPassword(password, salt);
 
@@ -139,7 +139,8 @@ export default async function (fastify: FastifyInstance) {
         const puid = generatePuid();
         try {
           await fastify.db.run(
-            "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
+            "INSERT INTO users (email, name, password, salt, puid) VALUES (?, ?, ?, ?, ?)",
+            email,
             name,
             hashedPassword,
             salt,
@@ -151,7 +152,8 @@ export default async function (fastify: FastifyInstance) {
         } catch (error) {
           if (isSqliteConstraintError(error)) {
             const existing = await fastify.db.get(
-              "SELECT 1 FROM users WHERE name = ?",
+              "SELECT 1 FROM users WHERE email = ? OR name = ?",
+              email,
               name,
             );
             if (existing) {
@@ -166,7 +168,7 @@ export default async function (fastify: FastifyInstance) {
       }
 
       fastify.log.error(
-        { username: name },
+        { username: name, email },
         "Failed to generate unique PUID after 5 attempts during user registration.",
       );
       reply.code(500);
@@ -187,8 +189,8 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, password, longTerm } = request.body;
-      const user = await verifyUserCredentials(fastify, name, password);
+      const { email, password, longTerm } = request.body;
+      const user = await verifyUserCredentials(fastify, email, password);
       if (!user) {
         reply.code(401);
         return { message: "Invalid credentials." };
@@ -344,6 +346,11 @@ export default async function (fastify: FastifyInstance) {
       }
 
       const { name } = request.body;
+      const email = googleProfile.email?.trim();
+      if (!email) {
+        reply.code(500);
+        return { message: "Google profile email is missing." };
+      }
       // Google 認証ユーザーはパスワード認証を行わないため、DB の NOT NULL 制約を満たすためのプレースホルダ値を使用する。
       const placeholderPassword = "GOOGLE_AUTH_USER";
       const placeholderSalt = "GOOGLE_AUTH_USER";
@@ -353,7 +360,8 @@ export default async function (fastify: FastifyInstance) {
         const puid = generatePuid();
         try {
           const result = await fastify.db.run(
-            "INSERT INTO users (name, password, salt, puid) VALUES (?, ?, ?, ?)",
+            "INSERT INTO users (email, name, password, salt, puid) VALUES (?, ?, ?, ?, ?)",
+            email,
             name,
             placeholderPassword,
             placeholderSalt,
@@ -364,7 +372,8 @@ export default async function (fastify: FastifyInstance) {
         } catch (error) {
           if (isSqliteConstraintError(error)) {
             const existing = await fastify.db.get(
-              "SELECT 1 FROM users WHERE name = ?",
+              "SELECT 1 FROM users WHERE email = ? OR name = ?",
+              email,
               name,
             );
             if (existing) {

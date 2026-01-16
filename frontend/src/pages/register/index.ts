@@ -7,6 +7,7 @@ import { GOOGLE_ID_TOKEN_KEY, GOOGLE_LONG_TERM_KEY } from "@/constants/auth";
 import {
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
+  EMAIL_PATTERN,
   USERNAME_ROMAN_PATTERN,
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
@@ -26,6 +27,18 @@ class RegisterComponent implements Component {
 								<h2 class="register-title">${t("signup")}</h2>
 
 								<form class="register-form" id="register_form">
+									<div class="register-field">
+											<label for="email">${t("email")}</label>
+											<input
+											type="email"
+											id="email"
+											name="email"
+											placeholder="you@example.com"
+											required
+											class="register-input"
+											/>
+									</div>
+
 									<div class="register-field">
 											<label for="username">${t("username")}</label>
 											<input
@@ -193,12 +206,17 @@ const setupRegisterForm = () => {
     setRegisterMsg("");
 
     const formData = new FormData(form);
+    const email = String(formData.get("email") ?? "").trim();
     const name = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const confirm = String(formData.get("password_confirm") ?? "");
 
-    if (!name || !password || !confirm) {
+    if (!email || !name || !password || !confirm) {
       setRegisterMsg(word("register_required"));
+      return;
+    }
+    if (!EMAIL_PATTERN.test(email)) {
+      setRegisterMsg(word("email_invalid"));
       return;
     }
     if (name.length < MIN_USERNAME_LENGTH) {
@@ -223,7 +241,7 @@ const setupRegisterForm = () => {
       const res = await fetch(`${API_BASE}/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password }),
+        body: JSON.stringify({ email, name, password }),
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {

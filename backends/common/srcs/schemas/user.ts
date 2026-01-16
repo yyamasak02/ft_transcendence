@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { matchRecentResponseSchema } from "./match.js";
 
 export const registerBodySchema = Type.Object({
+  email: Type.String({ format: "email" }),
   name: Type.String({ minLength: 1 }),
   password: Type.String({ minLength: 8 }),
 });
@@ -17,7 +18,7 @@ export const errorResponseSchema = Type.Object({
 });
 
 export const loginBodySchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
+  email: Type.String({ format: "email" }),
   password: Type.String({ minLength: 1 }),
   longTerm: Type.Optional(Type.Boolean()),
 });

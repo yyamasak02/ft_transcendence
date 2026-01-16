@@ -9,8 +9,7 @@ import {
   TWO_FACTOR_TOKEN_KEY,
 } from "@/constants/auth";
 import {
-  MIN_USERNAME_LENGTH,
-  USERNAME_ROMAN_PATTERN,
+  EMAIL_PATTERN,
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
@@ -30,16 +29,16 @@ class LoginComponent implements Component {
 
 								<form class="login-form" id="login-form">
 
-									<!-- Username(Email) -->
+									<!-- Email -->
 									<div class="login-field">
-										<label for="username">
-											${t("username")}
+										<label for="email">
+											${t("email")}
 										</label>
 										<input
-											type="text"
-											id="username"
-											name="username"
-											placeholder="yourname"
+											type="email"
+											id="email"
+											name="email"
+											placeholder="you@example.com"
 											required
 											class="login-input"
 										/>
@@ -212,20 +211,16 @@ const setupLoginForm = () => {
     setLoginMsg("");
 
     const formData = new FormData(form);
-    const name = String(formData.get("username") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const longTerm = Boolean(formData.get("remember"));
 
-    if (!name || !password) {
+    if (!email || !password) {
       setLoginMsg(word("login_required"));
       return;
     }
-    if (name.length < MIN_USERNAME_LENGTH) {
-      setLoginMsg(word("username_min_length"));
-      return;
-    }
-    if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setLoginMsg(word("username_roman_only"));
+    if (!EMAIL_PATTERN.test(email)) {
+      setLoginMsg(word("email_invalid"));
       return;
     }
 
@@ -235,7 +230,7 @@ const setupLoginForm = () => {
       const res = await fetch(`${API_BASE}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password, longTerm }),
+        body: JSON.stringify({ email, password, longTerm }),
       });
       const body = await res.json().catch(() => ({}));
       if (body?.twoFactorRequired && body?.twoFactorToken) {
