@@ -44,7 +44,7 @@ class PingPong3DRemoteWaiting implements Component {
         <div class="pp3d-wait-card">
           <h2 class="pp3d-title-holo">${t("remote_wait_for")}</h2>
           
-          <div id="room-display" class="pp3d-room-display" title="${t("click_to_copy")}">
+          <div id="room-display" class="pp3d-room-display" title="${word("click_to_copy")}">
              <span class="pp3d-room-label">${t("room_id")}</span>
              <span id="room-id-value" class="pp3d-room-value">Loading...</span>
              
@@ -113,6 +113,7 @@ class PingPong3DRemoteWaiting implements Component {
         if (data.status === "matched") {
           this._statusEl.textContent = `${word("remote_ready_message")}`;
           this._readyBtn.disabled = false;
+          this._loaderEl.style.display = "none";
           if (this._pollTimer !== null) {
             clearInterval(this._pollTimer);
             this._pollTimer = null;
@@ -120,6 +121,7 @@ class PingPong3DRemoteWaiting implements Component {
           this.connectWS();
         } else {
           this._statusEl.textContent = `${word("remote_wait_for")}`;
+          this._loaderEl.style.display = "flex";
         }
       } catch (e) {
         // ignore transient errors
@@ -247,6 +249,7 @@ class PingPong3DRemoteWaiting implements Component {
         );
         this._readyBtn.disabled = true;
         this._statusEl.textContent = word("remote_ready_done_waiting_message");
+        this._loaderEl.style.display = "flex";
       };
 
       const ws = this._ws;
