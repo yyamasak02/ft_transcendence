@@ -7,6 +7,9 @@ import {
   setRemoteUserId,
 } from "@/utils/pingpong3D/remoteSetting";
 import { t, word } from "@/i18n";
+import "./style.css";
+
+const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
 type RoomJoinContext = {
   roomId: string;
@@ -18,8 +21,11 @@ class PingPong3DRemoteWaiting implements Component {
   private _root: HTMLElement;
   private _roomId = "";
   private _statusEl!: HTMLElement;
-  private _roomEl!: HTMLElement;
+  private _roomValueEl!: HTMLElement;
+  private _roomDisplayEl!: HTMLElement;
+  private _copyFeedbackEl!: HTMLElement;
   private _readyBtn!: HTMLButtonElement;
+  private _loaderEl!: HTMLElement;
   private _ws: WebSocket | null = null;
   private _wsReady: boolean = false;
   private _tmpUserId!: string;
@@ -31,24 +37,69 @@ class PingPong3DRemoteWaiting implements Component {
 
   render(): string {
     return `
-      <div class="w-[800px] max-w-full p-6 space-y-4">
-        <h2 class="text-xl font-semibold">${t("remote_wait_for")}</h2>
-        <div>${t("room_id")}: <span id="room-id" class="font-mono"></span></div>
-        <div class="text-sm">${t("remote_status")}: <span id="status" class="font-mono"></span>...</div>
-        <button id="ready-btn" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" disabled>READY</button>
-        <div id="start-banner" class="hidden text-green-600 font-bold">START!</div>
+      <div class="pp3d-wait-wrapper">
+        <div class="cyber-grid"></div>
+        <div class="cyber-grid-top"></div>
+
+        <div class="pp3d-wait-card">
+          <h2 class="pp3d-title-holo">${t("remote_wait_for")}</h2>
+          
+          <div id="room-display" class="pp3d-room-display" title="${t("click_to_copy")}">
+             <span class="pp3d-room-label">${t("room_id")}</span>
+             <span id="room-id-value" class="pp3d-room-value">Loading...</span>
+             
+             <div class="pp3d-copy-hint">
+               ${COPY_ICON} <span>${t("click_to_copy")}</span>
+             </div>
+             
+             <div id="copy-feedback" class="pp3d-copy-feedback">${t("copied")}</div>
+          </div>
+
+          <div class="pp3d-status-area">
+             <div id="loading-42" class="pp3d-loading-42">
+                <span class="walking-number num-4">4</span>
+                <span class="walking-number num-2">2</span>
+             </div>
+             <div id="status-text" class="pp3d-status-text">${t("remote_status")}...</div>
+          </div>
+
+          <button id="ready-btn" class="pp3d-ready-btn" disabled>
+            ${t("remote_ready")}
+          </button>
+        </div>
       </div>
     `;
   }
 
   init() {
-    this._roomEl = this._root.querySelector<HTMLElement>("#room-id")!;
-    this._statusEl = this._root.querySelector<HTMLElement>("#status")!;
+    this._roomDisplayEl =
+      this._root.querySelector<HTMLElement>("#room-display")!;
+    this._roomValueEl =
+      this._root.querySelector<HTMLElement>("#room-id-value")!;
+    this._copyFeedbackEl =
+      this._root.querySelector<HTMLElement>("#copy-feedback")!;
+    this._statusEl = this._root.querySelector<HTMLElement>("#status-text")!;
+    this._loaderEl = this._root.querySelector<HTMLElement>("#loading-42")!;
     this._readyBtn = this._root.querySelector<HTMLButtonElement>("#ready-btn")!;
     this._tmpUserId = isLoggedIn()
       ? (userName() as string)
       : (getRemoteUserId() as string);
     setRemoteUserId(this._tmpUserId);
+    this._roomDisplayEl.addEventListener("click", () => this.handleCopy());
+  }
+  private handleCopy() {
+    if (!this._roomId) return;
+    navigator.clipboard
+      .writeText(this._roomId)
+      .then(() => {
+        this._copyFeedbackEl.classList.add("show");
+        setTimeout(() => {
+          this._copyFeedbackEl.classList.remove("show");
+        }, 1500);
+      })
+      .catch((err) => {
+        console.error("Failed to copy:", err);
+      });
   }
 
   private startPolling() {
@@ -180,10 +231,11 @@ class PingPong3DRemoteWaiting implements Component {
     const roomId = params.get("roomId");
     if (!roomId) {
       this._statusEl.textContent = word("remote_no_room_id_message");
+      this._loaderEl.style.display = "none";
       return;
     }
     this._roomId = roomId;
-    this._roomEl.textContent = roomId;
+    this._roomValueEl.textContent = roomId;
     this._readyBtn.addEventListener("click", () => {
       const sendReady = () => {
         this._ws?.send(

@@ -170,4 +170,6 @@ export const en = {
   mode_guest_desc: "Join a Friend",
   room_id_placeholder_host: "Auto Generated...",
   room_id_placeholder_guest: "Enter Room ID",
+  click_to_copy: "Click to Copy",
+  copied: "Copied!",
 } as const;
