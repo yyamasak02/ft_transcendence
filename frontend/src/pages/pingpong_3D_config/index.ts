@@ -66,6 +66,7 @@ class PingPongComponent implements Component {
 
   private _ruleInputs!: {
     winningScore: HTMLInputElement;
+    ballSpeed: HTMLInputElement;
     rallyRush: HTMLInputElement;
     countdown: HTMLSelectElement;
     stage: HTMLSelectElement;
@@ -152,6 +153,11 @@ class PingPongComponent implements Component {
                           <label>${t("score_to_win")}</label>
                           <input id="winning-score" type="number" min="1" max="20" value="3" />
                       </div>
+
+                      <div class="pp3d-config-row">
+                          <label>${t("ball_speed")}</label>
+                          <input id="ball-speed" type="range" min="0.1" max="2" step="0.1" value="1" />
+					  </div>
 
                       <div class="pp3d-config-row">
                           <label>${t("count_speed")}</label>
@@ -258,6 +264,7 @@ class PingPongComponent implements Component {
 
     this._ruleInputs = {
       winningScore: this._get("#winning-score"),
+      ballSpeed: this._get("#ball-speed"),
       rallyRush: this._get("#rally-rush-toggle"),
       countdown: this._get("#countdown-interval"),
       stage: this._get("#stage-select"),
@@ -325,6 +332,7 @@ class PingPongComponent implements Component {
       // Always save local game settings
       saveSettings({
         winningScore: Number(this._ruleInputs.winningScore.value),
+        ballSpeed: Number(this._ruleInputs.ballSpeed.value),
         rallyRush: this._ruleInputs.rallyRush.checked,
         selectedCountdownSpeed: Number(this._ruleInputs.countdown.value),
         selectedStageIndex: Number(this._ruleInputs.stage.value),
