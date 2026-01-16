@@ -1,4 +1,4 @@
-name,password,salt,puid
-"admin","$argon2id$v=19$m=65536,t=3,p=1$WsVUKrhmC5DhyDnEyeqVpg$iDn23mVMZsnCHU3bM2b+25H0s36b4CgSj5KAt0JTuOc","5ac5542ab8660b90e1c839c4c9ea95a6","4c0e4f4ebb0c5f039019cb90f9c90be92302beef3f9fdadf8ab0e06979cd13c2"
-"guest","$argon2id$v=19$m=65536,t=3,p=1$7Z7uEkd082XSUnbQKBa9TA$h6GeMRyZZhCk91LUMltbRk7sw7ItWAoT9kJwZXBOuI8","ed9eee124774f365d25276d02816bd4c","829e8458ef0b7881a4438449b90912f1b730b628020e6fec4a8d3ef45b5fd8f1"
-"AI","$argon2id$v=19$m=65536,t=3,p=1$TLlcefNKApTinW6xDZUmKg$ip0Y4BrXMrXyRkQ0vkbv5fjzM6ysuiflyy0huHnSp4Y","4cb95c79f34a0294e29d6eb10d95262a","260f21a9b5edd13216d1befd687830c912d1af168e3a8433d1ff1567df5b86b0"
+email,name,password,salt,puid
+"admin@42tokyo.jp","admin","$argon2id$v=19$m=65536,t=3,p=1$WsVUKrhmC5DhyDnEyeqVpg$iDn23mVMZsnCHU3bM2b+25H0s36b4CgSj5KAt0JTuOc","5ac5542ab8660b90e1c839c4c9ea95a6","4c0e4f4ebb0c5f039019cb90f9c90be92302beef3f9fdadf8ab0e06979cd13c2"
+"guest@42tokyo.jp","guest","$argon2id$v=19$m=65536,t=3,p=1$7Z7uEkd082XSUnbQKBa9TA$h6GeMRyZZhCk91LUMltbRk7sw7ItWAoT9kJwZXBOuI8","ed9eee124774f365d25276d02816bd4c","829e8458ef0b7881a4438449b90912f1b730b628020e6fec4a8d3ef45b5fd8f1"
+"ai@example.com","AI","$argon2id$v=19$m=65536,t=3,p=1$TLlcefNKApTinW6xDZUmKg$ip0Y4BrXMrXyRkQ0vkbv5fjzM6ysuiflyy0huHnSp4Y","4cb95c79f34a0294e29d6eb10d95262a","260f21a9b5edd13216d1befd687830c912d1af168e3a8433d1ff1567df5b86b0"

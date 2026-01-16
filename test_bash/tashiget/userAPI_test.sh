@@ -4,6 +4,7 @@ set -euo pipefail
 BASE_URL="${BASE_URL:-http://localhost:8080/api/common}"
 USER_NAME="${TEST_USER_NAME:-testuser_$RANDOM$RANDOM}"
 USER_PASSWORD="${TEST_USER_PASSWORD:-Passw0rd!$RANDOM}"
+USER_EMAIL="${TEST_USER_EMAIL:-${USER_NAME}@example.com}"
 ALL_TESTS_PASSED=true
 
 handle_err() {
@@ -57,7 +58,7 @@ register_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/register" \
     -H "Content-Type: application/json" \
-    -d "{\"name\":\"${USER_NAME}\",\"password\":\"${USER_PASSWORD}\"}"
+    -d "{\"email\":\"${USER_EMAIL}\",\"name\":\"${USER_NAME}\",\"password\":\"${USER_PASSWORD}\"}"
 )"
 echo "Response: ${register_response}"
 
@@ -98,7 +99,7 @@ login_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/login" \
     -H "Content-Type: application/json" \
-    -d "{\"name\":\"${USER_NAME}\",\"password\":\"${USER_PASSWORD}\",\"longTerm\":true}"
+    -d "{\"email\":\"${USER_EMAIL}\",\"password\":\"${USER_PASSWORD}\",\"longTerm\":true}"
 )"
 echo "Response: ${login_response}"
 

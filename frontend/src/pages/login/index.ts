@@ -9,11 +9,11 @@ import {
   TWO_FACTOR_TOKEN_KEY,
 } from "@/constants/auth";
 import {
-  MIN_USERNAME_LENGTH,
-  USERNAME_ROMAN_PATTERN,
+  EMAIL_PATTERN,
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
+import { appendReturnTo, getReturnTo } from "@/utils/return-to";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
@@ -29,16 +29,16 @@ class LoginComponent implements Component {
 
 								<form class="login-form" id="login-form">
 
-									<!-- Username(Email) -->
+									<!-- Email -->
 									<div class="login-field">
-										<label for="username">
-											${t("username")}
+										<label for="email">
+											${t("email")}
 										</label>
 										<input
-											type="text"
-											id="username"
-											name="username"
-											placeholder="yourname"
+											type="email"
+											id="email"
+											name="email"
+											placeholder="you@example.com"
 											required
 											class="login-input"
 										/>
@@ -76,6 +76,14 @@ class LoginComponent implements Component {
 									</div>
 
 									<div class="login-footer">
+										<a class="login-link" href="/" data-nav>${t("home_return")}</a>
+									</div>
+
+									<div class="login-divider">
+										<span>${t("other_login_methods")}</span>
+									</div>
+
+									<div class="login-alt">
 										<div id="google-btn"></div>
 										<p id="google-msg" class="login-google-msg"></p>
 									</div>
@@ -113,20 +121,21 @@ const handleGoogleCredential = async (
 ) => {
   setGoogleMsg(word("google_login_processing"));
   try {
+    const returnTo = getReturnTo();
     const res = await fetch(`${API_BASE}/user/google_login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken: credential, longTerm }),
     });
     const body = await res.json().catch(() => ({}));
-    if (res.status === 404) {
+    if (body?.requiresSignup || res.status === 404) {
       storePendingGoogleSignup(credential, longTerm);
-      navigate("/google-signup");
+      navigate(appendReturnTo("/google-signup", returnTo));
       return;
     }
     if (body?.twoFactorRequired && body?.twoFactorToken) {
       storeTwoFactorChallenge(body.twoFactorToken, longTerm);
-      navigate("/two-factor");
+      navigate(appendReturnTo("/two-factor", returnTo));
       return;
     }
     if (!res.ok) {
@@ -138,7 +147,7 @@ const handleGoogleCredential = async (
     }
     storeTokens(body.accessToken, body.longTermToken);
     setGoogleMsg(word("google_login_success"));
-    navigate("/");
+    navigate(returnTo);
   } catch (error) {
     setGoogleMsg(`${word("google_login_error")}: ${error}`);
   }
@@ -178,11 +187,21 @@ const setupLoginForm = () => {
   const toSignupLink = document.querySelector<HTMLAnchorElement>(
     ".login-link[href='/register']",
   );
+  const toHomeLink = document.querySelector<HTMLAnchorElement>(
+    ".login-link[href='/']",
+  );
 
   if (toSignupLink) {
     toSignupLink.addEventListener("click", (event) => {
       event.preventDefault();
       navigate("/register");
+    });
+  }
+
+  if (toHomeLink) {
+    toHomeLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate("/");
     });
   }
 
@@ -192,34 +211,31 @@ const setupLoginForm = () => {
     setLoginMsg("");
 
     const formData = new FormData(form);
-    const name = String(formData.get("username") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const longTerm = Boolean(formData.get("remember"));
 
-    if (!name || !password) {
+    if (!email || !password) {
       setLoginMsg(word("login_required"));
       return;
     }
-    if (name.length < MIN_USERNAME_LENGTH) {
-      setLoginMsg(word("username_min_length"));
-      return;
-    }
-    if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setLoginMsg(word("username_roman_only"));
+    if (!EMAIL_PATTERN.test(email)) {
+      setLoginMsg(word("email_invalid"));
       return;
     }
 
     if (submitButton) submitButton.disabled = true;
     try {
+      const returnTo = getReturnTo();
       const res = await fetch(`${API_BASE}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password, longTerm }),
+        body: JSON.stringify({ email, password, longTerm }),
       });
       const body = await res.json().catch(() => ({}));
       if (body?.twoFactorRequired && body?.twoFactorToken) {
         storeTwoFactorChallenge(body.twoFactorToken, longTerm);
-        navigate("/two-factor");
+        navigate(appendReturnTo("/two-factor", returnTo));
         return;
       }
       if (!res.ok) {
@@ -230,7 +246,7 @@ const setupLoginForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       setLoginMsg(word("login_success"));
-      navigate("/");
+      navigate(returnTo);
     } catch (error) {
       setLoginMsg(`${word("login_error")}: ${error}`);
     } finally {

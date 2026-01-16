@@ -49,8 +49,10 @@ export const ja = {
   confirm: "Enterを押すと決定します",
   signup: "新規登録",
   register: "登録",
+  email: "メールアドレス",
   to_signup: "新規登録へ",
   to_login: "ログインページへ",
+  other_login_methods: "その他のログイン方法",
   google_signup: "Google登録",
   google_signup_desc:
     "Google認証が完了しました。ユーザー名を入力してください。",
@@ -66,7 +68,9 @@ export const ja = {
   google_client_id_missing:
     "環境変数 VITE_GOOGLE_CLIENT_ID が設定されていません。",
   google_script_load_failed: "Googleスクリプトの読み込みに失敗しました",
-  login_required: "ユーザー名とパスワードを入力してください。",
+  login_required: "メールアドレスとパスワードを入力してください。",
+  email_required: "メールアドレスを入力してください。",
+  email_invalid: "メールアドレスの形式が正しくありません。",
   login_success: "ログインに成功しました。",
   login_error: "ログイン中にエラーが発生しました",
   register_required: "すべての項目を入力してください。",

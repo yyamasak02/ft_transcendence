@@ -4,6 +4,7 @@ set -euo pipefail
 BASE_URL="${BASE_URL:-http://localhost:8080/api/common}"
 OWNER_NAME="${OWNER_NAME:-admin}"
 OWNER_PASSWORD="${OWNER_PASSWORD:-42admin}"
+OWNER_EMAIL="${OWNER_EMAIL:-admin@example.com}"
 GUEST_NAME="${GUEST_NAME:-guest}"
 
 log() {
@@ -29,7 +30,7 @@ login_response="$(
   curl -sS -f -X POST \
     "${BASE_URL}/user/login" \
     -H "Content-Type: application/json" \
-    -d "{\"name\":\"${OWNER_NAME}\",\"password\":\"${OWNER_PASSWORD}\"}"
+    -d "{\"email\":\"${OWNER_EMAIL}\",\"password\":\"${OWNER_PASSWORD}\"}"
 )"
 ACCESS_TOKEN="$(json_field "${login_response}" "accessToken")"
 if [[ -z "${ACCESS_TOKEN}" ]]; then
