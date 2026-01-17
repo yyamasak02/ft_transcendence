@@ -11,86 +11,7 @@
   font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
-/* グリッド床 */
-.cyber-grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  background-image:
-    linear-gradient(rgba(247, 112, 1, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(247, 112, 1, 0.3) 1px, transparent 1px);
-  background-size: 50px 50px;
-  background-position: center bottom;
-  transform-origin: center bottom;
-  transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
-  animation: grid-flow 3s linear infinite;
-  z-index: 0;
-  opacity: 0.3;
-  mask-image: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0) 60%
-  );
-  -webkit-mask-image: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0) 60%
-  );
-}
-
-@keyframes grid-flow {
-  0% {
-    transform: perspective(500px) rotateX(60deg) translateY(0)
-      translateZ(-200px);
-  }
-  100% {
-    transform: perspective(500px) rotateX(60deg) translateY(50px)
-      translateZ(-200px);
-  }
-}
-
-/* 天井のグリッド*/
-.cyber-grid-top {
-  position: absolute;
-  top: -50%;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  background-image:
-    linear-gradient(rgba(247, 112, 1, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(247, 112, 1, 0.15) 1px, transparent 1px);
-  background-size: 50px 50px;
-  transform-origin: center top;
-  transform: perspective(500px) rotateX(-60deg) translateY(0) translateZ(-200px);
-  animation: grid-flow-top 3s linear infinite;
-  z-index: 0;
-  opacity: 0.2;
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0) 60%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0) 60%
-  );
-}
-
-@keyframes grid-flow-top {
-  0% {
-    transform: perspective(500px) rotateX(-60deg) translateY(0)
-      translateZ(-200px);
-  }
-  100% {
-    transform: perspective(500px) rotateX(-60deg) translateY(-50px)
-      translateZ(-200px);
-  }
-}
-
-/* ID表示 */
+/* 枠表示 */
 .pp3d-wait-card {
   position: relative;
   z-index: 10;
@@ -122,6 +43,7 @@
     6px 100%;
 }
 
+/* 両角 */
 .pp3d-wait-card::before,
 .pp3d-wait-card::after {
   content: "";
@@ -145,6 +67,7 @@
   border-top: none;
 }
 
+/* タイトル表示 */
 .pp3d-title-holo {
   font-family: "Bebas Neue", sans-serif;
   font-size: 3.5rem;
@@ -157,6 +80,7 @@
   margin: 0;
 }
 
+/* ルームID表示 */
 .pp3d-room-display {
   position: relative;
   background: rgba(0, 0, 0, 0.6);
@@ -172,7 +96,7 @@
   box-shadow: 0 0 15px rgba(247, 112, 1, 0.3);
 }
 
-/* ルームIDのハイライト */
+/* キラキラ */
 .pp3d-room-display::after {
   content: "";
   position: absolute;

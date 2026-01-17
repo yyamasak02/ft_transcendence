@@ -38,9 +38,6 @@ class PingPong3DRemoteWaiting implements Component {
   render(): string {
     return `
       <div class="pp3d-wait-wrapper">
-        <div class="cyber-grid"></div>
-        <div class="cyber-grid-top"></div>
-
         <div class="pp3d-wait-card">
           <h2 class="pp3d-title-holo">${t("remote_wait_for")}</h2>
           
