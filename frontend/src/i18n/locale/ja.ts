@@ -176,4 +176,5 @@ export const ja = {
   room_id_placeholder_guest: "ルームIDを入力",
   click_to_copy: "クリックしてコピー",
   copied: "コピーしました！",
+  failed: "失敗しました！",
 } as const;

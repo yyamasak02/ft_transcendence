@@ -1,4 +1,9 @@
 /* pingpong_3D_waiting/style.css */
+/* 常用カラー定義 */
+:root {
+  --pp3d-primary: #f77001;
+  --pp3d-primary-rgb: 247, 112, 1;
+}
 .pp3d-wait-wrapper {
   position: relative;
   display: flex;
@@ -24,10 +29,10 @@
   gap: 30px;
   overflow: visible;
   background: rgba(10, 15, 20, 0.6);
-  border: 1px solid rgba(247, 112, 1, 0.5);
+  border: 1px solid rgba(var(--pp3d-primary-rgb), 0.5);
   box-shadow:
-    0 0 20px rgba(247, 112, 1, 0.2),
-    inset 0 0 50px rgba(247, 112, 1, 0.1);
+    0 0 20px rgba(var(--pp3d-primary-rgb), 0.2),
+    inset 0 0 50px rgba(var(--pp3d-primary-rgb), 0.1);
   backdrop-filter: blur(8px);
   border-radius: 4px;
   background-image:
@@ -50,7 +55,7 @@
   position: absolute;
   width: 20px;
   height: 20px;
-  border: 2px solid #f77001;
+  border: 2px solid var(--pp3d-primary);
   transition: all 0.3s;
 }
 
@@ -76,7 +81,7 @@
   text-shadow:
     2px 0 rgba(255, 0, 0, 0.5),
     -2px 0 rgba(0, 255, 255, 0.5),
-    0 0 10px rgba(247, 112, 1, 0.8);
+    0 0 10px rgba(var(--pp3d-primary-rgb), 0.8);
   margin: 0;
 }
 
@@ -92,8 +97,8 @@
 }
 
 .pp3d-room-display:hover {
-  border-color: #f77001;
-  box-shadow: 0 0 15px rgba(247, 112, 1, 0.3);
+  border-color: var(--pp3d-primary);
+  box-shadow: 0 0 15px rgba(var(--pp3d-primary-rgb), 0.3);
 }
 
 /* キラキラ */
@@ -104,7 +109,7 @@
   left: -100%;
   width: 300%;
   height: 20px;
-  background: rgba(247, 112, 1, 0.2);
+  background: rgba(var(--pp3d-primary-rgb), 0.2);
   transform: rotate(45deg);
   animation: shine 4s infinite;
 }
@@ -126,7 +131,7 @@
 
 .pp3d-room-label {
   font-size: 0.8rem;
-  color: #f77001;
+  color: var(--pp3d-primary);
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 5px;
@@ -156,7 +161,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.5);
-  background: #f77001;
+  background: var(--pp3d-primary);
   color: #000;
   padding: 5px 15px;
   font-weight: bold;
@@ -165,7 +170,7 @@
   opacity: 0;
   pointer-events: none;
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 0 15px rgba(247, 112, 1, 0.8);
+  box-shadow: 0 0 15px rgba(var(--pp3d-primary-rgb), 0.8);
   z-index: 20;
 }
 
@@ -200,13 +205,13 @@
 .walking-number {
   font-family: "Bebas Neue", sans-serif;
   font-size: 5.5rem;
-  color: #f77001;
+  color: var(--pp3d-primary);
   display: inline-block;
   line-height: 0.8;
   position: absolute;
   bottom: 0;
   filter: drop-shadow(2px 2px 0px rgba(255, 255, 255, 0.2))
-    drop-shadow(0 0 10px rgba(247, 112, 1, 0.6));
+    drop-shadow(0 0 10px rgba(var(--pp3d-primary-rgb), 0.6));
   transform-origin: bottom center;
 }
 
@@ -458,7 +463,7 @@
   left: 20px;
   width: 140px;
   height: 12px;
-  background: rgba(247, 112, 1, 0.3);
+  background: rgba(var(--pp3d-primary-rgb), 0.3);
   border-radius: 50%;
   filter: blur(8px);
   animation: shadow-perfect 12s linear infinite;
@@ -504,10 +509,10 @@
 button.pp3d-ready-btn {
   padding: 25px 0;
 
-  background: rgba(247, 112, 1, 0.1);
-  color: #f77001;
+  background: rgba(var(--pp3d-primary-rgb), 0.1);
+  color: var(--pp3d-primary);
 
-  border: 3px solid #f77001;
+  border: 3px solid var(--pp3d-primary);
   border-radius: 6px;
 
   font-family: "Bebas Neue", sans-serif;
@@ -525,9 +530,9 @@ button.pp3d-ready-btn {
 }
 
 button.pp3d-ready-btn:hover:not(:disabled) {
-  background: #f77001;
+  background: var(--pp3d-primary);
   color: #000;
-  box-shadow: 0 0 40px rgba(247, 112, 1, 0.8);
+  box-shadow: 0 0 40px rgba(var(--pp3d-primary-rgb), 0.8);
   transform: scale(1.03);
   border-color: #fff;
 }

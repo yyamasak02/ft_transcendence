@@ -157,7 +157,7 @@ class PingPongComponent implements Component {
                       <div class="pp3d-config-row">
                           <label>${t("ball_speed")}</label>
                           <input id="ball-speed" type="range" min="0.1" max="2" step="0.1" value="1" />
-					  </div>
+                      </div>
 
                       <div class="pp3d-config-row">
                           <label>${t("count_speed")}</label>

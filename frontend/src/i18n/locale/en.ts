@@ -172,4 +172,5 @@ export const en = {
   room_id_placeholder_guest: "Enter Room ID",
   click_to_copy: "Click to Copy",
   copied: "Copied!",
+  failed: "Failed!",
 } as const;

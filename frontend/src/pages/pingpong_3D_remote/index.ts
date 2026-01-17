@@ -10,6 +10,8 @@ import { t, word } from "@/i18n";
 import "./style.css";
 
 const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+const POLLING_INTERVAL_MS = 1500;
+const FEEDBACK_DISPLAY_MS = 1500;
 
 type RoomJoinContext = {
   roomId: string;
@@ -89,13 +91,19 @@ class PingPong3DRemoteWaiting implements Component {
     navigator.clipboard
       .writeText(this._roomId)
       .then(() => {
+        this._copyFeedbackEl.textContent = word("copied");
         this._copyFeedbackEl.classList.add("show");
         setTimeout(() => {
           this._copyFeedbackEl.classList.remove("show");
-        }, 1500);
+        }, FEEDBACK_DISPLAY_MS);
       })
       .catch((err) => {
         console.error("Failed to copy:", err);
+        this._copyFeedbackEl.textContent = word("failed");
+        this._copyFeedbackEl.classList.add("show");
+        setTimeout(() => {
+          this._copyFeedbackEl.classList.remove("show");
+        }, FEEDBACK_DISPLAY_MS);
       });
   }
 
@@ -125,7 +133,7 @@ class PingPong3DRemoteWaiting implements Component {
       }
     };
     poll();
-    this._pollTimer = window.setInterval(poll, 1500);
+    this._pollTimer = window.setInterval(poll, POLLING_INTERVAL_MS);
   }
 
   private async fetchRoomSide(
