@@ -4,6 +4,7 @@ export type PlayerType = "Player" | "Easy" | "Normal" | "Hard" | "Remote";
 
 export type GameSettings = {
   winningScore: number;
+  ballSpeed: number;
   rallyRush: boolean;
   selectedCountdownSpeed: number;
   selectedStageIndex: number;
@@ -16,6 +17,7 @@ export type GameSettings = {
 
 const DEFAULT_SETTINGS: GameSettings = {
   winningScore: 3,
+  ballSpeed: 1,
   rallyRush: true,
   selectedCountdownSpeed: 1000,
   selectedStageIndex: 0,

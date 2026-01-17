@@ -30,7 +30,7 @@ export class Router {
   }
 
   private async render(route: string) {
-    domRoots.app.style.visibility = "hidden";
+    domRoots.app.style.opacity = "0";
     if (this.currentRoute) {
       const prev = routes[this.currentRoute];
       await prev?.component.onUnmount?.();
@@ -54,7 +54,7 @@ export class Router {
     }
     renderRouteContent(normalized);
     nextRoute.component.onMount?.();
-    domRoots.app.style.visibility = "visible";
+    domRoots.app.style.opacity = "";
     this.currentRoute = normalized;
   }
 }
