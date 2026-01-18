@@ -28,7 +28,8 @@ urls:
 ensure_envs:
 	@for f in \
 		./frontend/.env.local \
-		./backends/common/.env.development; do \
+		./backends/common/.env.development \
+		./backends/connect/.env.development; do \
 		[ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
 	done
 
