@@ -22,17 +22,13 @@ help:
 urls:
 	@echo "Swagger http://127.0.0.1:8080/docs/"
 	@echo "Common Backend http://127.0.0.1:8080"
-	@echo "Game Backend http://127.0.0.1:8081"
-	@echo "TextChat Backend http://127.0.0.1:8082"
 	@echo "Frontend http://127.0.0.1:5173"
 	@echo "Nginx https://localhost:8443"
 
 ensure_envs:
 	@for f in \
 		./frontend/.env.local \
-		./backends/common/.env.development \
-		./backends/game/.env.development \
-		./backends/text_chat/.env.development; do \
+		./backends/common/.env.development; do \
 		[ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
 	done
 
@@ -68,7 +64,7 @@ clean: ensure_envs
 delete: clean
 	rm -f backends/common/db/app.db
 	rm -f backends/common/db/common.sqlite
-	rm -f backends/common/.env.development backends/game/.env.development backends/text_chat/.env.development frontend/.env.local
+	rm -f backends/common/.env.development frontend/.env.local
 
 # Show logs
 logs: ensure_envs
