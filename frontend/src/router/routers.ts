@@ -1,7 +1,6 @@
 // src/router/routes.ts
 import type { Routes } from "@/types/routes";
 import { HomeRoute } from "@/pages/home";
-import { PingPongRoute } from "@/pages/pingpong";
 import { PingPong3DGameRoute } from "@/pages/pingpong_3D";
 import { PingPong3DSettingRoute } from "@/pages/pingpong_3D_config";
 import { PingPong3DRemoteWaitingRoute } from "@/pages/pingpong_3D_remote";
@@ -22,12 +21,6 @@ export const routes: Routes = {
     show_navbar: true,
     layout: "center",
     css_path: routeStyles.home,
-  },
-  "/pingpong": {
-    component: PingPongRoute,
-    show_navbar: true,
-    layout: "center",
-    css_path: routeStyles.pingpong,
   },
   "/pingpong_3D_config": {
     component: PingPong3DSettingRoute,

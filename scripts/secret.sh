@@ -33,8 +33,7 @@ secret_path = Path(sys.argv[2])
 
 TARGETS = {
     "common": root / "backends/common/.env.development",
-    "game": root / "backends/game/.env.development",
-    "text_chat": root / "backends/text_chat/.env.development",
+    "connect": root / "backends/connect/.env.development",
     "frontend": root / "frontend/.env.local",
 }
 

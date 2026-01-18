@@ -14,12 +14,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      "/api/game": {
-        target: "http://ft_be_game",
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },
       "/api/connect": {
         target: "http://ft_be_connect",
         changeOrigin: true,

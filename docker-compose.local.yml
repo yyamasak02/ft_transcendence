@@ -14,8 +14,6 @@ services:
     depends_on:
       - frontend
       - be_common
-      - be_game
-      - be_text_chat
       - be_connect
   frontend:
     build:
@@ -54,44 +52,6 @@ services:
     networks:
       - ft_network
     command: ${BE_COM_CMD:-npm run dev}
-  be_game:
-    build:
-      context: ./backends/game
-      dockerfile: ./docker/Dockerfile.dev
-    image: ft_be_game
-    container_name: ft_be_game
-    volumes:
-      - ./backends/game:/app
-      - /app/node_modules
-      - /app/dist
-    environment:
-      NODE_ENV: development
-    env_file:
-      - ./backends/game/.env.development
-    ports:
-      - 8081:80
-    networks:
-      - ft_network
-    command: ${BE_GM_CMD:-npm run dev}
-  be_text_chat:
-    build:
-      context: ./backends/text_chat
-      dockerfile: ./docker/Dockerfile.dev
-    image: ft_be_text_chat
-    container_name: ft_be_text_chat
-    volumes:
-      - ./backends/text_chat:/app
-      - /app/node_modules
-      - /app/dist
-    environment:
-      NODE_ENV: development
-    env_file:
-      - ./backends/text_chat/.env.development
-    ports:
-      - 8082:80
-    networks:
-      - ft_network
-    command: ${BE_TC_CMD:-npm run dev}
   be_connect:
     build:
       context: ./backends/connect
