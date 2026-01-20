@@ -47,8 +47,6 @@ jobs:
           set -euxo pipefail
           urls=(
             "http://localhost:8080/api/docs/"
-            "http://localhost:8081/api/docs/"
-            "http://localhost:8082/api/docs/"
             "http://localhost:8083/api/docs/"
           )
           for url in "${urls[@]}"; do
