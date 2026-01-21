@@ -1,0 +1,548 @@
+/* pingpong_3D_waiting/style.css */
+/* 常用カラー定義 */
+:root {
+  --pp3d-primary: #f77001;
+  --pp3d-primary-rgb: 247, 112, 1;
+}
+.pp3d-wait-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background-color: #050505;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* 枠表示 */
+.pp3d-wait-card {
+  position: relative;
+  z-index: 10;
+  width: 850px;
+  max-width: 95%;
+  padding: 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  overflow: visible;
+  background: rgba(10, 15, 20, 0.6);
+  border: 1px solid rgba(var(--pp3d-primary-rgb), 0.5);
+  box-shadow:
+    0 0 20px rgba(var(--pp3d-primary-rgb), 0.2),
+    inset 0 0 50px rgba(var(--pp3d-primary-rgb), 0.1);
+  backdrop-filter: blur(8px);
+  border-radius: 4px;
+  background-image:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.06),
+      rgba(0, 255, 0, 0.02),
+      rgba(0, 0, 255, 0.06)
+    );
+  background-size:
+    100% 4px,
+    6px 100%;
+}
+
+/* 両角 */
+.pp3d-wait-card::before,
+.pp3d-wait-card::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--pp3d-primary);
+  transition: all 0.3s;
+}
+
+.pp3d-wait-card::before {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+.pp3d-wait-card::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* タイトル表示 */
+.pp3d-title-holo {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 3.5rem;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow:
+    2px 0 rgba(255, 0, 0, 0.5),
+    -2px 0 rgba(0, 255, 255, 0.5),
+    0 0 10px rgba(var(--pp3d-primary-rgb), 0.8);
+  margin: 0;
+}
+
+/* ルームID表示 */
+.pp3d-room-display {
+  position: relative;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #444;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.pp3d-room-display:hover {
+  border-color: var(--pp3d-primary);
+  box-shadow: 0 0 15px rgba(var(--pp3d-primary-rgb), 0.3);
+}
+
+/* キラキラ */
+.pp3d-room-display::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 20px;
+  background: rgba(var(--pp3d-primary-rgb), 0.2);
+  transform: rotate(45deg);
+  animation: shine 4s infinite;
+}
+
+@keyframes shine {
+  0% {
+    top: -100%;
+    left: -100%;
+  }
+  20% {
+    top: 100%;
+    left: 100%;
+  }
+  100% {
+    top: 100%;
+    left: 100%;
+  }
+}
+
+.pp3d-room-label {
+  font-size: 0.8rem;
+  color: var(--pp3d-primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.pp3d-room-value {
+  font-family: "Bebas Neue", monospace;
+  font-size: 3rem;
+  color: #fff;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.pp3d-copy-hint {
+  font-size: 0.8rem;
+  color: #888;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pp3d-copy-feedback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: var(--pp3d-primary);
+  color: #000;
+  padding: 5px 15px;
+  font-weight: bold;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 15px rgba(var(--pp3d-primary-rgb), 0.8);
+  z-index: 20;
+}
+
+.pp3d-copy-feedback.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.pp3d-status-area {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  overflow: visible;
+  width: 100%;
+}
+
+/* ローダーコンテナ */
+.pp3d-loading-42 {
+  position: relative;
+  width: 120px;
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  margin: 0 auto;
+}
+
+.walking-number {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 5.5rem;
+  color: var(--pp3d-primary);
+  display: inline-block;
+  line-height: 0.8;
+  position: absolute;
+  bottom: 0;
+  filter: drop-shadow(2px 2px 0px rgba(255, 255, 255, 0.2))
+    drop-shadow(0 0 10px rgba(var(--pp3d-primary-rgb), 0.6));
+  transform-origin: bottom center;
+}
+
+.pp3d-status-text {
+  font-size: 1.2rem;
+  color: #ccc;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+}
+
+/* フォーくん */
+.num-4 {
+  left: 0;
+  animation: char-4-perfect 12s linear infinite;
+  z-index: 20;
+}
+
+/* 兄さん */
+.num-2 {
+  left: 50px;
+  animation: char-2-perfect 12s linear infinite;
+  z-index: 21;
+}
+
+@keyframes char-2-perfect {
+  /* === 往路 === */
+  0% {
+    transform: translateX(0) scale(1, 1);
+  }
+
+  /* 1歩目 */
+  4% {
+    transform: translateX(0) scale(1.1, 0.9);
+  }
+  6% {
+    transform: translateX(20px) translateY(-15px) rotate(5deg) scale(0.95, 1.05);
+  }
+  8% {
+    transform: translateX(40px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  10% {
+    transform: translateX(40px) scale(1, 1);
+  }
+
+  /* 2歩目 */
+  12% {
+    transform: translateX(40px) scale(1.1, 0.9);
+  }
+  14% {
+    transform: translateX(60px) translateY(-15px) rotate(5deg) scale(0.95, 1.05);
+  }
+  16% {
+    transform: translateX(80px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  18% {
+    transform: translateX(80px) scale(1, 1);
+  }
+
+  /* 3歩目 */
+  20% {
+    transform: translateX(80px) scale(1.1, 0.9);
+  }
+  22% {
+    transform: translateX(105px) translateY(-15px) rotate(5deg)
+      scale(0.95, 1.05);
+  }
+  24% {
+    transform: translateX(130px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+
+  /* 待機 */
+  28% {
+    transform: translateX(130px) scale(1, 1);
+  }
+  30% {
+    transform: translateX(130px) scale(0.95, 1.05) rotate(-15deg);
+  }
+  35% {
+    transform: translateX(130px) rotate(-20deg);
+  }
+  42% {
+    transform: translateX(130px) rotate(-20deg);
+  }
+  45% {
+    transform: translateX(130px) scale(1.1, 0.9) rotate(0deg);
+  }
+  48% {
+    transform: translateX(130px) scale(1, 1);
+  }
+
+  /* === 復路 === */
+
+  /* 1歩目 */
+  55% {
+    transform: translateX(130px) scale(1.1, 0.9);
+  } /* 溜め */
+  57% {
+    transform: translateX(110px) translateY(-15px) rotate(-5deg)
+      scale(0.95, 1.05);
+  } /* 空中移動 */
+  59% {
+    transform: translateX(90px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  } /* 着地(X固定) */
+  60% {
+    transform: translateX(90px) scale(1, 1);
+  }
+
+  /* 2歩目 */
+  62% {
+    transform: translateX(90px) scale(1.1, 0.9);
+  }
+  64% {
+    transform: translateX(70px) translateY(-15px) rotate(-5deg)
+      scale(0.95, 1.05);
+  }
+  66% {
+    transform: translateX(50px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  67% {
+    transform: translateX(50px) scale(1, 1);
+  }
+
+  /* 3歩目 */
+  69% {
+    transform: translateX(50px) scale(1.1, 0.9);
+  }
+  71% {
+    transform: translateX(25px) translateY(-15px) rotate(-5deg)
+      scale(0.95, 1.05);
+  }
+  73% {
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  74% {
+    transform: translateX(0) scale(1, 1);
+  }
+
+  /* 待機 */
+  100% {
+    transform: translateX(0) scale(1, 1);
+  }
+}
+
+@keyframes char-4-perfect {
+  /* === 往路 === */
+  0%,
+  25% {
+    transform: translateX(0) scale(1, 1);
+  }
+
+  /* 気づく */
+  27% {
+    transform: translateX(0) scale(0.9, 1.1) rotate(5deg);
+  }
+  29% {
+    transform: translateX(0) scale(1.2, 0.8);
+  } /* 溜め */
+
+  /* 1歩目 */
+  31% {
+    transform: translateX(20px) translateY(-10px) rotate(10deg);
+  }
+  32% {
+    transform: translateX(40px) translateY(0) rotate(5deg);
+  }
+  /* 2歩目 */
+  34% {
+    transform: translateX(60px) translateY(-10px) rotate(10deg);
+  }
+  35% {
+    transform: translateX(80px) translateY(0) rotate(5deg);
+  }
+  /* 3歩目 */
+  37% {
+    transform: translateX(100px) translateY(-10px) rotate(10deg);
+  }
+  38% {
+    transform: translateX(120px) translateY(0) rotate(5deg);
+  }
+  /* 到着 */
+  40% {
+    transform: translateX(130px) translateY(-5px) rotate(5deg);
+  }
+  42% {
+    transform: translateX(130px) translateY(0) scale(1.1, 0.9) rotate(0deg);
+  }
+  45% {
+    transform: translateX(130px) scale(1, 1);
+  }
+
+  /* === 復路 === */
+
+  /* 1歩目 */
+  55% {
+    transform: translateX(130px) scale(1.1, 0.9);
+  }
+  57% {
+    transform: translateX(110px) translateY(-15px) rotate(-5deg)
+      scale(0.95, 1.05);
+  }
+  59% {
+    transform: translateX(90px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  60% {
+    transform: translateX(90px) scale(1, 1);
+  }
+
+  /* 2歩目 */
+  62% {
+    transform: translateX(90px) scale(1.1, 0.9);
+  }
+  64% {
+    transform: translateX(70px) translateY(-15px) rotate(-5deg)
+      scale(0.95, 1.05);
+  }
+  66% {
+    transform: translateX(50px) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  67% {
+    transform: translateX(50px) scale(1, 1);
+  }
+
+  /* 3歩目 */
+  69% {
+    transform: translateX(50px) scale(1.1, 0.9);
+  }
+  71% {
+    transform: translateX(25px) translateY(-15px) rotate(-5deg)
+      scale(0.95, 1.05);
+  }
+  73% {
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1.1, 0.9);
+  }
+  74% {
+    transform: translateX(0) scale(1, 1);
+  }
+
+  /* 待機 */
+  100% {
+    transform: translateX(0) scale(1, 1);
+  }
+}
+
+/* 影 */
+.pp3d-loading-42::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 20px;
+  width: 140px;
+  height: 12px;
+  background: rgba(var(--pp3d-primary-rgb), 0.3);
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: shadow-perfect 12s linear infinite;
+  z-index: -1;
+}
+
+@keyframes shadow-perfect {
+  0% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  22% {
+    transform: translateX(130px);
+    opacity: 0.6;
+  }
+  30% {
+    transform: translateX(130px) scale(0.8);
+    opacity: 0.4;
+  }
+  35% {
+    transform: translateX(130px) scale(1.1);
+    opacity: 0.7;
+  }
+  45% {
+    transform: translateX(130px) scale(1);
+    opacity: 0.6;
+  }
+  55% {
+    transform: translateX(130px);
+    opacity: 0.6;
+  }
+  74% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+}
+
+/* readyボタン */
+button.pp3d-ready-btn {
+  padding: 25px 0;
+
+  background: rgba(var(--pp3d-primary-rgb), 0.1);
+  color: var(--pp3d-primary);
+
+  border: 3px solid var(--pp3d-primary);
+  border-radius: 6px;
+
+  font-family: "Bebas Neue", sans-serif;
+
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 6px;
+
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+button.pp3d-ready-btn:hover:not(:disabled) {
+  background: var(--pp3d-primary);
+  color: #000;
+  box-shadow: 0 0 40px rgba(var(--pp3d-primary-rgb), 0.8);
+  transform: scale(1.03);
+  border-color: #fff;
+}
+
+button.pp3d-ready-btn:disabled {
+  background: rgba(50, 50, 50, 0.5);
+  color: #666;
+  border-color: #444;
+  border-width: 1px;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
