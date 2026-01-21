@@ -113,10 +113,13 @@ function updateBallImp(
     return null;
   }
 
+  // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
   const settings = loadSettings();
   const sm = settings.ballSpeed;
+  // ------------------
 
   // 移動処理
+  // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に[*sm]を削除予定
   const dt = (deltaTime / 1000) * baseSpeed * sm; // ballスピードを決める部分
   ball.mesh.position.x += ball.velocity.x * dt;
   ball.mesh.position.z += ball.velocity.z * dt;

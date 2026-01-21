@@ -66,6 +66,7 @@ class PingPongComponent implements Component {
 
   private _ruleInputs!: {
     winningScore: HTMLInputElement;
+    // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
     ballSpeed: HTMLInputElement;
     rallyRush: HTMLInputElement;
     countdown: HTMLSelectElement;
@@ -110,7 +111,7 @@ class PingPongComponent implements Component {
     `,
     ).join("");
   }
-
+  // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるためball_speedは提出時に削除予定
   render(): string {
     return `
       <div class="w-[900px] max-w-full" id="pp3d-config-root">
@@ -264,6 +265,7 @@ class PingPongComponent implements Component {
 
     this._ruleInputs = {
       winningScore: this._get("#winning-score"),
+      //   TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
       ballSpeed: this._get("#ball-speed"),
       rallyRush: this._get("#rally-rush-toggle"),
       countdown: this._get("#countdown-interval"),
@@ -332,6 +334,7 @@ class PingPongComponent implements Component {
       // Always save local game settings
       saveSettings({
         winningScore: Number(this._ruleInputs.winningScore.value),
+        // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
         ballSpeed: Number(this._ruleInputs.ballSpeed.value),
         rallyRush: this._ruleInputs.rallyRush.checked,
         selectedCountdownSpeed: Number(this._ruleInputs.countdown.value),
