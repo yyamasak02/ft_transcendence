@@ -8,7 +8,6 @@ import {
 } from "@/utils/pingpong3D/remoteSetting";
 import { t, word } from "@/i18n";
 import "./style.css";
-import { COPY_ICON } from "../../../public/icons";
 
 const POLLING_INTERVAL_MS = 1500;
 const FEEDBACK_DISPLAY_MS = 1500;
@@ -48,7 +47,8 @@ class PingPong3DRemoteWaiting implements Component {
              <span id="room-id-value" class="pp3d-room-value">Loading...</span>
              
              <div class="pp3d-copy-hint">
-               ${COPY_ICON} <span>${t("click_to_copy")}</span>
+               <img src="../../../public/button/copy.svg" class="pp3d-copy-icon" style="width: 1.2em; height: 1.2em; vertical-align: middle;" />
+               <span>${t("click_to_copy")}</span>
              </div>
              
              <div id="copy-feedback" class="pp3d-copy-feedback">${t("copied")}</div>
