@@ -1,4 +1,16 @@
-*This project has been created as part of the 42 curriculum by <yyamasak>[, <tashiget>[, <tobaba>[, <rkawahar>[, <totsurud>]]]].*
+*This project has been created as part of the 42 curriculum by yyamasak, tashiget, tobaba, rkawahar, totsurud.*
+
+## overview
+- [Description](#description)
+- [Instructions](#instructions)
+- [Resources](#resources)
+- [Team Information](#team-information)
+- [Project Management](#project-management)
+- [Technical Stack](#technical-stack)
+- [Database Schema](#database-schema)
+- [Features](#features)
+- [Modules](#modules)
+- [Individual Contributions](#ndividual-contributions)
 
 ## Description
 
@@ -59,7 +71,7 @@ Overall, the project demonstrates the use of modern development practices, teamw
 | tashiget | Tech Lead Backend  | Architecture decisions, code reviews, technical guidance         |
 | all      | Developer          | Feature implementation, testing, bug fixes                       |
 
-## Project Managegement
+## Project Management
 
 ### Work organization
  - **Tasks were divided based on feature ownership and technical complexity**
@@ -77,17 +89,16 @@ Overall, the project demonstrates the use of modern development practices, teamw
 ## Technical Stack
 
 ### Frontend
- - **Framework: [React / Vue / Svelte]**
- - **Styling: [Tailwind CSS / CSS Modules]**
- - **State management: [Redux / Context API]**
+ - **Language & Framework: TypeScript**
+ - **Styling: Tailwind CSS**
 
 ### Backend
- - **Language & Framework: [Node.js + Fastify / Django / Spring]**
- - **API style: REST / GraphQL**
- - **Authentication: [JWT / OAuth]**
+ - **Language & Framework: Node.js + Fastify**
+ - **API style: REST / WebSocket**
+ - **Authentication: JWT / OAuth**
 
 ### Database
- - **Database system: [PostgreSQL / MySQL / MongoDB]**
+ - **Database system: SQLite**
  - **Reason for choice: reliability, performance, ease of integration**
 
 ### Other Technologies
@@ -96,12 +107,12 @@ Overall, the project demonstrates the use of modern development practices, teamw
  - **ESLint for code quality management**
  - **Prettier for code formatter**
  - **Pre-commit hooks for automated code quality checking**
+ - **GitHub-Actions for automated build check**
+ - **GitHub-Copilot for coding assistance**
 
  ---
 
 ## Database Schema
-
-## Overview
 
 The database is structured to support xxxxxxxxxx.
 
@@ -113,7 +124,7 @@ The database is structured to support xxxxxxxxxx.
 
 ---
 
-## Feature
+## Features
 
 
 
@@ -134,7 +145,7 @@ The database is structured to support xxxxxxxxxx.
  - **Implement advanced 3D graphics using a library like Three.js or Babylon.js.**
  - **Game customization options.**
 
- - **Selected module list** https://docs.google.com/spreadsheets/d/17Zzqtc-Kt7rOGMgjCKm4IlfExPgKOZ_PsDcWadULh7k/edit?gid=1123937038#gid=1123937038
+ **Selected module list** https://docs.google.com/spreadsheets/d/17Zzqtc-Kt7rOGMgjCKm4IlfExPgKOZ_PsDcWadULh7k/edit?gid=1123937038#gid=1123937038
 
 ### Implementation Details
 
