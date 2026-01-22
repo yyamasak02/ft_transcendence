@@ -118,7 +118,7 @@ The database is structured to support xxxxxxxxxx.
 
 ### Tables
  **users**
-	- id (INT, PK)
+  - id (INT, PK)
 	- username (VARCHAR)
 	- email (VARCHAR)
 
