@@ -10,7 +10,7 @@
 - [Database Schema](#database-schema)
 - [Features](#features)
 - [Modules](#modules)
-- [Individual Contributions](#ndividual-contributions)
+- [Individual Contributions](#individual-contributions)
 
 ## Description
 
@@ -117,10 +117,10 @@ Overall, the project demonstrates the use of modern development practices, teamw
 The database is structured to support xxxxxxxxxx.
 
 ### Tables
- - **users**
-	id (INT, PK)
-	username (VARCHAR)
-	email (VARCHAR)
+ **users**
+	- id (INT, PK)
+	- username (VARCHAR)
+	- email (VARCHAR)
 
 ---
 
