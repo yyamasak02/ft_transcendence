@@ -117,8 +117,8 @@ Overall, the project demonstrates the use of modern development practices, teamw
 The database is structured to support xxxxxxxxxx.
 
 ### Tables
- **users**
-  - id (INT, PK)
+ - **users**
+	- id (INT, PK)
 	- username (VARCHAR)
 	- email (VARCHAR)
 
