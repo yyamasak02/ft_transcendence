@@ -22,17 +22,17 @@ Overall, the project demonstrates the use of modern development practices, teamw
 
 ### Installation
 ```bash
-		git clone <repository of this project>
-		cd project-name
+	git clone <repository of this project>
+	cd project-name
 ```
 ### Compilation Setup
 ```bash
-		make init
+	make init
 ```
 
 ### access
 ```
-   https://localhost:8443
+  https://localhost:8443
 ```
 ## Resources
  - **[Project Specificatons](./subjects/en.subject.pdf)**
@@ -53,8 +53,8 @@ Overall, the project demonstrates the use of modern development practices, teamw
 
 | Name     | Role(s)            | Responsibilities                                                 |
 |----------|--------------------|------------------------------------------------------------------|
-| yotsurud | Product Owner      | Defined requirements, validated features, coordinated priorities |
-| yyamasak | Project Manager    | Task planning, sprint organization, meeting facilitation         |
+| yotsurud | Product Owner      | Schedule management, Communication Promotion                     |
+| yyamasak | Project Manager    | Task planning, meeting facilitation, validated features          |
 | tobaba   | Tech Lead Frontend | Architecture decisions, code reviews, technical guidance         |
 | tashiget | Tech Lead Backend  | Architecture decisions, code reviews, technical guidance         |
 | all      | Developer          | Feature implementation, testing, bug fixes                       |
