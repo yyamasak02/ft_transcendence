@@ -1,84 +1,185 @@
-# ft_transcendence
+*This project has been created as part of the 42 curriculum by yyamasak, tashiget, tobaba, rkawahar, totsurud.*
 
-42 Cursusの最終プロジェクト「ft_transcendence」のリポジトリです。
+## overview
+- [Description](#description)
+- [Instructions](#instructions)
+- [Resources](#resources)
+- [Team Information](#team-information)
+- [Project Management](#project-management)
+- [Technical Stack](#technical-stack)
+- [Database Schema](#database-schema)
+- [Features](#features)
+- [Modules](#modules)
+- [Individual Contributions](#individual-contributions)
 
-## ディレクトリ構成
+## Description
 
+The goal of this project is to [clearly state the main objective, e.g., build a real-time web application, implement a specific system, etc.].
+
+The application provides:
+- A brief explanation of the main functionality
+- The problem it solves
+- The expected users or use cases
+
+Overall, the project demonstrates the use of modern development practices, teamwork, and modular architecture.
+
+---
+
+## Instructions
+
+### Requirements
+- **OS: [Linux / macOS / Windows]**
+- **Compiler / Runtime: [Node.js v18, Python 3.11, ]**
+- **Other dependencies: [Docker, Make, ]**
+
+### Installation
+```bash
+	git clone <repository of this project>
+	cd project-name
 ```
-ft_transcendence/
-├── README.md
-├── docker-compose.yml
-├── Makefile
-├── .pre-commit-config.yaml
-├── eslint.config.js
-├── package.json
-├── subjects/
-│   ├── en.subject.pdf
-│   └── ja.subject.md
-└── frontend/
-    ├── README.md
-    ├── package.json
-    ├── vite.config.ts
-    ├── tailwind.config.js
-    ├── eslint.config.js
-    ├── tsconfig.json
-    ├── index.html
-    ├── public/
-    └── src/
-        ├── main.ts
-        ├── style.css
-        ├── components/
-        ├── pages/
-        ├── router/
-        └── types/
+### Compilation Setup
+```bash
+	make init
 ```
 
-## 環境構築
+### access
+```
+  https://localhost:8443
+```
+## Resources
+ - **[Project Specificatons](./subjects/en.subject.pdf)**
 
-### 要求
+ - **Use of AI Tools**
+		AI tools (Copilot, ChatGPT) were used in the following ways:
 
-- Docker & Docker Compose
-- Make
+		Assisting with architecture design discussions
+		Generating boilerplate code and refactoring suggestions
+		Debugging and explaining complex technical concepts
+		Reviewing documentation and improving clarity
 
-### 手順
+		All AI-generated suggestions were reviewed, tested, and adapted by the team.
 
-1. リポジトリのクローン
+---
 
-   ```bash
-   git clone <repository-url>
-   cd ft_transcendence
-   ```
+## Team Information
 
-2. 開発環境の起動
+| Name     | Role(s)            | Responsibilities                                                 |
+|----------|--------------------|------------------------------------------------------------------|
+| yotsurud | Product Owner      | Schedule management, Communication Promotion                     |
+| yyamasak | Project Manager    | Task planning, meeting facilitation, validated features          |
+| tobaba   | Tech Lead Frontend | Architecture decisions, code reviews, technical guidance         |
+| tashiget | Tech Lead Backend  | Architecture decisions, code reviews, technical guidance         |
+| all      | Developer          | Feature implementation, testing, bug fixes                       |
 
-   ```bash
-   make up
-   ```
+## Project Management
 
-3. アクセス
-   ```
-   http://localhost:5173
-   ```
+### Work organization
+ - **Tasks were divided based on feature ownership and technical complexity**
+ - **Weekly planning meetings and were held**
+ - **Code reviews were mandatory before merging**
+### Tools
+ - **Task tracking: GitHub issue**
+ - **Version control: GitHub**
+### Communication
+ - **Discord for daily communication and meeting**
+ - **GitHub issue**
 
-## 使用ライブラリ・技術スタック
+---
 
-### フロントエンド
+## Technical Stack
 
-- **TypeScript** - 型安全なJavaScript
-- **Vite** - 高速ビルドツール
-- **Tailwind CSS v4** - ユーティリティファーストCSS
+### Frontend
+ - **Language & Framework: TypeScript**
+ - **Styling: Tailwind CSS**
 
-### 開発ツール
+### Backend
+ - **Language & Framework: Node.js + Fastify**
+ - **API style: REST / WebSocket**
+ - **Authentication: JWT / OAuth**
 
-- **Docker** - コンテナ化
-- **ESLint** - コード品質管理
-- **Prettier** - コードフォーマッター
-- **Pre-commit hooks** - コード品質の自動チェック
+### Database
+ - **Database system: SQLite**
+ - **Reason for choice: reliability, performance, ease of integration**
 
-## 📚 参考資料
+### Other Technologies
+ - **Docker for containerization**
+ - **Nginx as reverse proxy**
+ - **ESLint for code quality management**
+ - **Prettier for code formatter**
+ - **Pre-commit hooks for automated code quality checking**
+ - **GitHub-Actions for automated build check**
+ - **GitHub-Copilot for coding assistance**
 
-- [英語版仕様書](./subjects/en.subject.pdf)
-- [日本語版仕様書](./subjects/ja.subject.md)
-- [フロントエンド詳細](./frontend/README.md)
-- [トラセン選択リスト](https://docs.google.com/spreadsheets/d/1MmifLUIpSIjhODcBtV3iFigSY0vfoZjxOBQdi6Uwdu0/edit?pli=1&gid=0#gid=0)
-- [バックエンドサンプルプロジェクト](https://github.com/fastify/demo)
+ ---
+
+## Database Schema
+
+The database is structured to support xxxxxxxxxx.
+
+### Tables
+ - **users**
+	- id (INT, PK)
+	- username (VARCHAR)
+	- email (VARCHAR)
+
+---
+
+## Features
+
+
+
+---
+
+## Modules
+
+ - **Use a framework for both the frontend and backend.**
+ - **Implement real-time features using WebSockets or similar technology.**
+ - **Support for multiple languages (at least 3 languages).**
+ - **Support for additional browsers.**
+ - **Standard user management and authentication.**
+ - **Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.).**
+ - **Implement a complete 2FA (Two-Factor Authentication) system for the users.**
+ - **Introduce an AI Opponent for games.**
+ - **Implement a complete web-based game where users can play against each other.**
+ - **Remote players — Enable two players on separate computers to play the same game in real-time.**
+ - **Implement advanced 3D graphics using a library like Three.js or Babylon.js.**
+ - **Game customization options.**
+
+ **Selected module list** https://docs.google.com/spreadsheets/d/17Zzqtc-Kt7rOGMgjCKm4IlfExPgKOZ_PsDcWadULh7k/edit?gid=1123937038#gid=1123937038
+
+### Implementation Details
+
+Each module was implemented following the project architecture and thoroughly tested.
+
+---
+
+## Individual Contributions
+
+### yyamasak
+
+ - **xx**
+ - **xx**
+ - **xx**
+
+### tashiget
+ - **xx**
+ - **xx**
+ - **xx**
+
+### tobaba
+ - **xx**
+ - **xx**
+ - **xx**
+
+### rkawahar
+
+ - **xx**
+ - **xx**
+ - **xx**
+
+### yotsurud
+
+ - **xx**
+ - **xx**
+ - **xx**
+
