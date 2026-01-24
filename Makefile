@@ -1,7 +1,7 @@
 # Inception Project Makefile
 
 # Variables
-COMPOSE_FILE = docker-compose.local.yml
+COMPOSE_FILE = docker-compose.yml
 
 .PHONY: up down build clean logs status help secrets ensure_envs
 

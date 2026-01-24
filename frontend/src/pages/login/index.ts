@@ -157,7 +157,7 @@ const setupGoogleLogin = async () => {
 
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
-    callback: ({ credential }) => {
+    callback: ({ credential }: { credential: string }) => {
       const remember = Boolean(
         document.querySelector<HTMLInputElement>("#remember")?.checked,
       );

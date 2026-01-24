@@ -50,8 +50,8 @@ export class GameScreen {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private player1!: Player;
-  private player2!: Player;
+  private player1: Player | null = null;
+  private player2: Player | null = null;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
@@ -181,7 +181,13 @@ export class GameScreen {
       this.hud.clearCountdown();
     }
   }
-  private initPlayers(p1: Paddle, p2: Paddle) {
+  private initPlayers() {
+    const { p1, p2 } = createPaddles(this.scene, this.settings);
+    // 古いパドルを破棄
+    if (this.player1 && this.player2) {
+      this.player1.paddle.mesh.dispose();
+      this.player2.paddle.mesh.dispose();
+    }
     if (this.remoteMode) {
       const oppCtrl = new RemoteController();
       this.remoteOpponentCtrl = oppCtrl;
@@ -241,9 +247,10 @@ export class GameScreen {
     this.inputManager.setup();
 
     // パドル生成 + プレイヤー生成（共通ロジック）
-    const { p1, p2 } = createPaddles(this.scene, this.settings);
-    this.initPlayers(p1, p2);
-
+    this.initPlayers();
+    if (!this.player1 || !this.player2) {
+      throw new Error("Players not initialized");
+    }
     this.ball = new Ball(
       this.scene,
       new Vector3(0, 1, 0),
@@ -377,14 +384,8 @@ export class GameScreen {
     }
 
     if (this.player1 && this.player2) {
-      const { p1, p2 } = createPaddles(this.scene, this.settings);
-
-      // 古いパドルを破棄
-      this.player1.paddle.mesh.dispose();
-      this.player2.paddle.mesh.dispose();
-
       // 新しいパドルでプレイヤーを再生成（共通ロジック）
-      this.initPlayers(p1, p2);
+      this.initPlayers();
     }
 
     if (this.ball && this.player1 && this.player2) {

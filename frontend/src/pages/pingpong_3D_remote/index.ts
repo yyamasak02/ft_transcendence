@@ -28,7 +28,6 @@ class PingPong3DRemoteWaiting implements Component {
   private _readyBtn!: HTMLButtonElement;
   private _loaderEl!: HTMLElement;
   private _ws: WebSocket | null = null;
-  private _wsReady: boolean = false;
   private _tmpUserId!: string;
   private _pollTimer: number | null = null;
 
@@ -176,7 +175,6 @@ class PingPong3DRemoteWaiting implements Component {
     const ws = new WebSocket(wsUrl);
     this._ws = ws;
     ws.onopen = () => {
-      this._wsReady = true;
       ws.send(
         JSON.stringify({
           type: "connect",
@@ -228,7 +226,6 @@ class PingPong3DRemoteWaiting implements Component {
     };
     ws.onclose = () => {
       this._ws = null;
-      this._wsReady = false;
     };
   }
 

@@ -141,7 +141,7 @@ const setupGoogleRegister = async () => {
 
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
-    callback: ({ credential }) => {
+    callback: ({ credential }: { credential: string }) => {
       if (credential) handleGoogleCredential(credential);
     },
   });

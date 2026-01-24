@@ -14,12 +14,15 @@ services:
     depends_on:
       - frontend
       - be_common
+      - be_connect
   frontend:
     build:
       context: ./frontend
       dockerfile: ./docker/Dockerfile
     image: ft_frontend
     container_name: ft_frontend
+    expose:
+      - "4173"
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
@@ -29,7 +32,7 @@ services:
       - ./frontend/.env.local
     networks:
       - ft_network
-    command: npm run dev
+    command: ${FE_CMD:-npm run start}
   be_common:
     build:
       context: ./backends/common
@@ -44,10 +47,30 @@ services:
       NODE_ENV: development
     env_file:
       - ./backends/common/.env.development
-    ports:
-      - 8080:8080
+    expose:
+      - "80"
     networks:
       - ft_network
+    command: ${BE_COM_CMD:-npm run start}
+  be_connect:
+    build:
+      context: ./backends/connect
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_connect
+    container_name: ft_be_connect
+    volumes:
+      - ./backends/connect:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/connect/.env.development
+    expose:
+      - "80"
+    networks:
+      - ft_network
+    command: ${BE_CN_CMD:-npm run start}
 networks:
   ft_network:
     driver: bridge

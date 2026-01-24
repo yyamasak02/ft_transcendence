@@ -172,4 +172,5 @@ export const edo = {
   room_id_placeholder_guest: "割符を示せ",
   click_to_copy: "写し身",
   copied: "忍!",
+  failed: "Failed!",
 } as const;
