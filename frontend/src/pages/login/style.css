@@ -103,6 +103,11 @@
   text-align: center;
 }
 
+#google-btn {
+  display: flex;
+  justify-content: center;
+}
+
 .login-link {
   color: #bbb;
   text-decoration: none;
@@ -115,11 +120,35 @@
   text-decoration: underline;
 }
 
+.login-divider {
+  margin: 18px 0 12px;
+  border-top: 1px solid #333;
+  position: relative;
+  text-align: center;
+}
+
+.login-divider span {
+  position: relative;
+  top: -10px;
+  background: #111;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  color: #888;
+  letter-spacing: 0.08em;
+}
+
+.login-alt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .login-google-msg {
   margin-top: 10px;
   font-size: 0.8rem;
   color: #9a9a9a;
   white-space: pre-wrap;
+  text-align: center;
 }
 
 .login-msg {

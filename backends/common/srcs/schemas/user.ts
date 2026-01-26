@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { matchRecentResponseSchema } from "./match.js";
 
 export const registerBodySchema = Type.Object({
+  email: Type.String({ format: "email" }),
   name: Type.String({ minLength: 1 }),
   password: Type.String({ minLength: 8 }),
 });
@@ -17,7 +18,7 @@ export const errorResponseSchema = Type.Object({
 });
 
 export const loginBodySchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
+  email: Type.String({ format: "email" }),
   password: Type.String({ minLength: 1 }),
   longTerm: Type.Optional(Type.Boolean()),
 });
@@ -34,9 +35,19 @@ export const twoFactorRequiredSchema = Type.Object({
   twoFactorToken: Type.String({ minLength: 1 }),
 });
 
+export const googleSignupRequiredSchema = Type.Object({
+  requiresSignup: Type.Literal(true),
+});
+
 export const loginResponseSchema = Type.Union([
   loginSuccessSchema,
   twoFactorRequiredSchema,
+]);
+
+export const googleLoginResponseSchema = Type.Union([
+  loginSuccessSchema,
+  twoFactorRequiredSchema,
+  googleSignupRequiredSchema,
 ]);
 
 export const googleLoginBodySchema = Type.Object({

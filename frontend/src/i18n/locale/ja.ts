@@ -49,8 +49,10 @@ export const ja = {
   confirm: "Enterを押すと決定します",
   signup: "新規登録",
   register: "登録",
+  email: "メールアドレス",
   to_signup: "新規登録へ",
   to_login: "ログインページへ",
+  other_login_methods: "その他のログイン方法",
   google_signup: "Google登録",
   google_signup_desc:
     "Google認証が完了しました。ユーザー名を入力してください。",
@@ -66,7 +68,10 @@ export const ja = {
   google_client_id_missing:
     "環境変数 VITE_GOOGLE_CLIENT_ID が設定されていません。",
   google_script_load_failed: "Googleスクリプトの読み込みに失敗しました",
-  login_required: "ユーザー名とパスワードを入力してください。",
+  login_required: "メールアドレスとパスワードを入力してください。",
+  email_required: "メールアドレスを入力してください。",
+  email_invalid: "メールアドレスの形式が正しくありません。",
+  email_taken: "そのメールアドレスは既に使われています。",
   login_success: "ログインに成功しました。",
   login_error: "ログイン中にエラーが発生しました",
   register_required: "すべての項目を入力してください。",
@@ -129,7 +134,7 @@ export const ja = {
   two_factor_desc: "アカウント保護のため2段階認証を有効化します。",
   two_factor_enable: "2段階認証を有効化",
   two_factor_enabled:
-    "2段階認証を有効化しました。QRコードを読み取ってください。",
+    "2段階認証を有効化しました。表示されたトークンを認証アプリに登録してください。",
   two_factor_failed: "2段階認証の有効化に失敗しました",
   two_factor_missing_login: "ログインが必要です。",
   two_factor_title: "2段階認証",

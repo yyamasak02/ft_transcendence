@@ -10,3 +10,19 @@ export function navigate(path: string) {
 export function rerender() {
   return router.rerender();
 }
+
+const RETURN_TO_KEY = "return_to";
+
+export const setReturnTo = (value: string) => {
+  if (!value.startsWith("/") || value.startsWith("//")) return;
+  sessionStorage.setItem(RETURN_TO_KEY, value);
+};
+
+export const getReturnTo = () => sessionStorage.getItem(RETURN_TO_KEY) ?? "/";
+
+export const clearReturnTo = () => {
+  sessionStorage.removeItem(RETURN_TO_KEY);
+};
+
+export const getCurrentPath = () =>
+  `${window.location.pathname}${window.location.search}`;

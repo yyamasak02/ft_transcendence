@@ -7,10 +7,12 @@ import { GOOGLE_ID_TOKEN_KEY, GOOGLE_LONG_TERM_KEY } from "@/constants/auth";
 import {
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
+  EMAIL_PATTERN,
   USERNAME_ROMAN_PATTERN,
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
+import { clearReturnTo, getReturnTo } from "@/router";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
@@ -25,6 +27,18 @@ class RegisterComponent implements Component {
 								<h2 class="register-title">${t("signup")}</h2>
 
 								<form class="register-form" id="register_form">
+									<div class="register-field">
+											<label for="email">${t("email")}</label>
+											<input
+											type="email"
+											id="email"
+											name="email"
+											placeholder="you@example.com"
+											required
+											class="register-input"
+											/>
+									</div>
+
 									<div class="register-field">
 											<label for="username">${t("username")}</label>
 											<input
@@ -67,6 +81,10 @@ class RegisterComponent implements Component {
 										<a class="register-link" href="/login">${t("to_login")}</a>
 									</div>
 
+									<div class="register-footer">
+										<a class="register-link" href="/">${t("home_return")}</a>
+									</div>
+
 									<div class="register-divider">
 										<span>${t("other_signup_methods")}</span>
 									</div>
@@ -102,13 +120,14 @@ const storePendingGoogleSignup = (idToken: string, longTerm: boolean) => {
 const handleGoogleCredential = async (credential: string) => {
   setGoogleMsg(word("google_login_processing"));
   try {
+    const returnTo = getReturnTo();
     const res = await fetch(`${API_BASE}/user/google_login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken: credential, longTerm: false }),
     });
     const body = await res.json().catch(() => ({}));
-    if (res.status === 404) {
+    if (body?.requiresSignup || res.status === 404) {
       storePendingGoogleSignup(credential, false);
       navigate("/google-signup");
       return;
@@ -122,7 +141,8 @@ const handleGoogleCredential = async (credential: string) => {
     }
     storeTokens(body.accessToken, body.longTermToken);
     setGoogleMsg(word("google_login_success"));
-    navigate("/");
+    clearReturnTo();
+    navigate(returnTo);
   } catch (error) {
     setGoogleMsg(`${word("google_login_error")}: ${error}`);
   }
@@ -163,11 +183,21 @@ const setupRegisterForm = () => {
   const toLoginLink = document.querySelector<HTMLAnchorElement>(
     ".register-link[href='/login']",
   );
+  const toHomeLink = document.querySelector<HTMLAnchorElement>(
+    ".register-link[href='/']",
+  );
 
   if (toLoginLink) {
     toLoginLink.addEventListener("click", (event) => {
       event.preventDefault();
       navigate("/login");
+    });
+  }
+
+  if (toHomeLink) {
+    toHomeLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate("/");
     });
   }
 
@@ -177,12 +207,17 @@ const setupRegisterForm = () => {
     setRegisterMsg("");
 
     const formData = new FormData(form);
+    const email = String(formData.get("email") ?? "").trim();
     const name = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const confirm = String(formData.get("password_confirm") ?? "");
 
-    if (!name || !password || !confirm) {
+    if (!email || !name || !password || !confirm) {
       setRegisterMsg(word("register_required"));
+      return;
+    }
+    if (!EMAIL_PATTERN.test(email)) {
+      setRegisterMsg(word("email_invalid"));
       return;
     }
     if (name.length < MIN_USERNAME_LENGTH) {
@@ -207,7 +242,7 @@ const setupRegisterForm = () => {
       const res = await fetch(`${API_BASE}/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password }),
+        body: JSON.stringify({ email, name, password }),
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {

@@ -7,6 +7,7 @@ import {
   USERNAME_ROMAN_PATTERN,
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
+import { clearReturnTo, getReturnTo } from "@/router";
 import "./style.css";
 
 const API_BASE = "/api/common";
@@ -30,11 +31,6 @@ class GoogleSignupComponent {
                 required
                 class="google-signup-input"
               />
-            </div>
-
-            <div class="google-signup-remember">
-              <input type="checkbox" id="remember" name="remember" />
-              <label for="remember">${t("keep_login")}</label>
             </div>
 
             <button type="submit" class="google-signup-submit">
@@ -135,7 +131,11 @@ const setupGoogleSignupForm = () => {
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {
-        setGoogleSignupMsg(word("username_taken"));
+        if (body?.message === "Email already exists.") {
+          setGoogleSignupMsg(word("email_taken"));
+        } else {
+          setGoogleSignupMsg(word("username_taken"));
+        }
         return;
       }
       if (!res.ok) {
@@ -147,7 +147,8 @@ const setupGoogleSignupForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       clearPendingGoogleSignup();
-      navigate("/");
+      clearReturnTo();
+      navigate(getReturnTo());
     } catch (error) {
       setGoogleSignupMsg(`${word("register_error")}: ${error}`);
     } finally {

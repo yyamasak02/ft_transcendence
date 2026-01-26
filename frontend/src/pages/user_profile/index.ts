@@ -2,6 +2,7 @@ import type { Route } from "@/types/routes";
 import { langManager, word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { getStoredAccessToken } from "@/utils/token-storage";
+import { getCurrentPath, setReturnTo } from "@/router";
 import {
   DEFAULT_PROFILE_IMAGE,
   getProfileImageSrc,
@@ -204,6 +205,8 @@ class UserProfileController {
     const accessToken = getStoredAccessToken();
     if (!accessToken) {
       this.friendButton.disabled = true;
+      setReturnTo(getCurrentPath());
+      navigate("/login");
       return;
     }
     this.friendButton.disabled = false;
@@ -235,6 +238,11 @@ class UserProfileController {
               });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) {
+          if (res.status === 401) {
+            setReturnTo(getCurrentPath());
+            navigate("/login");
+            return;
+          }
           this.setFriendMessage(
             body?.message ??
               word(
@@ -279,7 +287,13 @@ class UserProfileController {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (!res.ok) return { isFriend: false, friendId: null };
+      if (!res.ok) {
+        if (res.status === 401) {
+          setReturnTo(getCurrentPath());
+          navigate("/login");
+        }
+        return { isFriend: false, friendId: null };
+      }
       const body = await res.json().catch(() => ({}));
       const friends = Array.isArray(body?.friends) ? body.friends : [];
       const match = (friends as FriendItem[]).find(
@@ -296,6 +310,7 @@ class UserProfileController {
   async loadProfile(name: string) {
     const accessToken = getStoredAccessToken();
     if (!accessToken) {
+      setReturnTo(getCurrentPath());
       navigate("/login");
       return;
     }
@@ -310,6 +325,11 @@ class UserProfileController {
         },
       );
       const body = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        setReturnTo(getCurrentPath());
+        navigate("/login");
+        return;
+      }
       if (res.status === 404) {
         this.setProfileMessage(word("user_profile_not_found"));
         return;

@@ -162,6 +162,26 @@
   word-break: break-all;
 }
 
+.me-qr-copy {
+  padding: 8px 14px;
+  background: #2f2f2f;
+  color: #eee;
+  border: 1px solid #555;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.me-qr-copy:hover {
+  background: #3b3b3b;
+  border-color: #777;
+}
+
+.me-qr-copy-msg {
+  font-size: 0.8rem;
+  color: #c0c0c0;
+}
+
 .me-2fa-msg {
   margin-top: 10px;
   font-size: 0.85rem;
