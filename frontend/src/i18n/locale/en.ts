@@ -129,7 +129,7 @@ export const en = {
   two_factor: "Two-Factor Authentication",
   two_factor_desc: "Enable 2FA to secure your account.",
   two_factor_enable: "Enable 2FA",
-  two_factor_enabled: "2FA enabled. Scan the QR code.",
+  two_factor_enabled: "2FA enabled. Register the displayed token in your authenticator app.",
   two_factor_failed: "Failed to enable 2FA",
   two_factor_missing_login: "Login is required to enable 2FA.",
   two_factor_title: "Two-Factor Verification",

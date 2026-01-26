@@ -129,7 +129,7 @@ export const edo = {
   two_factor: "二段の見届け",
   two_factor_desc: "名を守るため、二段の見届けを使うぞ。",
   two_factor_enable: "二段の見届けを有にする",
-  two_factor_enabled: "二段の見届けを有にした。QRを読め。",
+  two_factor_enabled: "二段の見届けを有にした。示された印を見届け帳に写せ。",
   two_factor_failed: "二段の見届けに失敗したのじゃ",
   two_factor_missing_login: "名乗りが必要じゃ。",
   two_factor_title: "二段の見届け",

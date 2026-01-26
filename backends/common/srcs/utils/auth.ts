@@ -95,7 +95,7 @@ export async function issueTwoFactorToken(
     { expiresIn: TWO_FACTOR_TOKEN_EXPIRES_IN },
   );
 }
-
+// TODO: erase long term tokens periodically
 export async function issueLongTermToken(
   fastify: FastifyInstance,
   userId: number,
@@ -114,6 +114,7 @@ export async function issueLongTermToken(
   return { token: rawToken, expiresAt };
 }
 
+// TODO: erase long term tokens periodically
 export async function verifyLongTermToken(
   fastify: FastifyInstance,
   token: string,
@@ -142,6 +143,7 @@ export async function verifyLongTermToken(
   return { userId: record.user_id };
 }
 
+// TODO: erase long term tokens periodically
 export async function removeLongTermToken(
   fastify: FastifyInstance,
   token: string,

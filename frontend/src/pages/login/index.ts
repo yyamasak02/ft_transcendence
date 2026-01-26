@@ -13,7 +13,7 @@ import {
 } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
-import { appendReturnTo, getReturnTo } from "@/utils/return-to";
+import { clearReturnTo, getReturnTo } from "@/router";
 import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
@@ -55,16 +55,6 @@ class LoginComponent implements Component {
 											required
 											class="login-input"
 										/>
-									</div>
-
-									<!-- Remember -->
-									<div class="login-remember">
-										<input
-											type="checkbox"
-											id="remember"
-											name="remember"
-										/>
-										<label for="remember">${t("keep_login")}</label>
 									</div>
 
 									<!-- Submit -->
@@ -130,12 +120,12 @@ const handleGoogleCredential = async (
     const body = await res.json().catch(() => ({}));
     if (body?.requiresSignup || res.status === 404) {
       storePendingGoogleSignup(credential, longTerm);
-      navigate(appendReturnTo("/google-signup", returnTo));
+      navigate("/google-signup");
       return;
     }
     if (body?.twoFactorRequired && body?.twoFactorToken) {
       storeTwoFactorChallenge(body.twoFactorToken, longTerm);
-      navigate(appendReturnTo("/two-factor", returnTo));
+      navigate("/two-factor");
       return;
     }
     if (!res.ok) {
@@ -147,6 +137,7 @@ const handleGoogleCredential = async (
     }
     storeTokens(body.accessToken, body.longTermToken);
     setGoogleMsg(word("google_login_success"));
+    clearReturnTo();
     navigate(returnTo);
   } catch (error) {
     setGoogleMsg(`${word("google_login_error")}: ${error}`);
@@ -235,7 +226,7 @@ const setupLoginForm = () => {
       const body = await res.json().catch(() => ({}));
       if (body?.twoFactorRequired && body?.twoFactorToken) {
         storeTwoFactorChallenge(body.twoFactorToken, longTerm);
-        navigate(appendReturnTo("/two-factor", returnTo));
+        navigate("/two-factor");
         return;
       }
       if (!res.ok) {
@@ -246,6 +237,7 @@ const setupLoginForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       setLoginMsg(word("login_success"));
+      clearReturnTo();
       navigate(returnTo);
     } catch (error) {
       setLoginMsg(`${word("login_error")}: ${error}`);

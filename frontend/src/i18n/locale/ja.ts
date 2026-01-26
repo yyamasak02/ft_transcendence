@@ -133,7 +133,7 @@ export const ja = {
   two_factor_desc: "アカウント保護のため2段階認証を有効化します。",
   two_factor_enable: "2段階認証を有効化",
   two_factor_enabled:
-    "2段階認証を有効化しました。QRコードを読み取ってください。",
+    "2段階認証を有効化しました。表示されたトークンを認証アプリに登録してください。",
   two_factor_failed: "2段階認証の有効化に失敗しました",
   two_factor_missing_login: "ログインが必要です。",
   two_factor_title: "2段階認証",

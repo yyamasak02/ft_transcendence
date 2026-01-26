@@ -7,7 +7,7 @@ import {
 } from "@/constants/validation";
 import { LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import { getStoredAccessToken, storeTokens } from "@/utils/token-storage";
-import { appendReturnTo, getCurrentPath } from "@/utils/return-to";
+import { getCurrentPath, setReturnTo } from "@/router";
 import { decodeJwtPayload } from "@/utils/jwt";
 import "./style.css";
 
@@ -84,7 +84,8 @@ const setupChangeForm = () => {
   const accessToken = getStoredAccessToken();
   if (!accessToken) {
     setChangeMsg(word("login_required_for_change"));
-    navigate(appendReturnTo("/login", getCurrentPath()));
+    setReturnTo(getCurrentPath());
+    navigate("/login");
     if (submitButton) submitButton.disabled = true;
     return;
   }
@@ -124,7 +125,8 @@ const setupChangeForm = () => {
       const body = await res.json().catch(() => ({}));
       if (res.status === 401 || res.status === 404) {
         setChangeMsg(word("login_required_for_change"));
-        navigate(appendReturnTo("/login", getCurrentPath()));
+        setReturnTo(getCurrentPath());
+        navigate("/login");
         return;
       }
       if (res.status === 409) {

@@ -6,7 +6,7 @@ import {
   TWO_FACTOR_TOKEN_KEY,
 } from "@/constants/auth";
 import { storeTokens } from "@/utils/token-storage";
-import { appendReturnTo, getReturnTo } from "@/utils/return-to";
+import { clearReturnTo, getReturnTo } from "@/router";
 import "./style.css";
 
 const API_BASE = "/api/common";
@@ -74,7 +74,7 @@ const setupTwoFactorForm = () => {
     toLoginLink.addEventListener("click", (event) => {
       event.preventDefault();
       clearTwoFactorState();
-      navigate(appendReturnTo("/login", getReturnTo()));
+      navigate("/login");
     });
   }
 
@@ -121,6 +121,7 @@ const setupTwoFactorForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       clearTwoFactorState();
+      clearReturnTo();
       navigate(getReturnTo());
     } catch (error) {
       setTwoFactorMsg(`${word("two_factor_verify_failed")}: ${error}`);
