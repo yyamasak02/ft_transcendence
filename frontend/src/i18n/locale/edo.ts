@@ -172,4 +172,9 @@ export const edo = {
   room_id_placeholder_guest: "割符を示せ",
   click_to_copy: "写し身",
   copied: "忍!",
+  htp_page1: '<span class="highlight">誉れ高き点のため、球を逃すな</span>',
+  htp_page2:
+    '<span class="key">W</span> <span class="key">S</span> あるいは <span class="key">↑</span> <span class="key">↓</span> で木刀を動かすのじゃ。',
+  htp_page3: "画面をなぞると、見え方（視点）が回るぞ。",
+  htp_page4: "右上の印で、一服や視点の戻し、支度（設定）ができるのじゃ。",
 } as const;

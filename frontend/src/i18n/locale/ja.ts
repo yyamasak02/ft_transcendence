@@ -177,4 +177,10 @@ export const ja = {
   click_to_copy: "クリックしてコピー",
   copied: "コピーしました！",
   failed: "失敗しました！",
+  htp_page1: '<span class="highlight">高得点のためにボールを逃すな</span>',
+  htp_page2:
+    '<span class="key">W</span> <span class="key">S</span> または <span class="key">↑</span> <span class="key">↓</span> キーでパドルを動かします。',
+  htp_page3: "画面をドラッグ（スワイプ）してカメラを回転させます。",
+  htp_page4:
+    "画面右上のボタンで、一時停止、カメラリセット、設定変更ができます。",
 } as const;
