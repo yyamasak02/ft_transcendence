@@ -131,7 +131,11 @@ const setupGoogleSignupForm = () => {
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {
-        setGoogleSignupMsg(word("username_taken"));
+        if (body?.message === "Email already exists.") {
+          setGoogleSignupMsg(word("email_taken"));
+        } else {
+          setGoogleSignupMsg(word("username_taken"));
+        }
         return;
       }
       if (!res.ok) {

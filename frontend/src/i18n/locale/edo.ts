@@ -68,6 +68,7 @@ export const edo = {
   login_required: "書状の宛先と合言葉を入れるのじゃ。",
   email_required: "書状の宛先を入れるのじゃ。",
   email_invalid: "書状の宛先が正しくないのじゃ。",
+  email_taken: "その書状の宛先は既に使われておる。",
   login_success: "名乗りが通ったぞ。",
   login_error: "名乗りでしくじったのじゃ",
   register_required: "すべて記せ。",

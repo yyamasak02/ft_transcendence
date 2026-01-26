@@ -15,6 +15,7 @@ import {
   removeLongTermToken,
   findUserByPuid,
   findUserByName,
+  findUserByEmail,
   findUserByGoogleSub,
   linkGoogleAccount,
   generatePuid,
@@ -350,6 +351,11 @@ export default async function (fastify: FastifyInstance) {
       if (!email) {
         reply.code(500);
         return { message: "Google profile email is missing." };
+      }
+      const emailOwner = await findUserByEmail(fastify, email);
+      if (emailOwner) {
+        reply.code(409);
+        return { message: "Email already exists." };
       }
       // Google 認証ユーザーはパスワード認証を行わないため、DB の NOT NULL 制約を満たすためのプレースホルダ値を使用する。
       const placeholderPassword = "GOOGLE_AUTH_USER";

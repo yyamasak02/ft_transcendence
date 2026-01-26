@@ -71,6 +71,7 @@ export const ja = {
   login_required: "メールアドレスとパスワードを入力してください。",
   email_required: "メールアドレスを入力してください。",
   email_invalid: "メールアドレスの形式が正しくありません。",
+  email_taken: "そのメールアドレスは既に使われています。",
   login_success: "ログインに成功しました。",
   login_error: "ログイン中にエラーが発生しました",
   register_required: "すべての項目を入力してください。",

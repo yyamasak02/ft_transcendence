@@ -68,6 +68,7 @@ export const en = {
   login_required: "Please enter email and password.",
   email_required: "Please enter an email address.",
   email_invalid: "Please enter a valid email address.",
+  email_taken: "That email address is already in use.",
   login_success: "Login successful.",
   login_error: "Login error",
   register_required: "Please fill in all fields.",
