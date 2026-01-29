@@ -5,17 +5,17 @@ import { edo } from "../locale/edo";
 import type { Lang, I18nKey, I18nDict } from "../lang";
 
 const LANG_KEY = "app_lang";
+const I18N_ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
 
 export class LangManager extends EventTarget {
   private _lang: Lang;
   private readonly _dict: Record<Lang, I18nDict>;
   private _bindingsBootstrapped = false;
+  private _observer: MutationObserver | null = null;
 
   constructor(defaultLang: Lang = "en") {
     super();
-
     this._dict = { en, ja, edo };
-
     const stored = localStorage.getItem(LANG_KEY) as Lang | null;
     this._lang = stored && stored in this._dict ? stored : defaultLang;
   }
@@ -34,156 +34,273 @@ export class LangManager extends EventTarget {
 
     this._lang = lang;
     localStorage.setItem(LANG_KEY, lang);
-
     this.dispatchEvent(new CustomEvent<Lang>("change", { detail: lang }));
 
-    // ページコンポーネントを触らずに、表示文字列だけを差し替える
-    try {
-      this._ensureBindings();
-      this._updateBoundNodes();
-    } catch (e) {
-      console.log(`[WARNING] failed to translate ${e}`);
+    this._safeUpdateBindings();
+  }
+
+  initDomBindings(): void {
+    this._startObserver();
+    this._safeUpdateBindings();
+  }
+
+  dispose(): void {
+    this._stopObserver();
+  }
+
+  private _startObserver(): void {
+    if (this._observer) return;
+
+    this._observer = new MutationObserver((mutations) =>
+      this._handleMutations(mutations),
+    );
+
+    this._observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  private _stopObserver(): void {
+    if (!this._observer) return;
+    this._observer.disconnect();
+    this._observer = null;
+  }
+
+  private _handleMutations(mutations: MutationRecord[]): void {
+    for (const mutation of mutations) {
+      if (mutation.type !== "childList") continue;
+
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          this._updateElementTree(node as Element);
+        }
+      });
     }
   }
 
-  // 明示的に初回のバインディングを構築したい場合に使用
-  initDomBindings() {
-    try {
-      this._ensureBindings();
-    } catch (_) {
-      // noop
-    }
-  }
+  private _updateElementTree(root: Element): void {
+    this._updateElementText(root);
+    this._updateElementAttributes(root);
 
-  // 初回に既存DOMへ data-i18n バインディングを付与
-  private _ensureBindings() {
-    if (this._bindingsBootstrapped) return;
-    const dict = this._dict[this._lang];
-    const rev = new Map<string, I18nKey>();
-    (Object.keys(dict) as I18nKey[]).forEach((k) => {
-      const v = dict[k];
-      if (!rev.has(v)) rev.set(v, k);
+    root.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => {
+      this._updateElementText(el);
     });
 
-    const roots: Element[] = [];
-    const nav = document.querySelector<HTMLElement>("#nav");
-    const app = document.querySelector<HTMLElement>("#app");
-    if (nav) roots.push(nav);
-    if (app) roots.push(app);
-    if (roots.length === 0) roots.push(document.body);
+    root.querySelectorAll<HTMLElement>("[data-i18n-attr]").forEach((el) => {
+      this._updateElementAttributes(el);
+    });
+  }
 
-    // テキストノードを data-i18n に置換
-    for (const root of roots) {
-      const toWrap: Text[] = [];
-      const iter = document.createNodeIterator(root, NodeFilter.SHOW_TEXT);
-      let n: Node | null;
-      while ((n = iter.nextNode())) {
-        const t = n as Text;
-        const raw = t.nodeValue ?? "";
-        const trimmed = raw.trim();
-        if (!trimmed) continue;
-        const key = rev.get(trimmed as string);
-        if (!key) continue;
-        // すでに親が data-i18n の場合はスキップ
-        if (t.parentElement?.hasAttribute("data-i18n")) continue;
-        toWrap.push(t);
-      }
+  private _updateElementText(el: Element): void {
+    const key = el.getAttribute("data-i18n") as I18nKey | null;
+    if (!key) return;
 
-      for (const t of toWrap) {
-        const raw = t.nodeValue ?? "";
-        const trimmed = raw.trim();
-        const key = rev.get(trimmed as string);
-        if (!key || !t.parentNode) continue;
+    const val = this._dict[this._lang][key];
+    if (typeof val === "string") {
+      el.innerHTML = val;
+    }
+  }
 
-        const leading = raw.slice(0, raw.indexOf(trimmed));
-        const trailing = raw.slice(raw.indexOf(trimmed) + trimmed.length);
+  private _updateElementAttributes(el: Element): void {
+    const spec = el.getAttribute("data-i18n-attr");
+    if (!spec) return;
 
-        const el = document.createElement("i18n-t");
-        el.setAttribute("data-i18n", key);
-        el.textContent = trimmed;
+    const pairs = spec
+      .split(";")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((entry) => entry.split(":")) as [string, I18nKey][];
 
-        const frag = document.createDocumentFragment();
-        if (leading) frag.appendChild(document.createTextNode(leading));
-        frag.appendChild(el);
-        if (trailing) frag.appendChild(document.createTextNode(trailing));
-
-        t.parentNode.replaceChild(frag, t);
+    for (const [attr, key] of pairs) {
+      const val = this._dict[this._lang][key];
+      if (typeof val === "string") {
+        el.setAttribute(attr, val);
       }
     }
+  }
 
-    // 属性を data-i18n-attr に登録
-    const ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
-    for (const root of roots) {
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-      let el: Element | null;
-      while ((el = walker.nextNode() as Element | null)) {
-        if (!el) break;
-        for (const attr of ATTRS) {
-          const v = el.getAttribute(attr);
-          if (!v) continue;
-          const key = rev.get(v);
-          if (!key) continue;
-          const current = el.getAttribute("data-i18n-attr") ?? "";
-          const entries = current
-            .split(";")
-            .map((s) => s.trim())
-            .filter(Boolean);
-          const exists = entries.some((e) => e.startsWith(attr + ":"));
-          if (!exists) {
-            entries.push(`${attr}:${key}`);
-            el.setAttribute("data-i18n-attr", entries.join(";"));
-          }
-        }
-      }
+  private _safeUpdateBindings(): void {
+    try {
+      this._ensureBindings();
+      this._updateAllBoundNodes();
+    } catch (e) {
+      console.log(`[WARNING] failed to translate: ${e}`);
     }
+  }
 
-    // document.title を data-i18n-title に登録
-    const revTitleKey = rev.get(document.title);
-    if (revTitleKey) {
-      document.documentElement.setAttribute("data-i18n-title", revTitleKey);
+  private _updateAllBoundNodes(): void {
+    this._updateAllTextNodes();
+    this._updateAllAttributes();
+    this._updateDocumentTitle();
+  }
+
+  private _updateAllTextNodes(): void {
+    document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => {
+      this._updateElementText(el);
+    });
+  }
+
+  private _updateAllAttributes(): void {
+    document.querySelectorAll<HTMLElement>("[data-i18n-attr]").forEach((el) => {
+      this._updateElementAttributes(el);
+    });
+  }
+
+  private _updateDocumentTitle(): void {
+    const titleKey = document.documentElement.getAttribute(
+      "data-i18n-title",
+    ) as I18nKey | null;
+    if (!titleKey) return;
+
+    const val = this._dict[this._lang][titleKey];
+    if (typeof val === "string") {
+      document.title = val;
     }
+  }
+  private _ensureBindings(): void {
+    if (this._bindingsBootstrapped) return;
+
+    const reverseDict = this._buildReverseDict();
+    const roots = this._getRootElements();
+
+    this._wrapTextNodes(roots, reverseDict);
+    this._registerAttributes(roots, reverseDict);
+    this._registerDocumentTitle(reverseDict);
 
     this._bindingsBootstrapped = true;
   }
 
-  // data-i18n / data-i18n-attr / data-i18n-title を新言語で更新
-  private _updateBoundNodes() {
+  private _buildReverseDict(): Map<string, I18nKey> {
     const dict = this._dict[this._lang];
+    const rev = new Map<string, I18nKey>();
 
-    // テキスト
-    document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => {
-      const key = el.getAttribute("data-i18n") as I18nKey | null;
-      if (!key) return;
+    (Object.keys(dict) as I18nKey[]).forEach((key) => {
       const val = dict[key];
-      if (typeof val === "string") {
-        el.textContent = val;
+      if (!rev.has(val)) {
+        rev.set(val, key);
       }
     });
 
-    // 属性
-    document.querySelectorAll<HTMLElement>("[data-i18n-attr]").forEach((el) => {
-      const spec = el.getAttribute("data-i18n-attr");
-      if (!spec) return;
-      const pairs = spec
+    return rev;
+  }
+
+  private _getRootElements(): Element[] {
+    const roots: Element[] = [];
+    const nav = document.querySelector<HTMLElement>("#nav");
+    const app = document.querySelector<HTMLElement>("#app");
+
+    if (nav) roots.push(nav);
+    if (app) roots.push(app);
+    if (roots.length === 0) roots.push(document.body);
+
+    return roots;
+  }
+
+  private _wrapTextNodes(
+    roots: Element[],
+    reverseDict: Map<string, I18nKey>,
+  ): void {
+    for (const root of roots) {
+      const toWrap = this._collectTextNodesToWrap(root, reverseDict);
+      this._wrapCollectedTextNodes(toWrap, reverseDict);
+    }
+  }
+
+  private _collectTextNodesToWrap(
+    root: Element,
+    reverseDict: Map<string, I18nKey>,
+  ): Text[] {
+    const toWrap: Text[] = [];
+    const iter = document.createNodeIterator(root, NodeFilter.SHOW_TEXT);
+    let node: Node | null;
+
+    while ((node = iter.nextNode())) {
+      const textNode = node as Text;
+      const raw = textNode.nodeValue ?? "";
+      const trimmed = raw.trim();
+
+      if (!trimmed) continue;
+      if (!reverseDict.has(trimmed)) continue;
+      if (textNode.parentElement?.hasAttribute("data-i18n")) continue;
+
+      toWrap.push(textNode);
+    }
+
+    return toWrap;
+  }
+
+  private _wrapCollectedTextNodes(
+    textNodes: Text[],
+    reverseDict: Map<string, I18nKey>,
+  ): void {
+    for (const textNode of textNodes) {
+      const raw = textNode.nodeValue ?? "";
+      const trimmed = raw.trim();
+      const key = reverseDict.get(trimmed);
+
+      if (!key || !textNode.parentNode) continue;
+
+      const leading = raw.slice(0, raw.indexOf(trimmed));
+      const trailing = raw.slice(raw.indexOf(trimmed) + trimmed.length);
+
+      const el = document.createElement("i18n-t");
+      el.setAttribute("data-i18n", key);
+      el.innerHTML = trimmed;
+
+      const frag = document.createDocumentFragment();
+      if (leading) frag.appendChild(document.createTextNode(leading));
+      frag.appendChild(el);
+      if (trailing) frag.appendChild(document.createTextNode(trailing));
+
+      textNode.parentNode.replaceChild(frag, textNode);
+    }
+  }
+
+  private _registerAttributes(
+    roots: Element[],
+    reverseDict: Map<string, I18nKey>,
+  ): void {
+    for (const root of roots) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+      let el: Element | null;
+
+      while ((el = walker.nextNode() as Element | null)) {
+        if (!el) break;
+        this._registerElementAttributes(el, reverseDict);
+      }
+    }
+  }
+
+  private _registerElementAttributes(
+    el: Element,
+    reverseDict: Map<string, I18nKey>,
+  ): void {
+    for (const attr of I18N_ATTRS) {
+      const value = el.getAttribute(attr);
+      if (!value) continue;
+
+      const key = reverseDict.get(value);
+      if (!key) continue;
+
+      const current = el.getAttribute("data-i18n-attr") ?? "";
+      const entries = current
         .split(";")
         .map((s) => s.trim())
-        .filter(Boolean)
-        .map((entry) => entry.split(":")) as [string, I18nKey][];
-      for (const [attr, key] of pairs) {
-        const val = dict[key];
-        if (typeof val === "string") {
-          el.setAttribute(attr, val);
-        }
-      }
-    });
+        .filter(Boolean);
 
-    // タイトル
-    const titleKey = document.documentElement.getAttribute(
-      "data-i18n-title",
-    ) as I18nKey | null;
-    if (titleKey) {
-      const val = dict[titleKey];
-      if (typeof val === "string") document.title = val;
+      const alreadyRegistered = entries.some((e) => e.startsWith(`${attr}:`));
+      if (alreadyRegistered) continue;
+
+      entries.push(`${attr}:${key}`);
+      el.setAttribute("data-i18n-attr", entries.join(";"));
+    }
+  }
+
+  private _registerDocumentTitle(reverseDict: Map<string, I18nKey>): void {
+    const key = reverseDict.get(document.title);
+    if (key) {
+      document.documentElement.setAttribute("data-i18n-title", key);
     }
   }
 }

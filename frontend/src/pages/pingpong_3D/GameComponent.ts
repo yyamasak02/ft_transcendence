@@ -30,19 +30,19 @@ type ButtonUIVisibility = {
 const HELP_SLIDES = [
   {
     image: "../../../public/howToPlay/page1.png",
-    desc: word("htp_page1"),
+    desc: t("htp_page1"),
   },
   {
     image: "../../../public/howToPlay/page2.png",
-    desc: word("htp_page2"),
+    desc: t("htp_page2"),
   },
   {
     image: "../../../public/howToPlay/page3.png",
-    desc: word("htp_page3"),
+    desc: t("htp_page3"),
   },
   {
     image: "../../../public/howToPlay/page4.png",
-    desc: word("htp_page4"),
+    desc: t("htp_page4"),
   },
 ];
 
