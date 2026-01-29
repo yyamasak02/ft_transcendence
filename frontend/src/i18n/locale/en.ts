@@ -178,4 +178,9 @@ export const en = {
   click_to_copy: "Click to Copy",
   copied: "Copied!",
   failed: "Failed!",
+  htp_page1: '<span class="highlight">AVOID MISSING BALL FOR HIGH SCORE</span>',
+  htp_page2:
+    'Use <span class="key">W</span> <span class="key">S</span> or <span class="key">↑</span> <span class="key">↓</span> to move your paddle.',
+  htp_page3: "Drag the screen with your mouse/finger to rotate the camera.",
+  htp_page4: "Use the UI buttons to Pause, Reset Camera, or adjust Settings.",
 } as const;
