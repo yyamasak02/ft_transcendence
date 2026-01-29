@@ -2,7 +2,11 @@
 import type { Route } from "@/types/routes";
 import { word } from "@/i18n";
 import type { Component } from "@/models/component";
-import { BannerSlider, type BannerSlide } from "@/components/banner-slider";
+import {
+  BannerSlider,
+  type BannerSlide,
+  type SliderOptions,
+} from "@/components/banner-slider";
 import "@/components/banner-slider/style.css"; // コンポーネントのCSSを読み込み
 
 const SLIDES: BannerSlide[] = [
@@ -33,12 +37,15 @@ const SLIDES: BannerSlide[] = [
 ];
 
 class HomeComponent implements Component {
-  // コンポーネントのインスタンスを保持
   private slider: BannerSlider;
 
   constructor() {
-    // ID "home-banner" と、表示したいスライドデータを渡して初期化
-    this.slider = new BannerSlider("home-banner", SLIDES);
+    const sliderOptions: SliderOptions = {
+      autoPlay: true,
+      loop: true,
+      interval: 5000,
+    };
+    this.slider = new BannerSlider("home-banner", SLIDES, sliderOptions);
   }
 
   render = () => {

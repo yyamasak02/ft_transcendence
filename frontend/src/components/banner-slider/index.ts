@@ -8,16 +8,124 @@ export interface BannerSlide {
   link: string; // リンクが必要ない場合は "#"
 }
 
+// 汎用的なスライダーオプション
+export interface SliderOptions {
+  autoPlay?: boolean;
+  loop?: boolean;
+  interval?: number;
+  onFinish?: () => void;
+  onChange?: (index: number) => void;
+}
+
+export class SliderLogic {
+  private currentIndex: number = 0;
+  private timer: number | null = null;
+  private count: number;
+  private options: Required<SliderOptions>;
+
+  constructor(count: number, options?: SliderOptions) {
+    this.count = count;
+    this.options = {
+      autoPlay: true,
+      loop: true,
+      interval: 5000,
+      onFinish: () => {},
+      onChange: () => {},
+      ...options,
+    };
+  }
+
+  // 現在のインデックスを取得
+  get current() {
+    return this.currentIndex;
+  }
+
+  // 自動再生の開始
+  start() {
+    if (this.options.autoPlay) {
+      this.stop();
+      this.timer = window.setInterval(() => this.next(), this.options.interval);
+    }
+  }
+
+  // 自動再生の停止
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
+  // 指定スライドへ移動
+  goTo(index: number) {
+    if (index < 0 || index >= this.count) return;
+
+    this.currentIndex = index;
+    this.options.onChange(this.currentIndex);
+
+    // 手動操作時はタイマーをリセットして再開
+    if (this.options.autoPlay) {
+      this.start();
+    }
+  }
+
+  // 次へ
+  next() {
+    const nextIndex = this.currentIndex + 1;
+
+    if (nextIndex >= this.count) {
+      if (this.options.loop) {
+        this.goTo(0);
+      } else {
+        this.stop();
+        this.options.onFinish();
+      }
+    } else {
+      this.goTo(nextIndex);
+    }
+  }
+
+  // 前へ
+  prev() {
+    const prevIndex = this.currentIndex - 1;
+
+    if (prevIndex < 0) {
+      if (this.options.loop) {
+        this.goTo(this.count - 1);
+      }
+    } else {
+      this.goTo(prevIndex);
+    }
+  }
+
+  // UI制御用ヘルパー(最初)
+  isFirst() {
+    return this.currentIndex === 0;
+  }
+
+  // UI制御用ヘルパー(最後)
+  isLast() {
+    return this.currentIndex === this.count - 1;
+  }
+}
+
 export class BannerSlider implements Component {
-  private currentSlideIndex: number = 0;
-  private autoSlideInterval: number | null = null;
-  private readonly INTERVAL_MS = 5000;
   private targetId: string;
   private slides: BannerSlide[];
+  private logic: SliderLogic;
 
-  constructor(targetId: string, slides: BannerSlide[]) {
+  constructor(
+    targetId: string,
+    slides: BannerSlide[],
+    options?: SliderOptions,
+  ) {
     this.targetId = targetId;
     this.slides = slides;
+
+    this.logic = new SliderLogic(slides.length, {
+      ...options,
+      onChange: () => this.updateDOM(),
+    });
   }
 
   // HTMLの生成
@@ -66,13 +174,14 @@ export class BannerSlider implements Component {
 
   // 表示時の初期化
   mount = () => {
-    this.startAutoSlide();
     this.addEventListeners();
+    this.logic.start();
+    this.updateNavButtons();
   };
 
   // 非表示時のクリーンアップ
   unmount = () => {
-    this.stopAutoSlide();
+    this.logic.stop();
     this.removeEventListeners();
   };
 
@@ -84,55 +193,21 @@ export class BannerSlider implements Component {
     const nextBtn = container.querySelector(`#${this.targetId}-next`);
     const indicators = container.querySelectorAll(".indicator");
 
-    prevBtn?.addEventListener("click", this.handlePrev);
-    nextBtn?.addEventListener("click", this.handleNext);
+    prevBtn?.addEventListener("click", () => this.logic.prev());
+    nextBtn?.addEventListener("click", () => this.logic.next());
 
     indicators.forEach((ind) => {
       ind.addEventListener("click", (e: Event) => {
         const target = e.currentTarget as HTMLElement;
         const index = Number(target.getAttribute("data-index"));
         if (!Number.isNaN(index)) {
-          this.handleManualSwitch(index);
+          this.logic.goTo(index);
         }
       });
     });
   };
 
-  private removeEventListeners = () => {
-    const container = document.getElementById(`${this.targetId}-container`);
-    if (!container) return;
-
-    const prevBtn = container.querySelector(`#${this.targetId}-prev`);
-    const nextBtn = container.querySelector(`#${this.targetId}-next`);
-    prevBtn?.removeEventListener("click", this.handlePrev);
-    nextBtn?.removeEventListener("click", this.handleNext);
-  };
-
-  private handleNext = () => {
-    this.resetTimer();
-    this.goToSlide(this.currentSlideIndex + 1);
-  };
-
-  private handlePrev = () => {
-    this.resetTimer();
-    this.goToSlide(this.currentSlideIndex - 1);
-  };
-
-  private handleManualSwitch = (index: number) => {
-    this.resetTimer();
-    this.goToSlide(index);
-  };
-
-  private goToSlide = (index: number) => {
-    if (index >= this.slides.length) {
-      this.currentSlideIndex = 0;
-    } else if (index < 0) {
-      this.currentSlideIndex = this.slides.length - 1;
-    } else {
-      this.currentSlideIndex = index;
-    }
-    this.updateDOM();
-  };
+  private removeEventListeners = () => {};
 
   private updateDOM = () => {
     const container = document.getElementById(`${this.targetId}-container`);
@@ -140,32 +215,17 @@ export class BannerSlider implements Component {
 
     const slides = container.querySelectorAll(".banner-slide");
     const indicators = container.querySelectorAll(".indicator");
+    const current = this.logic.current;
 
     slides.forEach((slide, idx) => {
-      slide.classList.toggle("active", idx === this.currentSlideIndex);
+      slide.classList.toggle("active", idx === current);
     });
 
     indicators.forEach((ind, idx) => {
-      ind.classList.toggle("active", idx === this.currentSlideIndex);
+      ind.classList.toggle("active", idx === current);
     });
+    this.updateNavButtons();
   };
 
-  private startAutoSlide = () => {
-    if (this.autoSlideInterval) return;
-    this.autoSlideInterval = window.setInterval(() => {
-      this.goToSlide(this.currentSlideIndex + 1);
-    }, this.INTERVAL_MS);
-  };
-
-  private stopAutoSlide = () => {
-    if (this.autoSlideInterval) {
-      clearInterval(this.autoSlideInterval);
-      this.autoSlideInterval = null;
-    }
-  };
-
-  private resetTimer = () => {
-    this.stopAutoSlide();
-    this.startAutoSlide();
-  };
+  private updateNavButtons = () => {};
 }
