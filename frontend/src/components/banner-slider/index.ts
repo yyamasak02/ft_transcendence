@@ -8,7 +8,7 @@ export interface BannerSlide {
   link: string; // リンクが必要ない場合は "#"
 }
 
-// 汎用的なスライダーオプション
+// オプション
 export interface SliderOptions {
   autoPlay?: boolean;
   loop?: boolean;
@@ -62,8 +62,6 @@ export class SliderLogic {
 
     this.currentIndex = index;
     this.options.onChange(this.currentIndex);
-
-    // 手動操作時はタイマーをリセットして再開
     if (this.options.autoPlay) {
       this.start();
     }
