@@ -12,6 +12,9 @@ export class LangManager extends EventTarget {
   private readonly _dict: Record<Lang, I18nDict>;
   private _bindingsBootstrapped = false;
   private _observer: MutationObserver | null = null;
+  // XSS対策: 許可するタグとクラスのホワイトリストを作成
+  private static readonly _ALLOWED_TAGS = new Set(["SPAN"]);
+  private static readonly _ALLOWED_CLASSES = new Set(["highlight", "key"]);
 
   constructor(defaultLang: Lang = "en") {
     super();
@@ -98,7 +101,11 @@ export class LangManager extends EventTarget {
 
     const val = this._dict[this._lang][key];
     if (typeof val === "string") {
-      el.innerHTML = val;
+      // Render sanitized translation. Supports limited inline markup:
+      // - <span class="highlight"> ... </span>
+      // - <span class="key"> ... </span>
+      // Any other tags/attributes are stripped. If no markup, set as text.
+      this._renderSanitizedHtmlInto(el, val);
     }
   }
 
@@ -246,7 +253,7 @@ export class LangManager extends EventTarget {
 
       const el = document.createElement("i18n-t");
       el.setAttribute("data-i18n", key);
-      el.innerHTML = trimmed;
+      el.textContent = trimmed;
 
       const frag = document.createDocumentFragment();
       if (leading) frag.appendChild(document.createTextNode(leading));
@@ -302,5 +309,54 @@ export class LangManager extends EventTarget {
     if (key) {
       document.documentElement.setAttribute("data-i18n-title", key);
     }
+  }
+
+  // XSS対策: サニタイズしたHTMLをターゲット要素にレンダリングする
+  private _renderSanitizedHtmlInto(target: Element, html: string): void {
+    if (!/[<>&]/.test(html)) {
+      target.textContent = html;
+      return;
+    }
+
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html;
+
+    const outFrag = document.createDocumentFragment();
+
+    const walk = (node: Node, outParent: Node) => {
+      switch (node.nodeType) {
+        case Node.TEXT_NODE: {
+          outParent.appendChild(
+            document.createTextNode((node as Text).nodeValue ?? ""),
+          );
+          break;
+        }
+        case Node.ELEMENT_NODE: {
+          const el = node as HTMLElement;
+          const tag = el.tagName;
+          if (LangManager._ALLOWED_TAGS.has(tag)) {
+            const newEl = document.createElement(tag.toLowerCase());
+            if (el.classList.length > 0) {
+              const allowed = Array.from(el.classList).filter((c) =>
+                LangManager._ALLOWED_CLASSES.has(c),
+              );
+              if (allowed.length) newEl.className = allowed.join(" ");
+            }
+            Array.from(el.childNodes).forEach((child) => walk(child, newEl));
+            outParent.appendChild(newEl);
+          } else {
+            Array.from(el.childNodes).forEach((child) =>
+              walk(child, outParent),
+            );
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    };
+
+    Array.from(tpl.content.childNodes).forEach((child) => walk(child, outFrag));
+    target.replaceChildren(outFrag);
   }
 }
