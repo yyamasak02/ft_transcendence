@@ -126,6 +126,22 @@ export class BannerSlider implements Component {
     });
   }
 
+  private handlePrev = () => {
+    this.logic.prev();
+  };
+
+  private handleNext = () => {
+    this.logic.next();
+  };
+
+  private handleIndicatorClick = (e: Event) => {
+    const target = e.currentTarget as HTMLElement;
+    const index = Number(target.getAttribute("data-index"));
+    if (!Number.isNaN(index)) {
+      this.logic.goTo(index);
+    }
+  };
+
   // HTMLの生成
   render = () => {
     const slidesHtml = this.slides
@@ -191,21 +207,29 @@ export class BannerSlider implements Component {
     const nextBtn = container.querySelector(`#${this.targetId}-next`);
     const indicators = container.querySelectorAll(".indicator");
 
-    prevBtn?.addEventListener("click", () => this.logic.prev());
-    nextBtn?.addEventListener("click", () => this.logic.next());
+    prevBtn?.addEventListener("click", this.handlePrev);
+    nextBtn?.addEventListener("click", this.handleNext);
 
     indicators.forEach((ind) => {
-      ind.addEventListener("click", (e: Event) => {
-        const target = e.currentTarget as HTMLElement;
-        const index = Number(target.getAttribute("data-index"));
-        if (!Number.isNaN(index)) {
-          this.logic.goTo(index);
-        }
-      });
+      ind.addEventListener("click", this.handleIndicatorClick);
     });
   };
 
-  private removeEventListeners = () => {};
+  private removeEventListeners = () => {
+    const container = document.getElementById(`${this.targetId}-container`);
+    if (!container) return;
+
+    const prevBtn = container.querySelector(`#${this.targetId}-prev`);
+    const nextBtn = container.querySelector(`#${this.targetId}-next`);
+    const indicators = container.querySelectorAll(".indicator");
+
+    prevBtn?.removeEventListener("click", this.handlePrev);
+    nextBtn?.removeEventListener("click", this.handleNext);
+
+    indicators.forEach((ind) => {
+      ind.removeEventListener("click", this.handleIndicatorClick);
+    });
+  };
 
   private updateDOM = () => {
     const container = document.getElementById(`${this.targetId}-container`);
