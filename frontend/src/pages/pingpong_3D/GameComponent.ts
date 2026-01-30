@@ -8,23 +8,28 @@ import { SliderLogic } from "@/components/banner-slider";
 type ButtonUIElements = {
   overlay: HTMLElement | null;
   helpOverlay: HTMLElement | null;
-  buttons: {
+  hud: {
     help: HTMLButtonElement | null;
-    homeNav: HTMLButtonElement | null;
-    settingsNav: HTMLButtonElement | null;
+    home: HTMLButtonElement | null;
+    settings: HTMLButtonElement | null;
     pause: HTMLButtonElement | null;
     cameraReset: HTMLButtonElement | null;
-    reset: HTMLButtonElement | null;
   };
-  centralButtons: HTMLButtonElement[];
+  menu: {
+    resume: HTMLButtonElement | null;
+    reset: HTMLButtonElement | null;
+    settings: HTMLButtonElement | null;
+    home: HTMLButtonElement | null;
+    all: HTMLButtonElement[];
+  };
 };
 
 type ButtonUIVisibility = {
   overlay: boolean;
   helpOverlay: boolean;
-  centralButtons: boolean;
-  navButtons: boolean;
-  gameButtons: boolean;
+  menuButtons: boolean;
+  hudNavButtons: boolean;
+  hudGameButtons: boolean;
 };
 
 const HELP_SLIDES = [
@@ -55,15 +60,20 @@ export class GameComponent implements Component {
   private _uiElements: ButtonUIElements = {
     overlay: null,
     helpOverlay: null,
-    buttons: {
+    hud: {
       help: null,
-      homeNav: null,
-      settingsNav: null,
+      home: null,
+      settings: null,
       pause: null,
       cameraReset: null,
-      reset: null,
     },
-    centralButtons: [],
+    menu: {
+      resume: null,
+      reset: null,
+      settings: null,
+      home: null,
+      all: [],
+    },
   };
 
   constructor(appElm: HTMLElement, navElm: HTMLElement) {
@@ -191,37 +201,30 @@ export class GameComponent implements Component {
       navigate("/pingpong_3D_config");
     };
 
-    const { buttons } = this._uiElements;
-
+    const { hud, menu } = this._uiElements;
     // SETTINGSボタン
-    buttons.settingsNav?.addEventListener("click", handleSettings);
-    this._rootElm
-      .querySelector("#btn-3d-settings")
-      ?.addEventListener("click", handleSettings);
+    hud.settings?.addEventListener("click", handleSettings);
+    menu.settings?.addEventListener("click", handleSettings);
     // HOMEボタン
-    buttons.homeNav?.addEventListener("click", handleHome);
-    this._rootElm
-      .querySelector("#btn-3d-home")
-      ?.addEventListener("click", handleHome);
+    hud.home?.addEventListener("click", handleHome);
+    menu.home?.addEventListener("click", handleHome);
     // PAUSEボタン
-    buttons.pause?.addEventListener("click", () =>
-      this._gameInstance.pauseGame(),
+    hud.pause?.addEventListener("click", () => this._gameInstance.pauseGame());
+    menu.resume?.addEventListener("click", () =>
+      this._gameInstance.resumeGame(),
     );
-    this._rootElm
-      .querySelector("#btn-3d-resume")
-      ?.addEventListener("click", () => this._gameInstance.resumeGame());
     // RESETボタン
-    buttons.reset?.addEventListener("click", () => {
+    menu.reset?.addEventListener("click", () => {
       if (this._gameInstance.gameState.resetLocked) return;
       this._gameInstance.resetGame();
     });
     // CAMERA RESETボタン
-    buttons.cameraReset?.addEventListener("click", () =>
+    hud.cameraReset?.addEventListener("click", () =>
       this._gameInstance.resetCamera(),
     );
 
     // ヘルプボタン
-    buttons.help?.addEventListener("click", () => {
+    hud.help?.addEventListener("click", () => {
       if (this._uiElements.helpOverlay) {
         this._uiElements.helpOverlay.style.display = "flex";
         this.updateUIButtons(
@@ -293,22 +296,23 @@ export class GameComponent implements Component {
   private initButtonUIElements() {
     this._uiElements.overlay = this._rootElm.querySelector("#pause-overlay");
     this._uiElements.helpOverlay = this._rootElm.querySelector("#help-overlay");
-    this._uiElements.buttons.help = this._rootElm.querySelector("#btn-3d-help");
-    this._uiElements.buttons.homeNav =
-      this._rootElm.querySelector("#btn-3d-home-nav");
-    this._uiElements.buttons.settingsNav = this._rootElm.querySelector(
-      "#btn-3d-settings-nav",
-    );
-    this._uiElements.buttons.pause =
-      this._rootElm.querySelector("#btn-3d-pause");
-    this._uiElements.buttons.cameraReset = this._rootElm.querySelector(
-      "#btn-3d-camera-reset",
-    );
-    this._uiElements.buttons.reset =
-      this._rootElm.querySelector("#btn-3d-reset");
-    this._uiElements.centralButtons = Array.from(
-      this._rootElm.querySelectorAll<HTMLButtonElement>(".central-btn"),
-    );
+    this._uiElements.hud = {
+      help: this._rootElm.querySelector("#btn-3d-help"),
+      home: this._rootElm.querySelector("#btn-3d-home-nav"),
+      settings: this._rootElm.querySelector("#btn-3d-settings-nav"),
+      pause: this._rootElm.querySelector("#btn-3d-pause"),
+      cameraReset: this._rootElm.querySelector("#btn-3d-camera-reset"),
+    };
+
+    this._uiElements.menu = {
+      resume: this._rootElm.querySelector("#btn-3d-resume"),
+      reset: this._rootElm.querySelector("#btn-3d-reset"),
+      settings: this._rootElm.querySelector("#btn-3d-settings"),
+      home: this._rootElm.querySelector("#btn-3d-home"),
+      all: Array.from(
+        this._rootElm.querySelectorAll<HTMLButtonElement>(".central-btn"),
+      ),
+    };
   }
 
   // ------------------------
@@ -340,9 +344,9 @@ export class GameComponent implements Component {
       return {
         overlay: false,
         helpOverlay: true,
-        centralButtons: false,
-        navButtons: false,
-        gameButtons: false,
+        menuButtons: false,
+        hudNavButtons: false,
+        hudGameButtons: false,
       };
     }
 
@@ -352,25 +356,25 @@ export class GameComponent implements Component {
         return {
           overlay: false,
           helpOverlay: false,
-          centralButtons: false,
-          navButtons: true,
-          gameButtons: false,
+          menuButtons: false,
+          hudNavButtons: true,
+          hudGameButtons: false,
         };
       case "game":
         return {
           overlay: false,
           helpOverlay: false,
-          centralButtons: false,
-          navButtons: false,
-          gameButtons: true,
+          menuButtons: false,
+          hudNavButtons: false,
+          hudGameButtons: true,
         };
       case "pause":
         return {
           overlay: true,
           helpOverlay: false,
-          centralButtons: true,
-          navButtons: false,
-          gameButtons: false,
+          menuButtons: true,
+          hudNavButtons: false,
+          hudGameButtons: false,
         };
       case "gameover":
       case "starting":
@@ -378,9 +382,9 @@ export class GameComponent implements Component {
         return {
           overlay: false,
           helpOverlay: false,
-          centralButtons: false,
-          navButtons: false,
-          gameButtons: false,
+          menuButtons: false,
+          hudNavButtons: false,
+          hudGameButtons: false,
         };
     }
   }
@@ -389,9 +393,9 @@ export class GameComponent implements Component {
    * UI表示設定を実際のDOMに適用
    */
   private applyUIVisibility(visibility: ButtonUIVisibility) {
-    const { overlay, helpOverlay, centralButtons, navButtons, gameButtons } =
+    const { overlay, helpOverlay, menuButtons, hudNavButtons, hudGameButtons } =
       visibility;
-    const { buttons } = this._uiElements;
+    const { hud, menu } = this._uiElements;
 
     // Overlay
     if (this._uiElements.overlay) {
@@ -405,21 +409,20 @@ export class GameComponent implements Component {
         : "none";
     }
 
-    // Central buttons
-    this._uiElements.centralButtons.forEach((btn) => {
-      btn.style.display = centralButtons ? "inline-flex" : "none";
+    menu.all.forEach((btn) => {
+      btn.style.display = menuButtons ? "inline-flex" : "none";
     });
 
     // Nav buttons
-    this.setButtonVisibility(buttons.help, navButtons);
-    this.setButtonVisibility(buttons.homeNav, navButtons);
-    this.setButtonVisibility(buttons.settingsNav, navButtons);
+    this.setButtonVisibility(hud.help, hudNavButtons);
+    this.setButtonVisibility(hud.home, hudNavButtons);
+    this.setButtonVisibility(hud.settings, hudNavButtons);
 
     // Game buttons
-    this.setButtonVisibility(buttons.pause, gameButtons);
+    this.setButtonVisibility(hud.pause, hudGameButtons);
     this.setButtonVisibility(
-      buttons.cameraReset,
-      gameButtons || this._gameInstance.gameState.phase === "pause",
+      hud.cameraReset,
+      hudGameButtons || this._gameInstance.gameState.phase === "pause",
     );
   }
 
@@ -439,7 +442,7 @@ export class GameComponent implements Component {
    * Resetボタンの状態を更新
    */
   private updateResetButtonState(resetLocked: boolean) {
-    const { reset } = this._uiElements.buttons;
+    const { reset } = this._uiElements.menu;
     if (reset) {
       reset.disabled = resetLocked;
       reset.classList.toggle("btn-disabled", resetLocked);
