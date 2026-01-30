@@ -29,19 +29,19 @@ type ButtonUIVisibility = {
 
 const HELP_SLIDES = [
   {
-    image: "../../../public/howToPlay/page1.png",
+    image: "/howToPlay/page1.png",
     desc: t("htp_page1"),
   },
   {
-    image: "../../../public/howToPlay/page2.png",
+    image: "/howToPlay/page2.png",
     desc: t("htp_page2"),
   },
   {
-    image: "../../../public/howToPlay/page3.png",
+    image: "/howToPlay/page3.png",
     desc: t("htp_page3"),
   },
   {
-    image: "../../../public/howToPlay/page4.png",
+    image: "/howToPlay/page4.png",
     desc: t("htp_page4"),
   },
 ];

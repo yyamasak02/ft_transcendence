@@ -1,4 +1,4 @@
-// src/api/components/banner-slider/index.ts
+// src/components/banner-slider/index.ts
 import type { Component } from "@/models/component";
 
 export interface BannerSlide {
