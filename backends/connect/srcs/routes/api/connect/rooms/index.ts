@@ -13,18 +13,7 @@ import {
 } from "../../../../schemas/rooms.js";
 
 export default async function (fastify: FastifyInstance) {
-  const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
-
-  // Create room
-  f.post<{ Body: CreateRoomBody }>(
-    "/",
-    {
-      schema: {
-        tags: ["Rooms"],
-        body: createRoomBodySchema,
-        response: {
-          201: createRoomResponseSchema,
-          400: errorResponseSchema,
+  const f =
           500: errorResponseSchema,
         },
       },
