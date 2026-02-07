@@ -12,6 +12,7 @@ import { TwoFactorRoute } from "@/pages/two_factor";
 import { UsernameChangeRoute } from "@/pages/username_change";
 import { NotFoundRoute } from "@/pages/404";
 import { UserProfileRoute } from "@/pages/user_profile";
+import { TermsRoute } from "@/pages/terms";
 
 import { routeStyles } from "./consts/routeStyles";
 
@@ -88,4 +89,10 @@ export const routes: Routes = {
     layout: "hidden",
     css_path: routeStyles.notFound,
   },
+	"/terms": {
+		component: TermsRoute,
+		show_navbar: false,
+		layout: "center",
+		css_path: "",
+	},
 };
