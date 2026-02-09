@@ -1,10 +1,12 @@
 /* src/style.css */
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
+@import "tailwindcss";
 
 body {
   background-color: #000;
+	margin: 0;
 }
 canvas {
   background: #111;

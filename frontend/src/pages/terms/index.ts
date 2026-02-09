@@ -1,80 +1,71 @@
 // src/pages/terms/index.ts
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
+import { t } from "@/i18n";
 
 export class TermsComponent implements Component {
-	render(): string {
-		return `
-		<div class="min-h-full w-full flex items-center justify-center px-4">
-			<div 
-				class="
-					w-full max-w 3xl
-					rounded-xl
-					border border-slate-800
-					bg-slate-900/80
-					backdrop-blur
-					shadow-lg
-					ps-6 py-8 sm:px-10 sm:py-12
-					text-slate-100
-				"
-			>
-				<header class="mb-10 text-center">
-					<h1 class="text-3xl sm:text-4xl font-semibold tracking-tkght">
-						Terms of Service
-					</h1>
-					<p class="mt-2 text-sm text-slate-400">
-						Last updated: 2026-02-05
-					</p>
-				</header>
+  render(): string {
+    return `
+      <div class="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center p-4">
+        <div
+          class="
+						w-full max-w-2xl
+						bg-slate-900
+            border border-slate-700
+            rounded-2xl
+						!p-8 sm:p-10
+            text-slate-100
+						shadow-xl
+          "
+        >
+          <header class="mb-8 text-center">
+            <h1 class="text-4xl sm:text-5xl font-semibold tracking-tight">
+						${t("terms")}
+            </h1>
+            <p class="mt-3 text-base sm:text-lg text-slate-300">
+              ${t("update")} 2026-02-05
+            </p>
+          </header>
 
-				<section class="space-y-4 text-sm leading-6 text-slate-200 text-left">
-					<p>
-						This application is a student project developed as part of an educational program.
-					</p>
-					<p>
-						By accessing or using this application, you agree to the following terms:
-					</p>
+          <section class="space-y-6 text-lg leading-relaxed">
+            <p>${t("terms1")}</p>
 
-					<ul class="list-disc space-y-2 pl-5">
-						<li>
-							This application is provided "as is", without warranties of any kind, express or implied.
-						</li>
-						<li>
-							The developers assume no responsibility for any damages, data loss, or issues resulting from the use of this application.
-						</li>
-						<li>
-							The service may be modified, suspended, or discontinued at any time without prior notice.
-						</li>
-						<li>
-							You agree not to use this application for any unlawful, harmful, or malicious activities.
-						</li>
-					</ul>
+            <p>${t("terms2")}</p>
 
-					<p class="pt-2">
-						If you do not agree to these terms, please discontinue use of this application.
-					</p>
-				</section>
+            <ul class="list-disc list-inside space-y-3 ml-4">
+              <li>${t("terms_l1")}</li>
+              <li>${t("terms_l2")}</li>
+              <li>${t("terms_l3")}</li>
+              <li>${t("terms_l4")}</li>
+            </ul>
 
-				<footer class="mt-10 w-full border-t border-slate-800 px-4 py-6 sm:px-6">
-					<div class="max-auto w-full max-w-3xl flex flex-col gap-4 sm:flex-row sm:justify-between">
-						<a href="/privacy"
-							class="text-sm underline decoration-slate-600 underline-offset-4 hover:text-slate-200">
-							Privacy Policy
-						</a>
+            <p class="pt-1">${t("terms3")}</p>
+          </section>
 
-						<a href="/"
-							class="text-sm underline decoration-slate-600 underline-offset-4 hover:text-slate-200">
-							Back to Home
-						</a>
+          <footer class="mt-10 border-t border-slate-700 pt-6">
+            <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm sm:text-base">
+              <a
+                href="/privacy"
+                class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
+              >
+                ${t("privacy")}
+              </a>
+              <span class="text-slate-500">•</span>
+              <a
+                href="/"
+                class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
+              >
+                ${t("home")}
+              </a>
+            </div>
+          </footer>
 					</div>
-				</footer>
-			</div>
-		</div>
-		`;
-	}
+      </div>
+    `;
+  }
 }
 
 export const TermsRoute: Route = {
-	linkLabel: () => "Terms",
-	content: () => new TermsComponent().render(),
+  linkLabel: () => "Terms",
+  content: () => new TermsComponent().render(),
 };

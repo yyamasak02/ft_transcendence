@@ -13,6 +13,7 @@ import { UsernameChangeRoute } from "@/pages/username_change";
 import { NotFoundRoute } from "@/pages/404";
 import { UserProfileRoute } from "@/pages/user_profile";
 import { TermsRoute } from "@/pages/terms";
+import { PrivacyRoute } from "@/pages/privacy";
 
 import { routeStyles } from "./consts/routeStyles";
 
@@ -91,6 +92,12 @@ export const routes: Routes = {
   },
 	"/terms": {
 		component: TermsRoute,
+		show_navbar: false,
+		layout: "center",
+		css_path: "",
+	},
+	"/privacy": {
+		component: PrivacyRoute,
 		show_navbar: false,
 		layout: "center",
 		css_path: "",

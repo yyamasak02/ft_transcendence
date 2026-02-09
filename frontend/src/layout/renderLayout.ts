@@ -2,6 +2,7 @@
 import { routes } from "@/router/routers";
 import { domRoots } from "./root";
 import { navigate } from "@/router";
+import { t } from "@/i18n";
 // Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
 // レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
 export function buildLayout(_routePath: string) {
@@ -19,14 +20,6 @@ export function renderRouteContent(routePath: string) {
       ? route.component.content()
       : route.component.content;
 
-	// 	const legalLinks = `
-	// 	<div class="fixed bottom-4 left-1/2 -translate-x-1/2 text-xs text-slate-400">
-	// 		<a href="/terms" data-nav="/terms" class="underline hover:text-slate-200">Terms</a>
-	// 		<span class="mx-2 text-slate-600">·</span>
-	// 		<a href="/privacy" data-nav="/privacy" class="underline hover:text-slate-200">Privacy</a>
-	// 	</div>
-	// `;
-
   switch (route.layout) {
     case "auth":
       domRoots.app.innerHTML = `<div class="auth-screen">${content}</div>`;
@@ -40,49 +33,34 @@ export function renderRouteContent(routePath: string) {
       domRoots.app.innerHTML = content;
   }
 
-	mountLegalLinks();
-
-	  // // SPA遷移対応
-		// domRoots.app.querySelectorAll<HTMLAnchorElement>("a[data-nav]").forEach((a) => {
-		// 	a.addEventListener("click", (e) => {
-		// 		e.preventDefault();
-		// 		const p = a.getAttribute("data-nav");
-		// 		if (p) navigate(p);
-		// 	});
-		// });
+	mountLegalLinks(routePath);
 }
 
 const LEGAL_LINKS_ID = "glebal-legal-links";
 
-function mountLegalLinks() {
+function mountLegalLinks(currentPath: string) {
 	// 二重生成防止
 	const existing = document.getElementById(LEGAL_LINKS_ID);
-	if (existing)
-		existing.remove();
+	if (existing) existing.remove();
+
+	// 特定のページでは表示しない
+	const hiddenPath = ["/login", "/game", "/register", "/terms", "/privacy"];
+	if (hiddenPath.includes(currentPath)) return;
 
 	const div = document.createElement("div");
 	div.id = LEGAL_LINKS_ID;
-	// div.className = 
-	// 	"fixed bottom-4 left-1/2 -translate-x-1/2 text-xs text-slate-400 z-50";
-	
-	div.style.position = "fixed";
-	div.style.left = "50%";
-	div.style.bottom = "16px";
-	div.style.transform = "translateX(-50%)";
-	div.style.zIndex = "2147483647";
-	div.style.background = "rgba(0,0,0,0.8)";
-	div.style.color = "white";
-	div.style.padding = "6px 10px";
-	div.style.borderRadius = "8px";
-	div.style.fontSize = "12px";
-	div.style.pointerEvents = "auto";
-
-
+	div.className = `
+		fixed bottom-4 left-1/2 -translate-x-1/2
+		z-[2147483647]
+		bg-black/80 text-white
+		px-3 py-1.5 rounded-lg
+		text-xs items-center gap-2
+	`; 
 
 	div.innerHTML = `
-		<a href="/terms" data-nav="/terms" class="underline hover:text-slate-200">Terms</a>
+		<a href="/terms" data-nav="/terms" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("terms")}</a>
 		<sapn class="mx-2 text-slate-600"> . </span>
-		<a href="/privacy" data-nav="/privacy" class="underline hover:text-slate-200">Privacy</a>
+		<a href="/privacy" data-nav="/privacy" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("privacy")}</a>
 	`;
 
 	div
