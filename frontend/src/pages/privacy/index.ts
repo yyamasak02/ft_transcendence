@@ -65,6 +65,7 @@ export class PrivacyComponent implements Component {
             <p class="indent-8">${t("privacy_5_s1")}</p>
             <p class="indent-8">${t("privacy_5_s2")}</p>
             <p class="indent-8">${t("privacy_5_s3")}</p>
+            <p class="indent-8">${t("privacy_5_s4")}</p>
 
             <h2 class="text-2xl font-semibold pt-4">${t("privacy_6")}</h2>
             <p class="indent-8">${t("privacy_6_s")}</p>
@@ -93,6 +94,7 @@ export class PrivacyComponent implements Component {
 						<span class="text-slate-500">•</span>
 						<a
 							href="/"
+							data-nav="/"
 							class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
 						>
 							${t("home")}

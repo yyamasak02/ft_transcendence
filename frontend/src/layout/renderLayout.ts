@@ -3,6 +3,7 @@ import { routes } from "@/router/routers";
 import { domRoots } from "./root";
 import { navigate } from "@/router";
 import { t } from "@/i18n";
+
 // Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
 // レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
 export function buildLayout(_routePath: string) {
@@ -36,7 +37,7 @@ export function renderRouteContent(routePath: string) {
 	mountLegalLinks(routePath);
 }
 
-const LEGAL_LINKS_ID = "glebal-legal-links";
+const LEGAL_LINKS_ID = "global-legal-links";
 
 function mountLegalLinks(currentPath: string) {
 	// 二重生成防止
@@ -54,7 +55,7 @@ function mountLegalLinks(currentPath: string) {
 		z-[2147483647]
 		bg-black/80 text-white
 		px-3 py-1.5 rounded-lg
-		text-xs items-center gap-2
+		text-xs flex items-center gap-2
 	`; 
 
 	div.innerHTML = `
@@ -63,15 +64,31 @@ function mountLegalLinks(currentPath: string) {
 		<a href="/privacy" data-nav="/privacy" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("privacy")}</a>
 	`;
 
-	div
-		.querySelectorAll<HTMLAnchorElement>("a[data-nav]")
-		.forEach((a) => {
-			a.addEventListener("click", (e) => {
-				e.preventDefault();
-				const p = a.getAttribute("data-nav");
-				if (p) navigate(p);
-			});
-		});
-
 	document.body.appendChild(div);
 }
+
+// a[data-nav] を全ページ共通で委譲ハンドル
+// click listenerの重複登録をガード
+const NAV_DELEGATE_FLAG = "__nav_delegate_installed__" as const;
+function installNavDelegateOnce() {
+	const w = window as unknown as Record<string, boolean>;
+	if (w[NAV_DELEGATE_FLAG]) return;
+	w[NAV_DELEGATE_FLAG] = true;
+
+	document.addEventListener("click", (e) => {
+		const target = e.target;
+		if (!(target instanceof Element)) return;
+
+		const link = target?.closest<HTMLAnchorElement>("a[data-nav]");
+		if (!link) return;
+
+		e.preventDefault();
+
+		const path = link.dataset.nav;
+		if (!path) return;
+
+		navigate(path);
+	});
+}
+
+installNavDelegateOnce();

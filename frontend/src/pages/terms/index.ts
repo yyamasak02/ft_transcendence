@@ -54,6 +54,7 @@ export class TermsComponent implements Component {
               <span class="text-slate-500">•</span>
               <a
                 href="/"
+								data-nav="/"
                 class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
               >
                 ${t("home")}
