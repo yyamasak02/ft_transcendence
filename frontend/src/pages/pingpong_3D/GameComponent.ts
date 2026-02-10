@@ -3,54 +3,112 @@ import { t, word } from "@/i18n";
 import { GameScreen } from "./object/GameScreen";
 import { navigate } from "@/router";
 import type { GamePhase } from "./core/game";
+import { SliderLogic } from "@/components/banner-slider";
 
 type ButtonUIElements = {
   overlay: HTMLElement | null;
   helpOverlay: HTMLElement | null;
-  buttons: {
+  hud: {
     help: HTMLButtonElement | null;
-    homeNav: HTMLButtonElement | null;
-    settingsNav: HTMLButtonElement | null;
+    home: HTMLButtonElement | null;
+    settings: HTMLButtonElement | null;
     pause: HTMLButtonElement | null;
     cameraReset: HTMLButtonElement | null;
-    reset: HTMLButtonElement | null;
   };
-  centralButtons: HTMLButtonElement[];
+  menu: {
+    resume: HTMLButtonElement | null;
+    reset: HTMLButtonElement | null;
+    settings: HTMLButtonElement | null;
+    home: HTMLButtonElement | null;
+    all: HTMLButtonElement[];
+  };
 };
 
 type ButtonUIVisibility = {
   overlay: boolean;
   helpOverlay: boolean;
-  centralButtons: boolean;
-  navButtons: boolean;
-  gameButtons: boolean;
+  menuButtons: boolean;
+  hudNavButtons: boolean;
+  hudGameButtons: boolean;
 };
+
+const HELP_SLIDES = [
+  {
+    image: "/howToPlay/page1.png",
+    desc: t("htp_page1"),
+  },
+  {
+    image: "/howToPlay/page2.png",
+    desc: t("htp_page2"),
+  },
+  {
+    image: "/howToPlay/page3.png",
+    desc: t("htp_page3"),
+  },
+  {
+    image: "/howToPlay/page4.png",
+    desc: t("htp_page4"),
+  },
+];
 
 export class GameComponent implements Component {
   private _appElm: HTMLElement;
   private _navElm: HTMLElement;
   private _gameInstance!: GameScreen;
   private _rootElm!: HTMLElement;
+  private _helpLogic: SliderLogic;
   private _uiElements: ButtonUIElements = {
     overlay: null,
     helpOverlay: null,
-    buttons: {
+    hud: {
       help: null,
-      homeNav: null,
-      settingsNav: null,
+      home: null,
+      settings: null,
       pause: null,
       cameraReset: null,
-      reset: null,
     },
-    centralButtons: [],
+    menu: {
+      resume: null,
+      reset: null,
+      settings: null,
+      home: null,
+      all: [],
+    },
   };
 
   constructor(appElm: HTMLElement, navElm: HTMLElement) {
     this._appElm = appElm;
     this._navElm = navElm;
+    this._helpLogic = new SliderLogic(HELP_SLIDES.length, {
+      autoPlay: false,
+      loop: false,
+      onFinish: () => {
+        this.closeHelpOverlay();
+      },
+      onChange: (index) => {
+        this.updateHelpDOM(index);
+      },
+    });
   }
 
   render(): string {
+    const slidesHtml = HELP_SLIDES.map(
+      (slide, index) => `
+      <div class="help-slide ${index === 0 ? "active" : ""}" data-index="${index}">
+        <div class="help-slide-image">
+          <img src="${slide.image}" alt="tutorial image">
+        </div>
+        <p class="help-slide-desc">${slide.desc}</p>
+      </div>
+    `,
+    ).join("");
+
+    const indicatorsHtml = HELP_SLIDES.map(
+      (_, index) => `
+      <div class="help-indicator ${index === 0 ? "active" : ""}" data-index="${index}"></div>
+    `,
+    ).join("");
+
     return `
             <div id="pingpong-3d-root">
                 <div id="game-container-3d">
@@ -58,50 +116,16 @@ export class GameComponent implements Component {
                     <div id="pause-overlay"></div>
                     <div id="help-overlay">
                         <div class="help-content">
-                            <h2>HOW TO PLAY</h2>
-                            <div class="help-section victory">
-                                <span class="label">GOAL</span>
-                                <p class="victory-text">First to <span class="highlight">Win Points</span> Wins!</p>
-                            </div>
-                            <div class="help-grid">
-                                <div class="help-card">
-                                    <div class="icon-area">
-                                        <div class="key-group">
-                                            <div class="key">W</div>
-                                            <div class="key">S</div>
-                                        </div>
-                                        <span class="or">or</span>
-                                        <div class="key-group">
-                                            <div class="key">↑</div>
-                                            <div class="key">↓</div>
-                                        </div>
-                                    </div>
-                                    <h3>PADDLE CONTROL</h3>
-                                    <p>Move Up & Down</p>
-                                </div>
-                                <div class="help-card">
-                                    <div class="icon-area">
-                                        <img src="/mouse-drag.svg" class="mouse-icon" alt="Mouse" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-                                        <span class="fallback-icon">🖱️ + ↔️</span>
-                                    </div>
-                                    <h3>CAMERA VIEW</h3>
-                                    <p>Drag to Rotate</p>
+                            <div class="help-slider-container">
+                                ${slidesHtml}
+                                
+                                <button class="help-nav prev-btn" id="help-prev">&#10094;</button>
+                                <button class="help-nav next-btn" id="help-next">&#10095;</button>
+                                
+                                <div class="help-indicators">
+                                    ${indicatorsHtml}
                                 </div>
                             </div>
-                            <div class="help-footer">
-                                <div class="tool-item">
-                                    <img src="/pause.svg" class="mini-icon">
-                                    <span>Pause Game</span>
-                                </div>
-                                <div class="tool-item">
-                                    <img src="/camera.svg" class="mini-icon">
-                                    <span>Reset Camera</span>
-                                </div>
-                            </div>
-
-                            <button id="btn-close-help" class="central-btn small">
-                                <span>CLOSE</span>
-                            </button>
                         </div>
                     </div>
                     <div id="game-ui-3d">
@@ -153,46 +177,6 @@ export class GameComponent implements Component {
       throw new Error("root element not found");
     }
     this._rootElm = root;
-    // SETTINGSボタン
-    const btnSettingsNav = this._rootElm.querySelector("#btn-3d-settings-nav");
-    const btnSettingsCentral = this._rootElm.querySelector("#btn-3d-settings");
-    // HOMEボタン
-    const homeButton = this._rootElm.querySelector("#btn-3d-home");
-    const homeButtonNav = this._rootElm.querySelector("#btn-3d-home-nav");
-    // PAUSEボタン
-    const pauseButton = this._rootElm.querySelector("#btn-3d-pause");
-    // RESUMEボタン
-    const resumeButton = this._rootElm.querySelector("#btn-3d-resume");
-    // RESETボタン
-    const resetButton = this._rootElm.querySelector("#btn-3d-reset");
-    // CAMERA RESETボタン
-    const cameraResetButton = this._rootElm.querySelector(
-      "#btn-3d-camera-reset",
-    );
-    // HELP BUTTON
-    const btnHelp = this._rootElm.querySelector<HTMLElement>("#btn-3d-help");
-    // HELP OVERLAY ELEMENT
-    const helpOverlay =
-      this._rootElm.querySelector<HTMLElement>("#help-overlay");
-    // HELP CLOSE
-    const btnCloseHelp =
-      this._rootElm.querySelector<HTMLElement>("#btn-close-help");
-    if (
-      !btnSettingsNav ||
-      !btnSettingsCentral ||
-      !homeButton ||
-      !homeButtonNav ||
-      !pauseButton ||
-      !resumeButton ||
-      !resetButton ||
-      !cameraResetButton
-    ) {
-      throw new Error("some button elements are missing");
-    }
-    if (!btnHelp || !helpOverlay || !btnCloseHelp) {
-      throw new Error("some help elements are missing");
-    }
-
     this.initButtonUIElements();
 
     // ゲーム初期化（phaseChangeコールバックを渡す）
@@ -206,6 +190,7 @@ export class GameComponent implements Component {
     });
     this._gameInstance.stopGame();
     this._gameInstance.startGame();
+    this.setupHelpSliderEvents();
 
     const handleHome = () => {
       this._gameInstance.stopGame();
@@ -215,75 +200,119 @@ export class GameComponent implements Component {
       this._gameInstance.stopGame();
       navigate("/pingpong_3D_config");
     };
+
+    const { hud, menu } = this._uiElements;
     // SETTINGSボタン
-    btnSettingsNav.addEventListener("click", handleSettings);
-    btnSettingsCentral.addEventListener("click", handleSettings);
+    hud.settings?.addEventListener("click", handleSettings);
+    menu.settings?.addEventListener("click", handleSettings);
     // HOMEボタン
-    homeButtonNav.addEventListener("click", handleHome);
-    homeButton.addEventListener("click", handleHome);
+    hud.home?.addEventListener("click", handleHome);
+    menu.home?.addEventListener("click", handleHome);
     // PAUSEボタン
-    pauseButton.addEventListener("click", () => this._gameInstance.pauseGame());
-    // RESUMEボタン
-    resumeButton.addEventListener("click", () =>
+    hud.pause?.addEventListener("click", () => this._gameInstance.pauseGame());
+    menu.resume?.addEventListener("click", () =>
       this._gameInstance.resumeGame(),
     );
     // RESETボタン
-    resetButton.addEventListener("click", () => {
+    menu.reset?.addEventListener("click", () => {
       if (this._gameInstance.gameState.resetLocked) return;
       this._gameInstance.resetGame();
     });
     // CAMERA RESETボタン
-    cameraResetButton.addEventListener("click", () =>
+    hud.cameraReset?.addEventListener("click", () =>
       this._gameInstance.resetCamera(),
     );
 
-    btnHelp.addEventListener("click", () => {
-      helpOverlay.style.display = "flex";
-      this.updateUIButtons(
-        this._gameInstance.gameState.phase,
-        this._gameInstance.gameState.resetLocked,
-      );
-    });
-    btnCloseHelp.addEventListener("click", () => {
-      helpOverlay.style.display = "none";
-      this.updateUIButtons(
-        this._gameInstance.gameState.phase,
-        this._gameInstance.gameState.resetLocked,
-      );
-    });
-    helpOverlay.addEventListener("click", (e) => {
-      if (e.target === helpOverlay) {
-        helpOverlay.style.display = "none";
+    // ヘルプボタン
+    hud.help?.addEventListener("click", () => {
+      if (this._uiElements.helpOverlay) {
+        this._uiElements.helpOverlay.style.display = "flex";
         this.updateUIButtons(
           this._gameInstance.gameState.phase,
           this._gameInstance.gameState.resetLocked,
         );
       }
     });
+
+    // 背景クリック
+    this._uiElements.helpOverlay?.addEventListener("click", (e) => {
+      if (e.target === this._uiElements.helpOverlay) {
+        this.closeHelpOverlay();
+      }
+    });
   }
 
-  // ------------------------
-  // ボタン要素初期化
-  // ------------------------
+  private setupHelpSliderEvents() {
+    const prevBtn =
+      this._rootElm.querySelector<HTMLButtonElement>("#help-prev");
+    const nextBtn =
+      this._rootElm.querySelector<HTMLButtonElement>("#help-next");
+    const indicators = this._rootElm.querySelectorAll(".help-indicator");
+
+    prevBtn?.addEventListener("click", () => this._helpLogic.prev());
+    nextBtn?.addEventListener("click", () => this._helpLogic.next());
+
+    indicators.forEach((ind) => {
+      ind.addEventListener("click", (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const index = Number(target.getAttribute("data-index"));
+        this._helpLogic.goTo(index);
+      });
+    });
+
+    this.updateHelpDOM(0);
+  }
+
+  private updateHelpDOM(index: number) {
+    const slides = this._rootElm.querySelectorAll(".help-slide");
+    const indicators = this._rootElm.querySelectorAll(".help-indicator");
+    const prevBtn = this._rootElm.querySelector<HTMLElement>("#help-prev");
+
+    slides.forEach((slide, idx) => {
+      slide.classList.toggle("active", idx === index);
+    });
+    indicators.forEach((ind, idx) => {
+      ind.classList.toggle("active", idx === index);
+    });
+
+    if (prevBtn) {
+      prevBtn.style.visibility = this._helpLogic.isFirst()
+        ? "hidden"
+        : "visible";
+    }
+  }
+
+  private closeHelpOverlay() {
+    if (this._uiElements.helpOverlay) {
+      this._uiElements.helpOverlay.style.display = "none";
+      this._helpLogic.goTo(0);
+      this.updateUIButtons(
+        this._gameInstance.gameState.phase,
+        this._gameInstance.gameState.resetLocked,
+      );
+    }
+  }
+
   private initButtonUIElements() {
     this._uiElements.overlay = this._rootElm.querySelector("#pause-overlay");
     this._uiElements.helpOverlay = this._rootElm.querySelector("#help-overlay");
-    this._uiElements.buttons.help = this._rootElm.querySelector("#btn-3d-help");
-    this._uiElements.buttons.homeNav =
-      this._rootElm.querySelector("#btn-3d-home-nav");
-    this._uiElements.buttons.settingsNav = this._rootElm.querySelector(
-      "#btn-3d-settings-nav",
-    );
-    this._uiElements.buttons.pause =
-      this._rootElm.querySelector("#btn-3d-pause");
-    this._uiElements.buttons.cameraReset = this._rootElm.querySelector(
-      "#btn-3d-camera-reset",
-    );
-    this._uiElements.buttons.reset =
-      this._rootElm.querySelector("#btn-3d-reset");
-    this._uiElements.centralButtons = Array.from(
-      this._rootElm.querySelectorAll<HTMLButtonElement>(".central-btn"),
-    );
+    this._uiElements.hud = {
+      help: this._rootElm.querySelector("#btn-3d-help"),
+      home: this._rootElm.querySelector("#btn-3d-home-nav"),
+      settings: this._rootElm.querySelector("#btn-3d-settings-nav"),
+      pause: this._rootElm.querySelector("#btn-3d-pause"),
+      cameraReset: this._rootElm.querySelector("#btn-3d-camera-reset"),
+    };
+
+    this._uiElements.menu = {
+      resume: this._rootElm.querySelector("#btn-3d-resume"),
+      reset: this._rootElm.querySelector("#btn-3d-reset"),
+      settings: this._rootElm.querySelector("#btn-3d-settings"),
+      home: this._rootElm.querySelector("#btn-3d-home"),
+      all: Array.from(
+        this._rootElm.querySelectorAll<HTMLButtonElement>(".central-btn"),
+      ),
+    };
   }
 
   // ------------------------
@@ -315,9 +344,9 @@ export class GameComponent implements Component {
       return {
         overlay: false,
         helpOverlay: true,
-        centralButtons: false,
-        navButtons: false,
-        gameButtons: false,
+        menuButtons: false,
+        hudNavButtons: false,
+        hudGameButtons: false,
       };
     }
 
@@ -327,25 +356,25 @@ export class GameComponent implements Component {
         return {
           overlay: false,
           helpOverlay: false,
-          centralButtons: false,
-          navButtons: true,
-          gameButtons: false,
+          menuButtons: false,
+          hudNavButtons: true,
+          hudGameButtons: false,
         };
       case "game":
         return {
           overlay: false,
           helpOverlay: false,
-          centralButtons: false,
-          navButtons: false,
-          gameButtons: true,
+          menuButtons: false,
+          hudNavButtons: false,
+          hudGameButtons: true,
         };
       case "pause":
         return {
           overlay: true,
           helpOverlay: false,
-          centralButtons: true,
-          navButtons: false,
-          gameButtons: false,
+          menuButtons: true,
+          hudNavButtons: false,
+          hudGameButtons: false,
         };
       case "gameover":
       case "starting":
@@ -353,9 +382,9 @@ export class GameComponent implements Component {
         return {
           overlay: false,
           helpOverlay: false,
-          centralButtons: false,
-          navButtons: false,
-          gameButtons: false,
+          menuButtons: false,
+          hudNavButtons: false,
+          hudGameButtons: false,
         };
     }
   }
@@ -364,9 +393,9 @@ export class GameComponent implements Component {
    * UI表示設定を実際のDOMに適用
    */
   private applyUIVisibility(visibility: ButtonUIVisibility) {
-    const { overlay, helpOverlay, centralButtons, navButtons, gameButtons } =
+    const { overlay, helpOverlay, menuButtons, hudNavButtons, hudGameButtons } =
       visibility;
-    const { buttons } = this._uiElements;
+    const { hud, menu } = this._uiElements;
 
     // Overlay
     if (this._uiElements.overlay) {
@@ -380,21 +409,20 @@ export class GameComponent implements Component {
         : "none";
     }
 
-    // Central buttons
-    this._uiElements.centralButtons.forEach((btn) => {
-      btn.style.display = centralButtons ? "inline-flex" : "none";
+    menu.all.forEach((btn) => {
+      btn.style.display = menuButtons ? "inline-flex" : "none";
     });
 
     // Nav buttons
-    this.setButtonVisibility(buttons.help, navButtons);
-    this.setButtonVisibility(buttons.homeNav, navButtons);
-    this.setButtonVisibility(buttons.settingsNav, navButtons);
+    this.setButtonVisibility(hud.help, hudNavButtons);
+    this.setButtonVisibility(hud.home, hudNavButtons);
+    this.setButtonVisibility(hud.settings, hudNavButtons);
 
     // Game buttons
-    this.setButtonVisibility(buttons.pause, gameButtons);
+    this.setButtonVisibility(hud.pause, hudGameButtons);
     this.setButtonVisibility(
-      buttons.cameraReset,
-      gameButtons || this._gameInstance.gameState.phase === "pause",
+      hud.cameraReset,
+      hudGameButtons || this._gameInstance.gameState.phase === "pause",
     );
   }
 
@@ -414,7 +442,7 @@ export class GameComponent implements Component {
    * Resetボタンの状態を更新
    */
   private updateResetButtonState(resetLocked: boolean) {
-    const { reset } = this._uiElements.buttons;
+    const { reset } = this._uiElements.menu;
     if (reset) {
       reset.disabled = resetLocked;
       reset.classList.toggle("btn-disabled", resetLocked);
@@ -426,5 +454,6 @@ export class GameComponent implements Component {
     document.body.classList.remove("game-body");
     this._navElm.style.display = "flex";
     this._gameInstance.stopGame();
+    this._helpLogic.stop();
   }
 }
