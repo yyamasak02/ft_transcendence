@@ -1,8 +1,6 @@
 // src/layout/renderLayout.ts
 import { routes } from "@/router/routers";
 import { domRoots } from "./root";
-import { navigate } from "@/router";
-import { t } from "@/i18n";
 
 // Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
 // レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
@@ -33,62 +31,4 @@ export function renderRouteContent(routePath: string) {
     default:
       domRoots.app.innerHTML = content;
   }
-
-	mountLegalLinks(routePath);
 }
-
-const LEGAL_LINKS_ID = "global-legal-links";
-
-function mountLegalLinks(currentPath: string) {
-	// 二重生成防止
-	const existing = document.getElementById(LEGAL_LINKS_ID);
-	if (existing) existing.remove();
-
-	// 特定のページでは表示しない
-	const hiddenPath = ["/login", "/pingpong_3D", "/register", "/terms", "/privacy"];
-	if (hiddenPath.includes(currentPath)) return;
-
-	const div = document.createElement("div");
-	div.id = LEGAL_LINKS_ID;
-	div.className = `
-		fixed bottom-4 left-1/2 -translate-x-1/2
-		z-[2147483647]
-		bg-black/80 text-white
-		px-3 py-1.5 rounded-lg
-		text-xs flex items-center gap-2
-	`; 
-
-	div.innerHTML = `
-		<a href="/terms" data-nav="/terms" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("terms")}</a>
-		<span class="mx-2 text-slate-600"> . </span>
-		<a href="/privacy" data-nav="/privacy" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("privacy")}</a>
-	`;
-
-	document.body.appendChild(div);
-}
-
-// a[data-nav] を全ページ共通で委譲ハンドル
-// click listenerの重複登録をガード
-const NAV_DELEGATE_FLAG = "__nav_delegate_installed__" as const;
-function installNavDelegateOnce() {
-	const w = window as unknown as Record<string, boolean>;
-	if (w[NAV_DELEGATE_FLAG]) return;
-	w[NAV_DELEGATE_FLAG] = true;
-
-	document.addEventListener("click", (e) => {
-		const target = e.target;
-		if (!(target instanceof Element)) return;
-
-		const link = target?.closest<HTMLAnchorElement>("a[data-nav]");
-		if (!link) return;
-
-		e.preventDefault();
-
-		const path = link.dataset.nav;
-		if (!path) return;
-
-		navigate(path);
-	});
-}
-
-installNavDelegateOnce();

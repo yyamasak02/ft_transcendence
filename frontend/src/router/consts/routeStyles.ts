@@ -9,6 +9,8 @@ import googleSignup from "@/pages/google_signup/style.css?url";
 import twoFactor from "@/pages/two_factor/style.css?url";
 import usernameChange from "@/pages/username_change/style.css?url";
 import userProfile from "@/pages/user_profile/style.css?url";
+import terms from "@/pages/terms/style.css?url";
+import privacy from "@/pages/privacy/style.css?url";
 
 export const routeStyles = {
   home,
@@ -22,4 +24,6 @@ export const routeStyles = {
   notFound,
   usernameChange,
   userProfile,
+  terms,
+  privacy,
 } as const;
