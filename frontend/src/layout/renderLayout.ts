@@ -35,6 +35,7 @@ export function renderRouteContent(routePath: string) {
   }
 
 	mountLegalLinks(routePath);
+	fixNavBarStacking();
 }
 
 const LEGAL_LINKS_ID = "global-legal-links";
@@ -67,6 +68,13 @@ function mountLegalLinks(currentPath: string) {
 	document.body.appendChild(div);
 }
 
+export function fixNavBarStacking() {
+	const nav = domRoots.nav;
+	if (nav) {
+		nav.className = "relative z-[9999] isolate";
+	}
+}
+
 // a[data-nav] を全ページ共通で委譲ハンドル
 // click listenerの重複登録をガード
 const NAV_DELEGATE_FLAG = "__nav_delegate_installed__" as const;
@@ -77,9 +85,13 @@ function installNavDelegateOnce() {
 
 	document.addEventListener("click", (e) => {
 		const target = e.target;
-		if (!(target instanceof Element)) return;
 
-		const link = target?.closest<HTMLAnchorElement>("a[data-nav]");
+		if (!(target instanceof Node)) return;
+
+		const element = target instanceof Element ? target : target?.parentElement;
+		if (!element) return;
+
+		const link = element.closest<HTMLAnchorElement>("a[data-nav]");
 		if (!link) return;
 
 		e.preventDefault();

@@ -1,6 +1,6 @@
-/* Tailwind classes are now used directly in the components */
+/* Tailwind classes are now used directly in the components
 /* This file can be kept for any custom navbar styles if needed */
-
+/*
 #nav {
   display: flex;
   align-items: center;
@@ -46,4 +46,14 @@
   padding: 4px 8px;
   font-size: 0.9rem;
   cursor: pointer;
+} 
+*/
+
+.nav-hitbox::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -8px;
+	height: 8px;
 }
