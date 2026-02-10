@@ -85,6 +85,7 @@ export class PrivacyComponent implements Component {
           <footer class="mt-10 border-t border-slate-700 pt-6 text-center">
             <a
               href="/terms"
+							data-nav="/terms"
               class="underline decoration-slate-400 hover:text-white"
             >
               ${t("terms")}

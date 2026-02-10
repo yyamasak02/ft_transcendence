@@ -106,9 +106,9 @@ const renderTwoFactorSecret = (secret: string) => {
   copyButton.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(secret);
-      if (copyMsg) copyMsg.textContent = "Copied";
+      if (copyMsg) copyMsg.textContent = t("copied");
     } catch {
-      if (copyMsg) copyMsg.textContent = "Copy failed";
+      if (copyMsg) copyMsg.textContent = t("failed");
     }
   });
 };

@@ -44,7 +44,7 @@ function mountLegalLinks(currentPath: string) {
 	if (existing) existing.remove();
 
 	// 特定のページでは表示しない
-	const hiddenPath = ["/login", "/game", "/register", "/terms", "/privacy"];
+	const hiddenPath = ["/login", "/pingpong_3D", "/register", "/terms", "/privacy"];
 	if (hiddenPath.includes(currentPath)) return;
 
 	const div = document.createElement("div");
@@ -59,7 +59,7 @@ function mountLegalLinks(currentPath: string) {
 
 	div.innerHTML = `
 		<a href="/terms" data-nav="/terms" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("terms")}</a>
-		<sapn class="mx-2 text-slate-600"> . </span>
+		<span class="mx-2 text-slate-600"> . </span>
 		<a href="/privacy" data-nav="/privacy" class="text-slate-300 underline hover:text-white visited:text-slate-300 active:text-slate-300">${t("privacy")}</a>
 	`;
 

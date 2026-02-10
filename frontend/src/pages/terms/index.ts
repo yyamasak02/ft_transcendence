@@ -46,6 +46,7 @@ export class TermsComponent implements Component {
             <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm sm:text-base">
               <a
                 href="/privacy"
+								data-nav="/privacy"
                 class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
               >
                 ${t("privacy")}
