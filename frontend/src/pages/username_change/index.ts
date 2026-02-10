@@ -9,7 +9,6 @@ import { LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import { getStoredAccessToken, storeTokens } from "@/utils/token-storage";
 import { getCurrentPath, setReturnTo } from "@/router";
 import { decodeJwtPayload } from "@/utils/jwt";
-import "./style.css";
 
 const API_BASE = "/api/common";
 
