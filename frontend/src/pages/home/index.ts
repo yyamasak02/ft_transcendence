@@ -56,10 +56,26 @@ class HomeComponent implements Component {
 
   render = () => {
     return `
-      <div class="home-container">
-        <h1>ft_transcendence</h1>
-        ${this.slider.render()}
-      </div>
+      <div class="
+				min-h-[calc(100vh-4rem)]
+				flex items-center justify-center
+				px-4
+			">
+				<div class="flex flex-col items-center gap-8 w-full">
+					<h1 class="
+						w-full
+						text-center
+						font-extrabold text-white
+						tracking-wide whitespace-nowrap
+						text-[clamp(28px,8vw,120px)]
+					">
+						ft_transcendence
+					</h1>
+					<div class="w-full max-w-[95vw] sm:max-w-5xl lg:max-w-12xl">
+        		${this.slider.render()}
+					</div>
+				</div>
+			</div>
     `;
   };
 
