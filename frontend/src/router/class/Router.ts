@@ -47,7 +47,7 @@ export class Router {
     buildLayout(normalized);
     if (nextRoute.show_navbar) {
       navBar.mount(domRoots.nav);
-      langSwitcher.mount(domRoots.nav);
+      langSwitcher.mount(navBar.getRightSlot());
     } else {
       navBar.unmount();
       langSwitcher.unmount();
