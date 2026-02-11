@@ -14,13 +14,14 @@ export class PrivacyComponent implements Component {
       {
         link: "/terms",
         labelKey: "terms",
-        classNameStr: "underline decoration-slate-400 hover:text-white",
+        classNameStr:
+          "cursor-pointer underline decoration-slate-400 hover:text-white",
       },
       {
         link: "/",
         labelKey: "home",
         classNameStr:
-          "!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
+          "cursor-pointer !text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
       },
     ];
     const rootClassNameStr: string = `mt-10 border-t border-slate-700 pt-6 text-center`;

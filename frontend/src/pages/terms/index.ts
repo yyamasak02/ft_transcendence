@@ -18,13 +18,13 @@ export class TermsComponent implements Component {
         link: "/privacy",
         labelKey: "privacy",
         classNameStr:
-          "!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
+          "cursor-pointer !text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
       },
       {
         link: "/",
         labelKey: "home",
         classNameStr:
-          "!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
+          "cursor-pointer !text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
       },
     ];
     const rootClassNameStr: string = `flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm sm:text-base`;

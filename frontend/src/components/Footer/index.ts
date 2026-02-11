@@ -67,8 +67,8 @@ export class Footer {
 }
 
 const footerLinks: FooterLinkProps[] = [
-  { link: "/terms", labelKey: "terms" },
-  { link: "/privacy", labelKey: "privacy" },
+  { link: "/terms", labelKey: "terms", classNameStr: "cursor-pointer" },
+  { link: "/privacy", labelKey: "privacy", classNameStr: "cursor-pointer" },
 ];
 const rootClassNameStr: string = `
     fixed bottom-4 left-1/2 -translate-x-1/2
