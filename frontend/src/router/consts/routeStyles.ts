@@ -1,6 +1,7 @@
 import home from "@/pages/home/style.css?url";
 import pingpong3D from "@/pages/pingpong_3D/style.css?url";
 import pingpong3DConfig from "@/pages/pingpong_3D_config/style.css?url";
+import pingpong3DRemote from "@/pages/pingpong_3D_remote/style.css?url";
 import login from "@/pages/login/style.css?url";
 import register from "@/pages/register/style.css?url";
 import notFound from "@/pages/404/style.css?url";
@@ -16,6 +17,7 @@ export const routeStyles = {
   home,
   pingpong3D,
   pingpong3DConfig,
+  pingpong3DRemote,
   login,
   register,
   me,

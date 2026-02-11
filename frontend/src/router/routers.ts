@@ -40,7 +40,7 @@ export const routes: Routes = {
     component: PingPong3DRemoteWaitingRoute,
     show_navbar: true,
     layout: "center",
-    css_path: routeStyles.pingpong3DConfig,
+    css_path: routeStyles.pingpong3DRemote,
   },
   "/login": {
     component: LoginRoute,
