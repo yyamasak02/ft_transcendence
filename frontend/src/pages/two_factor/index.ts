@@ -7,7 +7,6 @@ import {
 } from "@/constants/auth";
 import { storeTokens } from "@/utils/token-storage";
 import { clearReturnTo, getReturnTo } from "@/router";
-import "./style.css";
 
 const API_BASE = "/api/common";
 

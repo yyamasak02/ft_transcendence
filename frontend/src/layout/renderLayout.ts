@@ -1,6 +1,7 @@
 // src/layout/renderLayout.ts
 import { routes } from "@/router/routers";
 import { domRoots } from "./root";
+
 // Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
 // レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
 export function buildLayout(_routePath: string) {

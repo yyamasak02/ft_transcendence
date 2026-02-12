@@ -12,6 +12,8 @@ import { TwoFactorRoute } from "@/pages/two_factor";
 import { UsernameChangeRoute } from "@/pages/username_change";
 import { NotFoundRoute } from "@/pages/404";
 import { UserProfileRoute } from "@/pages/user_profile";
+import { TermsRoute } from "@/pages/terms";
+import { PrivacyRoute } from "@/pages/privacy";
 
 import { routeStyles } from "./consts/routeStyles";
 
@@ -38,7 +40,7 @@ export const routes: Routes = {
     component: PingPong3DRemoteWaitingRoute,
     show_navbar: true,
     layout: "center",
-    css_path: routeStyles.pingpong3DConfig,
+    css_path: routeStyles.pingpong3DRemote,
   },
   "/login": {
     component: LoginRoute,
@@ -87,5 +89,17 @@ export const routes: Routes = {
     show_navbar: false,
     layout: "hidden",
     css_path: routeStyles.notFound,
+  },
+  "/terms": {
+    component: TermsRoute,
+    show_navbar: false,
+    layout: "center",
+    css_path: routeStyles.terms,
+  },
+  "/privacy": {
+    component: PrivacyRoute,
+    show_navbar: false,
+    layout: "center",
+    css_path: routeStyles.privacy,
   },
 };
