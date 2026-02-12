@@ -2,8 +2,36 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { t } from "@/i18n";
+import { Footer } from "@/components/Footer";
+import type { FooterLinkProps, SplitterProps } from "@/components/Footer";
 
 export class PrivacyComponent implements Component {
+  private footer: Footer;
+  private footerContainer!: HTMLElement;
+
+  constructor() {
+    const footerLinks: FooterLinkProps[] = [
+      {
+        link: "/terms",
+        labelKey: "terms",
+        classNameStr:
+          "cursor-pointer underline decoration-slate-400 hover:text-white",
+      },
+      {
+        link: "/",
+        labelKey: "home",
+        classNameStr:
+          "cursor-pointer !text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
+      },
+    ];
+    const rootClassNameStr: string = `mt-10 border-t border-slate-700 pt-6 text-center`;
+    const splitter: SplitterProps = {
+      splitter: " • ",
+      classNameStr: "text-slate-500",
+    };
+    this.footer = new Footer(footerLinks, rootClassNameStr, splitter);
+  }
+
   render(): string {
     return `
       <div class="min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -83,30 +111,29 @@ export class PrivacyComponent implements Component {
 
           </section>
 
-          <footer class="mt-10 border-t border-slate-700 pt-6 text-center">
-            <a
-              href="/terms"
-							data-nav="/terms"
-              class="underline decoration-slate-400 hover:text-white"
-            >
-              ${t("terms")}
-            </a>
-						<span class="text-slate-500">•</span>
-						<a
-							href="/"
-							data-nav="/"
-							class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
-						>
-							${t("home")}
-						</a>
-          </footer>
+          <div id="footer-container"></div>
         </div>
       </div>
     `;
   }
+
+  mount(): void {
+    this.footerContainer = document.getElementById(
+      "footer-container",
+    ) as HTMLElement;
+    this.footer.mount(this.footerContainer);
+  }
+
+  unmount(): void {
+    this.footer.unmount();
+  }
 }
+
+const privacyComponent = new PrivacyComponent();
 
 export const PrivacyRoute: Route = {
   linkLabel: () => "Privacy",
-  content: () => new PrivacyComponent().render(),
+  content: () => privacyComponent.render(),
+  onMount: () => privacyComponent.mount(),
+  onUnmount: () => privacyComponent.unmount(),
 };

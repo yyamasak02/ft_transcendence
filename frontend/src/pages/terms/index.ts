@@ -2,8 +2,39 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { t } from "@/i18n";
+import {
+  Footer,
+  type FooterLinkProps,
+  type SplitterProps,
+} from "@/components/Footer";
 
 export class TermsComponent implements Component {
+  private footer: Footer;
+  private footerContainer!: HTMLElement;
+
+  constructor() {
+    const footerLinks: FooterLinkProps[] = [
+      {
+        link: "/privacy",
+        labelKey: "privacy",
+        classNameStr:
+          "cursor-pointer !text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
+      },
+      {
+        link: "/",
+        labelKey: "home",
+        classNameStr:
+          "cursor-pointer !text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100",
+      },
+    ];
+    const rootClassNameStr: string = `flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm sm:text-base`;
+    const splitter: SplitterProps = {
+      splitter: " • ",
+      classNameStr: "text-slate-500",
+    };
+    this.footer = new Footer(footerLinks, rootClassNameStr, splitter);
+  }
+
   render(): string {
     return `
       <div class="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center p-4">
@@ -42,32 +73,27 @@ export class TermsComponent implements Component {
             <p class="pt-1">${t("terms3")}</p>
           </section>
 
-          <footer class="mt-10 border-t border-slate-700 pt-6">
-            <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm sm:text-base">
-              <a
-                href="/privacy"
-								data-nav="/privacy"
-                class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
-              >
-                ${t("privacy")}
-              </a>
-              <span class="text-slate-500">•</span>
-              <a
-                href="/"
-								data-nav="/"
-                class="!text-slate-100 underline decoration-slate-400 underline-offset-4 hover:!text-white visited:!text-slate-100"
-              >
-                ${t("home")}
-              </a>
-            </div>
-          </footer>
+          <div id="footer-container"></div>
 					</div>
       </div>
     `;
   }
+  mount(): void {
+    this.footerContainer = document.getElementById(
+      "footer-container",
+    ) as HTMLElement;
+    this.footer.mount(this.footerContainer);
+  }
+
+  unmount(): void {
+    this.footer.unmount();
+  }
 }
 
+const termsComponent = new TermsComponent();
 export const TermsRoute: Route = {
   linkLabel: () => "Terms",
-  content: () => new TermsComponent().render(),
+  content: () => termsComponent.render(),
+  onMount: () => termsComponent.mount(),
+  onUnmount: () => termsComponent.unmount(),
 };

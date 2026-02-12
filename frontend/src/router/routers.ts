@@ -40,7 +40,7 @@ export const routes: Routes = {
     component: PingPong3DRemoteWaitingRoute,
     show_navbar: true,
     layout: "center",
-    css_path: routeStyles.pingpong3DConfig,
+    css_path: routeStyles.pingpong3DRemote,
   },
   "/login": {
     component: LoginRoute,
@@ -90,16 +90,16 @@ export const routes: Routes = {
     layout: "hidden",
     css_path: routeStyles.notFound,
   },
-	"/terms": {
-		component: TermsRoute,
-		show_navbar: false,
-		layout: "center",
-		css_path: "",
-	},
-	"/privacy": {
-		component: PrivacyRoute,
-		show_navbar: false,
-		layout: "center",
-		css_path: "",
-	},
+  "/terms": {
+    component: TermsRoute,
+    show_navbar: false,
+    layout: "center",
+    css_path: routeStyles.terms,
+  },
+  "/privacy": {
+    component: PrivacyRoute,
+    show_navbar: false,
+    layout: "center",
+    css_path: routeStyles.privacy,
+  },
 };

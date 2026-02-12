@@ -7,7 +7,6 @@ import {
   setRemoteUserId,
 } from "@/utils/pingpong3D/remoteSetting";
 import { t, word } from "@/i18n";
-import "./style.css";
 
 const POLLING_INTERVAL_MS = 1500;
 const FEEDBACK_DISPLAY_MS = 1500;
