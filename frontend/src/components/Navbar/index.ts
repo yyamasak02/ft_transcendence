@@ -19,7 +19,6 @@ export class NavBar {
 			"items-center justify-between",
 			"px-4 bg-black/40 backdrop-blur",
 			"border-b border-white/10",
-			"relative",
 			"pointer-events-auto",
 		].join(" ");
 		
@@ -151,7 +150,7 @@ export class NavBar {
 	private buildMobileMenue(items: NavItem[]): HTMLDivElement {
 		const menue = document.createElement("div");
 		menue.className = [
-			"md:hidden absolute",
+			"md:hidden fixed",
 			"top-16 left-0",
 			"w-full",
 			"bg-black/80 backdrop-blur",
