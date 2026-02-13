@@ -32,7 +32,7 @@ export const routes: Routes = {
   },
   "/pingpong_3D": {
     component: PingPong3DGameRoute,
-    show_navbar: true,
+    show_navbar: false,
     layout: "center",
     css_path: routeStyles.pingpong3D,
   },

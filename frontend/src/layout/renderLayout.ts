@@ -1,34 +1,39 @@
 // src/layout/renderLayout.ts
-import { routes } from "@/router/routers";
 import { domRoots } from "./root";
+import { navBar } from "@/components/Navbar";
+import type { RouteConfig } from "@/types/routes";
+import { langSwitcher } from "@/components/LangSwitcher";
+import { footer } from "@/components/Footer";
 
 // Router が遷移やライフサイクルを司るため、ここでは遷移やマウントは行わない
 // レイアウト（アプリ枠）を構築：ナビなどの共通UIのみ
-export function buildLayout(_routePath: string) {
-  // 事前クリアのみ。共通UIのマウントはRouter側の責務。
-  domRoots.nav.innerHTML = "";
+export function buildLayout(nextRoute: RouteConfig) {
+  // 既存コンテンツをクリア
   domRoots.app.innerHTML = "";
-}
-
-// ルート固有のコンテンツを描画
-export function renderRouteContent(routePath: string) {
-  const route = routes[routePath];
-
+  // 各ページのコンテンツエリアを生成
+  const pageContentArea = document.createElement("div");
+  pageContentArea.id = "app-content";
+  if (nextRoute.show_navbar) {
+    navBar.mount(domRoots.app);
+    langSwitcher.mount(navBar.getRightSlot());
+  }
   const content =
-    typeof route.component.content === "function"
-      ? route.component.content()
-      : route.component.content;
-
-  switch (route.layout) {
+    typeof nextRoute.component.content === "function"
+      ? nextRoute.component.content()
+      : nextRoute.component.content;
+  switch (nextRoute.layout) {
     case "auth":
-      domRoots.app.innerHTML = `<div class="auth-screen">${content}</div>`;
+      pageContentArea.innerHTML = `<div class="auth-screen">${content}</div>`;
       break;
 
     case "center":
-      domRoots.app.innerHTML = `<div class="center-screen">${content}</div>`;
+      pageContentArea.innerHTML = `<div class="center-screen">${content}</div>`;
       break;
 
     default:
-      domRoots.app.innerHTML = content;
+      pageContentArea.innerHTML = content;
   }
+  domRoots.app.appendChild(pageContentArea);
+  nextRoute.component.onMount?.();
+  footer.mount(domRoots.footer);
 }
