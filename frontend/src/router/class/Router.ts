@@ -2,6 +2,7 @@
 import { routes } from "../routers";
 import { buildLayout, renderRouteContent } from "@/layout/renderLayout";
 import { navBar } from "@/components/Navbar";
+import { footer } from "@/components/Footer";
 import { langSwitcher } from "@/components/LangSwitcher";
 import { domRoots } from "@/layout/root";
 import { StyleManager } from "@/router/class/StyleManager";
@@ -53,6 +54,7 @@ export class Router {
       langSwitcher.unmount();
     }
     renderRouteContent(normalized);
+    footer.mount(domRoots.footer);
     nextRoute.component.onMount?.();
     domRoots.app.style.opacity = "";
     this.currentRoute = normalized;

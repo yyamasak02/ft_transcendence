@@ -2,7 +2,6 @@ import type { Route } from "@/types/routes";
 import { langManager, word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
-import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { getStoredAccessToken } from "@/utils/token-storage";
 import { getCurrentPath, setReturnTo } from "@/router";
