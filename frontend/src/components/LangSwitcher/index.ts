@@ -7,10 +7,21 @@ export class LangSwitcher {
 
   constructor() {
     this.root = document.createElement("div");
-    this.root.className = "lang-switcher";
+    // this.root.className = "lang-switcher";
+    this.root.className = "inline-flex items-center gap-2";
 
     this.select = document.createElement("select");
-    this.select.className = "lang-select";
+    // this.select.className = "lang-select";
+    this.select.className = [
+			"cursor-pointer",
+			"rounded-md",
+			"border border-white/20",
+			"bg-black/40",
+			"px-2 py-1",
+			"text-sm text-white",
+			"outline-none",
+			"focus-visible:ring-2 focus-visible:ring-white/50",
+		].join(" ");
 
     const langs: { lang: Lang; label: string }[] = [
       { lang: "en", label: "English" },
@@ -42,6 +53,7 @@ export class LangSwitcher {
   }
 
   mount(container: ParentNode) {
+		this.unmount();
     container.appendChild(this.root);
   }
 

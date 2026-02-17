@@ -53,7 +53,6 @@ const HELP_SLIDES = [
 
 export class GameComponent implements Component {
   private _appElm: HTMLElement;
-  private _navElm: HTMLElement;
   private _gameInstance!: GameScreen;
   private _rootElm!: HTMLElement;
   private _helpLogic: SliderLogic;
@@ -76,9 +75,8 @@ export class GameComponent implements Component {
     },
   };
 
-  constructor(appElm: HTMLElement, navElm: HTMLElement) {
+  constructor(appElm: HTMLElement) {
     this._appElm = appElm;
-    this._navElm = navElm;
     this._helpLogic = new SliderLogic(HELP_SLIDES.length, {
       autoPlay: false,
       loop: false,
@@ -171,7 +169,6 @@ export class GameComponent implements Component {
   onMount() {
     this._appElm.classList.add("no-overflow");
     document.body.classList.add("game-body");
-    this._navElm.style.display = "none";
     const root = this._appElm.querySelector<HTMLElement>("#pingpong-3d-root");
     if (!root) {
       throw new Error("root element not found");
@@ -452,7 +449,6 @@ export class GameComponent implements Component {
   onUnmount() {
     this._appElm.classList.remove("no-overflow");
     document.body.classList.remove("game-body");
-    this._navElm.style.display = "flex";
     this._gameInstance.stopGame();
     this._helpLogic.stop();
   }
