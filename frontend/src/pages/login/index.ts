@@ -19,15 +19,26 @@ const API_BASE = "/api/common";
 class LoginComponent implements Component {
   render = () => {
     return `
-						<div class="login-screen">
-							<div class="login-box">
+						<div class="
+							min-h-[calc(100vh-64)]
+							flex items-center justify-center
+							bg-[radial-gradient(circle_at_center,#1c1c1c,#0b0b0b)]
+						">
+							<div class="
+								w-[380px]	p-8 bg-[#111]
+								border-2 border-[#444] rounded-2xl
+								shadow-[0_0_30px_rgba(0,0,0,0.8)]
+							">
+								<h2 class="
+									text-center text-[#e6e6e6] text-5xl
+									font-bold tracking-[0.2rem]
+									mb-[28px]
+								">${t("login")}</h2>
 
-								<h2 class="login-title">${t("login")}</h2>
-
-								<form class="login-form" id="login-form">
+								<form class="accent-color-[#888]">
 
 									<!-- Email -->
-									<div class="login-field">
+									<div class="accent-color-[#888]">
 										<label for="email">
 											${t("email")}
 										</label>
@@ -37,32 +48,58 @@ class LoginComponent implements Component {
 											name="email"
 											placeholder="you@example.com"
 											required
-											class="login-input"
+											class="
+												w-full px-[10px] py-[12px] mb-[20px]
+												bg-[#1a1a1a]
+												border border-[#555] rounded-[6px]
+												text-[#eee] text-base
+												leading-normal
+											"
 										/>
 									</div>
 
 									<!-- Password -->
-									<div class="login-field">
-										<label for="password">${t("password")}</label>
+									<div class="accent-color-[#888]">
+										<label for="password"
+													 class="
+															block mb-[6px] text-sm
+															font-bold tracking-[0.08rem]
+															text-[#aaa]
+													 ">${t("password")}</label>
 										<input
 											type="password"
 											id="password"
 											name="password"
 											placeholder="••••••••"
 											required
-											class="login-input"
+											class="
+												w-full px-[10px] py-[12px] mb-[20px]
+												bg-[#1a1a1a]
+												border border-[#555] rounded-[6px]
+												text-[#eee] text-base
+												leading-normal
+											"
 										/>
 									</div>
 
 									<!-- Submit -->
-									<button type="submit" class="login-submit">${t("enter")}</button>
+									<button type="submit" class="
+																					w-full mt-[16px] py-[10px]
+																					bg-[#333]
+																					text-[#eee] text-[1.05rem] font-bold
+																					border border-[#666]
+																					tracking-[0.15em]
+																					cursor-pointer
+																					transition-all ease-in-out duration-200
+																					hover:bg-[#444] hover:border-[#aaa]
+																				">${t("enter")}</button>
 
 									<!-- Footer -->
-									<div class="login-footer">
+									<div class="mt-[18px] text-center">
 										<a class="login-link" href="/register" data-nav>${t("to_signup")}</a>
 									</div>
 
-									<div class="login-footer">
+									<div class="mt-[18px] text-center">
 										<a class="login-link" href="/" data-nav>${t("home_return")}</a>
 									</div>
 
