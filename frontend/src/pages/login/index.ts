@@ -118,7 +118,7 @@ class LoginComponent implements Component {
 														bg-slate-950
 														px-3
 														text-3 text-slate-200
-														tracking-[0.18em]
+														tracking-[0.15em]
 														whitespace-nowrap
 										">${t("other_login_methods")}</span>
 									</div>
@@ -135,7 +135,11 @@ class LoginComponent implements Component {
 																			 "></p>
 									</div>
 
-									<p id="login-msg" class="mt-3 text-3 text-slate-300 text-center whitespace-pre-wrap"></p>
+									<p id="login-msg" class="
+																			mt-3
+																			text-3 text-slate-300 text-center
+																			whitespace-pre-wrap
+																		"></p>
 								</form>
 						</div>
 	`;
