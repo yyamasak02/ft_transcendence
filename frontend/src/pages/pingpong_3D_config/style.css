@@ -227,10 +227,6 @@
   background: black;
 }
 
-.hidden {
-  display: none !important;
-}
-
 .pp3d-inline-row {
   display: flex;
   align-items: center;

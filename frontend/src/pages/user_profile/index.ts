@@ -11,7 +11,6 @@ import {
 import { formatMatchDate } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
-import "./style.css";
 
 type MatchItem = {
   id: number;

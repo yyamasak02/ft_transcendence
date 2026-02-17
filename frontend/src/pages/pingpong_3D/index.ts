@@ -4,7 +4,7 @@ import { word } from "@/i18n";
 import { GameComponent } from "./GameComponent";
 import { domRoots } from "@/layout/root";
 
-const gameComponent = new GameComponent(domRoots.app, domRoots.nav);
+const gameComponent = new GameComponent(domRoots.app);
 
 export const PingPong3DGameRoute: Route = {
   linkLabel: () => word("pingpong3d"),

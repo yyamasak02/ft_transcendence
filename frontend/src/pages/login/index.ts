@@ -8,13 +8,10 @@ import {
   TWO_FACTOR_LONG_TERM_KEY,
   TWO_FACTOR_TOKEN_KEY,
 } from "@/constants/auth";
-import {
-  EMAIL_PATTERN,
-} from "@/constants/validation";
+import { EMAIL_PATTERN } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
 import { clearReturnTo, getReturnTo } from "@/router";
-import "./style.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 const API_BASE = "/api/common";
