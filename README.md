@@ -162,9 +162,18 @@ Each module was implemented following the project architecture and thoroughly te
  - **xx**
 
 ### tashiget
- - **xx**
- - **xx**
- - **xx**
+#### User Management
+
+##### Authentication
+- **Google OAuth** – Sign in with Google account via OAuth 2.0
+- **JWT Implementation** – Secure session management using JSON Web Tokens
+- **Two-Factor Authentication (2FA)** – Additional login security via one-time passcode
+- **Password Hashing with Argon2** – Passwords are securely hashed using the Argon2 algorithm
+
+##### Profile
+- **User Avatar** – Upload and display a custom profile picture
+- **Friend System** – Add, remove, and manage friends
+- **Match History** – View past game results and match records
 
 ### tobaba
  - **xx**
