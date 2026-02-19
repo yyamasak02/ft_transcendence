@@ -27,7 +27,6 @@ class PingPong3DRemoteWaiting implements Component {
   private _readyBtn!: HTMLButtonElement;
   private _loaderEl!: HTMLElement;
   private _ws: WebSocket | null = null;
-  private _wsReady: boolean = false;
   private _tmpUserId!: string;
   private _pollTimer: number | null = null;
 
@@ -46,7 +45,7 @@ class PingPong3DRemoteWaiting implements Component {
              <span id="room-id-value" class="pp3d-room-value">Loading...</span>
              
              <div class="pp3d-copy-hint">
-               <img src="../../../public/button/copy.svg" class="pp3d-copy-icon" style="width: 1.2em; height: 1.2em; vertical-align: middle;" />
+               <img src="/button/copy.svg" class="pp3d-copy-icon" style="width: 1.2em; height: 1.2em; vertical-align: middle;" />
                <span>${t("click_to_copy")}</span>
              </div>
              
@@ -175,7 +174,6 @@ class PingPong3DRemoteWaiting implements Component {
     const ws = new WebSocket(wsUrl);
     this._ws = ws;
     ws.onopen = () => {
-      this._wsReady = true;
       ws.send(
         JSON.stringify({
           type: "connect",
@@ -227,7 +225,6 @@ class PingPong3DRemoteWaiting implements Component {
     };
     ws.onclose = () => {
       this._ws = null;
-      this._wsReady = false;
     };
   }
 

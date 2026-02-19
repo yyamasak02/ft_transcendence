@@ -14,6 +14,7 @@ services:
     depends_on:
       - frontend
       - be_common
+      - be_connect
   frontend:
     build:
       context: ./frontend
@@ -29,7 +30,6 @@ services:
       - ./frontend/.env.local
     networks:
       - ft_network
-    command: npm run dev
   be_common:
     build:
       context: ./backends/common
@@ -44,8 +44,22 @@ services:
       NODE_ENV: development
     env_file:
       - ./backends/common/.env.development
-    ports:
-      - 8080:8080
+    networks:
+      - ft_network
+  be_connect:
+    build:
+      context: ./backends/connect
+      dockerfile: ./docker/Dockerfile.dev
+    image: ft_be_connect
+    container_name: ft_be_connect
+    volumes:
+      - ./backends/connect:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+    env_file:
+      - ./backends/connect/.env.development
     networks:
       - ft_network
 networks:

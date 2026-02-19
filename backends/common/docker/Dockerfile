@@ -19,4 +19,4 @@ RUN npm run build
 
 ENV TZ=Asia/Tokyo
 
-CMD ["sh", "-c", "npm run db:setup && npm run start"]
+CMD ["sh", "-c", "npm run start"]

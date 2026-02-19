@@ -50,8 +50,8 @@ export class GameScreen {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private player1!: Player;
-  private player2!: Player;
+  private player1!: Player | null;
+  private player2!: Player | null;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
@@ -243,6 +243,10 @@ export class GameScreen {
     // パドル生成 + プレイヤー生成（共通ロジック）
     const { p1, p2 } = createPaddles(this.scene, this.settings);
     this.initPlayers(p1, p2);
+    // ビルドエラーの暫定処理
+    if (!this.player1 || !this.player2) {
+      throw new Error("Failed to initialize players");
+    }
 
     this.ball = new Ball(
       this.scene,

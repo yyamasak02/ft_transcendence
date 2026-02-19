@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { langManager, word, t, i18nAttr } from "@/i18n";
+import { word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { getStoredAccessToken } from "@/utils/token-storage";
 import { getCurrentPath, setReturnTo } from "@/router";
@@ -55,8 +55,7 @@ class UserProfileComponent {
   };
 }
 
-const formatMatchDateByLang = (createdAt: string) =>
-  formatMatchDate(createdAt, langManager.lang);
+const formatMatchDateByLang = (createdAt: string) => formatMatchDate(createdAt);
 
 const MATCH_RESULT_CONFIG = {
   win: {

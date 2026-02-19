@@ -1,7 +1,16 @@
 # Inception Project Makefile
 
 # Variables
-COMPOSE_FILE = docker-compose.local.yml
+env ?= dev
+
+# 条件分岐
+ifeq ($(env), prd)
+    COMPOSE_FILE := docker-compose.yml
+    MSG := "Running in PRODUCTION mode"
+else
+    COMPOSE_FILE := docker-compose.local.yml
+    MSG := "Running in DEVELOPMENT mode"
+endif
 
 .PHONY: up down build clean logs status help secrets ensure_envs
 
@@ -35,6 +44,7 @@ ensure_envs:
 
 # Start all containers
 up: ensure_envs
+	@echo $(MSG)
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 

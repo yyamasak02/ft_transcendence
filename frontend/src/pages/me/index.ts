@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { langManager, word, t, i18nAttr } from "@/i18n";
+import { word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
 import { decodeJwtPayload } from "@/utils/jwt";
@@ -548,8 +548,7 @@ const renderMatches = (
   }
 };
 
-const formatMatchDateByLang = (createdAt: string) =>
-  formatMatchDate(createdAt, langManager.lang);
+const formatMatchDateByLang = (createdAt: string) => formatMatchDate(createdAt);
 
 const setMatchesMessage = (message: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-matches");
