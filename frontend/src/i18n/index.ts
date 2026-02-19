@@ -8,7 +8,11 @@ export function word(key: I18nKey): string {
 
 // DOMに紐づくi18nテキストノードを生成（data-i18n付与）
 export function t(key: I18nKey): string {
-  const text = langManager.word(key);
+	const raw = langManager.word(key);
+
+	// 辞書にない or undefinedの時に落とさない
+	const text = typeof raw === "string" ? raw : `[missing:${String(key)}]`;
+  // const text = langManager.word(key);
   // HTMLエスケープ（XSS対策）
   const escaped = text
     .replace(/&/g, "&amp;")
