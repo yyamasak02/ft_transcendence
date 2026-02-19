@@ -28,7 +28,7 @@ export class LangManager extends EventTarget {
     return this._lang;
   }
 
-  word(key: I18nKey): string {
+  word(key: I18nKey): string | undefined {
     return this._dict[this._lang][key];
   }
 

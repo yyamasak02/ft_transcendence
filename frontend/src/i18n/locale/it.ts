@@ -228,7 +228,7 @@ export const ita = {
   terms1: "Questa applicazione è un progetto studentesco sviluppato nell'ambito di un programma educativo.",
   terms2: "Accedendo o utilizzando questa applicazione, l'utente accetta i seguenti termini e condizioni:",
   
-	terms_l1: `Questa applicazione è fornita "così com'è", senza alcuna garanzia, esplicita o implicita.`,
+	terms_l1: "Questa applicazione è fornita \"così com'è\", senza alcuna garanzia, esplicita o implicita.",
   terms_l2: "Gli sviluppatori non si assumono alcuna responsabilità per eventuali danni, perdite di dati o problemi derivanti dall'utilizzo dell'applicazione.",
   terms_l3: "Il servizio può essere modificato, sospeso o interrotto in qualsiasi momento senza preavviso.",
   terms_l4: "Accetti di non utilizzare questa applicazione per attività illegali, dannose o malevole.",
@@ -276,7 +276,7 @@ export const ita = {
   privacy_6_l3: "Servizi backend containerizzati in modo sicuro",
 
 	privacy_7: "7. Limitazioni",
-  privacy_7_s: `Poiché si tratta di un progetto studentesco, l'applicazione è fornita "così com'è" senza garanzie di sicurezza a livello produttivo.`,
+  privacy_7_s: "Poiché si tratta di un progetto studentesco, l'applicazione è fornita \"così com'è\" senza garanzie di sicurezza a livello produttivo." ,
 
 	privacy_8: "8. Contatti",
   privacy_8_s: "Per domande relative alla privacy, contatta il team del progetto tramite il repository o il canale di comunicazione ufficiale.",
