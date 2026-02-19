@@ -53,7 +53,7 @@ jobs:
             echo "Checking $url"
             ok=false
             for i in {1..60}; do
-              if curl -k -fLsS "$url" >/dev/null 2>&1; then
+              if curl -fLsS "$url" >/dev/null 2>&1; then
                 ok=true
                 break
               fi
