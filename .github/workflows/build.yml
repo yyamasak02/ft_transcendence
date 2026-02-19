@@ -46,8 +46,8 @@ jobs:
         run: |
           set -euxo pipefail
           urls=(
-            "http://localhost:8443/api/common/docs/"
-            "http://localhost:8443/api/connect/docs/"
+            "https://localhost:8443/api/common/docs/"
+            "https://localhost:8443/api/connect/docs/"
           )
           for url in "${urls[@]}"; do
             echo "Checking $url"
