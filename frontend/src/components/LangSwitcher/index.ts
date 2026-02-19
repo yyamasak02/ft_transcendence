@@ -1,6 +1,7 @@
 import { langManager } from "@/i18n";
 import type { Lang } from "@/i18n/lang";
 
+// フラグイメージ
 const FLAG_SRC: Record<Lang, string> = {
   en: "/flags/us.png",
   ja: "/flags/ja.svg",
@@ -18,7 +19,7 @@ export class LangSwitcher {
     // this.root.className = "lang-switcher";
     this.root.className = "inline-flex items-center gap-2";
 
-    // フラグイメージ
+    // フラグイメージ初期化
     this.flagImg = document.createElement("img");
     this.flagImg.className = "h-4 w-6 rounded-sm object-cover";
     this.flagImg.alt = "";
@@ -70,6 +71,7 @@ export class LangSwitcher {
     this.root.appendChild(this.select);
   }
 
+  // フラグイメージを同期させる
   private syncFlag() {
     const lang = langManager.lang;
     this.flagImg.src = FLAG_SRC[lang];
