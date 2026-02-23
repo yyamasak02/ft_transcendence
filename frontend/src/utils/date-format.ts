@@ -13,7 +13,7 @@ const parseMatchDate = (value: string) => {
   return null;
 };
 
-export const formatMatchDate = (value: string) => {
+export const formatMatchDateByJp = (value: string) => {
   const date = parseMatchDate(value);
   if (!date) return value;
   return new Intl.DateTimeFormat("ja-JP", {

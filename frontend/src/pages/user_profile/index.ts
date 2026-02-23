@@ -8,7 +8,7 @@ import {
   getProfileImageSrc,
   isProfileImageKey,
 } from "@/utils/profile-images";
-import { formatMatchDate } from "@/utils/date-format";
+import { formatMatchDateByJp } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
 
@@ -54,8 +54,6 @@ class UserProfileComponent {
     `;
   };
 }
-
-const formatMatchDateByLang = (createdAt: string) => formatMatchDate(createdAt);
 
 const MATCH_RESULT_CONFIG = {
   win: {
@@ -167,7 +165,7 @@ class UserProfileController {
         ? MATCH_RESULT_CONFIG.win
         : MATCH_RESULT_CONFIG.lose;
 
-      const formattedDate = formatMatchDateByLang(item.createdAt);
+      const formattedDate = formatMatchDateByJp(item.createdAt);
 
       row.className = `user-profile-match ${statusClass}`;
 

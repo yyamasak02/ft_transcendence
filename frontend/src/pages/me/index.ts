@@ -12,7 +12,7 @@ import {
   isProfileImageKey,
   type ProfileImageKey,
 } from "@/utils/profile-images";
-import { formatMatchDate } from "@/utils/date-format";
+import { formatMatchDateByJp } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
 
@@ -521,7 +521,7 @@ const renderMatches = (
     const { statusClass, symbol, resultText } = isWin
       ? MATCH_RESULT_CONFIG.win
       : MATCH_RESULT_CONFIG.lose;
-    const formattedDate = formatMatchDateByLang(item.createdAt);
+    const formattedDate = formatMatchDateByJp(item.createdAt);
 
     row.className = `me-match-card ${statusClass}`;
 
@@ -547,8 +547,6 @@ const renderMatches = (
     summary.textContent = `${word("match_summary")} ${wins}W - ${losses}L`;
   }
 };
-
-const formatMatchDateByLang = (createdAt: string) => formatMatchDate(createdAt);
 
 const setMatchesMessage = (message: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-matches");
