@@ -24,60 +24,88 @@ class MeComponent {
     const currentName = accessToken
       ? (decodeJwtPayload(accessToken)?.name ?? word("user_menu"))
       : word("user_menu");
-    const pickerItems = PROFILE_IMAGES.map(
-      (item) =>
-        `<button type="button" data-profile="${item.key}">${item.label}</button>`,
-    ).join("");
-// render() メソッド内の return 部分を以下に差し替え
+    const pickerItems = PROFILE_IMAGES.map((item) => {
+      const imgSrc = getProfileImageSrc(item.key);
+      return `
+        <button type="button" 
+                data-profile="${item.key}" 
+                class="group relative w-12 h-12 rounded-lg border-2 border-slate-800 hover:border-blue-500 overflow-hidden transition-all bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <img src="${imgSrc}" 
+              alt="${item.label}" 
+              class="w-full h-full object-cover pointer-events-none" 
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+          <span class="hidden text-[10px] text-slate-500">${item.label[0]}</span>
+        </button>`;
+    }).join("");
+
     return `
       <div class="
             w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar
             md:grid md:grid-cols-[repeat(3,minmax(0,1fr))] md:overflow-visible md:flex-none
             gap-4 p-4 lg:gap-8 lg:p-8 text-white">
-        <div class="min-w-[85vw] shrink-0 snap-center flex flex-col gap-6 
-                    justify-center items-center md:w-full md:min-w-0 md:shrink pb-20 md:pb-0">
-          <form id="me-user-search" class="flex gap-2">
-            <input type="text" name="username" class="flex-1 py-2 px-3 bg-slate-900 border border-slate-700 rounded-md text-slate-100 focus:outline-none focus:border-blue-500 transition-all" ${i18nAttr("placeholder", "user_search_placeholder")} required />
-            <button type="submit" class="py-2 px-4 bg-slate-800 text-slate-100 border border-slate-700 rounded-md hover:bg-slate-700 hover:border-slate-600 transition-colors cursor-pointer text-sm">
+        
+        <div class="w-[85vw] shrink-0 snap-center flex flex-col items-center gap-6 
+                    md:w-full md:min-w-0 md:shrink">
+          
+          <form id="me-user-search" class="flex flex-row gap-2 w-full">
+            <input type="text" name="username"
+                   class="flex-[5] min-w-0 flex-1 py-2 px-3 bg-slate-900
+                          border border-slate-700 rounded-md text-slate-100
+                          focus:outline-none focus:border-blue-500
+                          transition-all text-sm"
+                          ${i18nAttr("placeholder", "user_search_placeholder")} required />
+            <button type="submit"
+                    class="flex-[1] shrink-0 py-2 px-4 bg-slate-800 text-slate-100
+                           border border-slate-700 rounded-md
+                           hover:bg-slate-700 hover:border-slate-600
+                           transition-colors cursor-pointer text-sm font-bold">
               ${t("user_search_button")}
             </button>
           </form>
-          <div id="me-user-search-msg" class="text-sm text-slate-400 mt"></div>
 
           <h2 class="text-2xl font-bold tracking-wider text-center">${currentName}</h2>
           
-          <div class="flex items-center gap-3">
-            <img id="me-avatar" class="w-40 h-40 object-cover border border-slate-800 rounded-lg hover:opacity-80 hover:border-blue-500 cursor-pointer transition-all" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
-          </div>
+          <img id="me-avatar"
+               class="w-40 h-40 object-cover border border-slate-800 rounded-lg hover:opacity-80 hover:border-blue-500 cursor-pointer transition-all"
+               src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
 
-          <div id="me-avatar-picker" class="hidden mt-2 gap-2 flex-wrap items-center bg-slate-900/60 p-4 rounded-lg border border-slate-800">
-            ${pickerItems}
-            <label class="py-1.5 px-3 bg-slate-800 text-slate-200 border border-slate-700 rounded-sm cursor-pointer text-sm hover:bg-slate-700 transition-colors">
-              <input type="file" id="me-avatar-upload" class="hidden" accept="image/png" />
-              ${t("profile_image_upload")}
-            </label>
+          <div id="me-avatar-picker"
+               class="flex flex-col items-center mt-2 gap-4 p-4
+                      bg-slate-900/60 rounded-lg border border-slate-800 w-full max-w-[240px]">
+            <div class="grid grid-cols-3 gap-4 justify-items-center">
+              ${pickerItems}
+              <label class="w-12 h-12 flex items-center justify-center bg-slate-800
+                            border-2 border-dashed border-slate-600 rounded-full
+                            cursor-pointer
+                            hover:bg-slate-700 hover:border-blue-500 transition-all shadow-lg">
+                <input type="file" id="me-avatar-upload" class="hidden" accept="image/png" />
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </label>
+            </div>
           </div>
-          <div id="me-avatar-msg" class="text-xs text-slate-500"></div>
+          <div id="me-avatar-msg" class="text-xs text-slate-500 text-center"></div>
 
-          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl">
-            <h3 class="text-base font-semibold mb-1 tracking-wide uppercase text-slate-300">${t("two_factor")}</h3>
-            <p class="text-xs text-slate-500 mb-4 leading-relaxed">${t("two_factor_desc")}</p>
-            <button id="me-2fa" class="w-full py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm cursor-pointer">
+          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
+            <h3 class="text-base font-semibold mb-3 tracking-wide uppercase text-slate-300 text-center md:text-left">${t("two_factor")}</h3>
+            <button id="me-2fa" class="w-full py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm">
               ${t("two_factor_enable")}
             </button>
-            <div id="me-qr" class="mt-4 flex flex-col items-center gap-3"></div>
-            <p id="me-2fa-msg" class="mt-2 text-center text-xs text-slate-400 font-mono"></p>
           </div>
 
-          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl">
-            <h3 class="text-base font-semibold mb-1 tracking-wide uppercase text-slate-300">${t("username_change")}</h3>
-            <p class="text-xs text-slate-500 mb-4 leading-relaxed">${t("username_change_desc")}</p>
+          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
+            <h3 class="text-base font-semibold mb-3 tracking-wide uppercase text-slate-300 text-center md:text-left">${t("username_change")}</h3>
             <a href="/username-change" data-nav class="inline-block w-full text-center py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm no-underline">
               ${t("username_change_action")}
             </a>
           </div>
 
-          <button id="me-logout" class="mt-4 py-3 px-4 bg-red-950/20 text-red-500 border border-red-900/30 hover:bg-red-900/30 transition-all rounded-md font-bold text-sm cursor-pointer uppercase tracking-widest">
+          <button id="me-logout" class="mt-4 mb-40 md:mb-10 py-3 px-4 bg-red-950/20 text-red-500 border border-red-900/30 hover:bg-red-900/30 transition-all rounded-md font-bold text-sm cursor-pointer uppercase tracking-widest w-full">
             ${t("logout")}
           </button>
         </div>
