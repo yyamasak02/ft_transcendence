@@ -28,58 +28,73 @@ class MeComponent {
       (item) =>
         `<button type="button" data-profile="${item.key}">${item.label}</button>`,
     ).join("");
+// render() メソッド内の return 部分を以下に差し替え
     return `
-      <div class="me-layout">
-        <div class="me-page">
-          <form class="me-search" id="me-user-search">
-            <input
-              type="text"
-              class="me-search-input"
-              name="username"
-              ${i18nAttr("placeholder", "user_search_placeholder")}
-              required
-            />
-            <button class="me-search-btn" type="submit">
+      <div class="
+            w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar
+            md:grid md:grid-cols-[repeat(3,minmax(0,1fr))] md:overflow-visible md:flex-none
+            gap-4 p-4 lg:gap-8 lg:p-8 text-white">
+        <div class="min-w-[85vw] shrink-0 snap-center flex flex-col gap-6 
+                    justify-center items-center md:w-full md:min-w-0 md:shrink pb-20 md:pb-0">
+          <form id="me-user-search" class="flex gap-2">
+            <input type="text" name="username" class="flex-1 py-2 px-3 bg-slate-900 border border-slate-700 rounded-md text-slate-100 focus:outline-none focus:border-blue-500 transition-all" ${i18nAttr("placeholder", "user_search_placeholder")} required />
+            <button type="submit" class="py-2 px-4 bg-slate-800 text-slate-100 border border-slate-700 rounded-md hover:bg-slate-700 hover:border-slate-600 transition-colors cursor-pointer text-sm">
               ${t("user_search_button")}
             </button>
           </form>
-          <div class="me-search-msg" id="me-user-search-msg"></div>
-          <h2 class="me-title">${currentName}</h2>
-          <div class="me-avatar-row">
-            <img class="me-avatar" id="me-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
+          <div id="me-user-search-msg" class="text-sm text-slate-400 mt"></div>
+
+          <h2 class="text-2xl font-bold tracking-wider text-center">${currentName}</h2>
+          
+          <div class="flex items-center gap-3">
+            <img id="me-avatar" class="w-40 h-40 object-cover border border-slate-800 rounded-lg hover:opacity-80 hover:border-blue-500 cursor-pointer transition-all" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
           </div>
-          <div class="me-avatar-picker" id="me-avatar-picker">
+
+          <div id="me-avatar-picker" class="hidden mt-2 gap-2 flex-wrap items-center bg-slate-900/60 p-4 rounded-lg border border-slate-800">
             ${pickerItems}
-            <label class="me-avatar-upload">
-              <input type="file" id="me-avatar-upload" accept="image/png" />
+            <label class="py-1.5 px-3 bg-slate-800 text-slate-200 border border-slate-700 rounded-sm cursor-pointer text-sm hover:bg-slate-700 transition-colors">
+              <input type="file" id="me-avatar-upload" class="hidden" accept="image/png" />
               ${t("profile_image_upload")}
             </label>
           </div>
-          <div class="me-avatar-msg" id="me-avatar-msg"></div>
-        <div class="me-section">
-          <h3 class="me-section-title">${t("two_factor")}</h3>
-          <p class="me-section-desc">${t("two_factor_desc")}</p>
-          <button class="me-2fa" id="me-2fa">${t("two_factor_enable")}</button>
-          <div class="me-qr" id="me-qr"></div>
-          <p class="me-2fa-msg" id="me-2fa-msg"></p>
+          <div id="me-avatar-msg" class="text-xs text-slate-500"></div>
+
+          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl">
+            <h3 class="text-base font-semibold mb-1 tracking-wide uppercase text-slate-300">${t("two_factor")}</h3>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">${t("two_factor_desc")}</p>
+            <button id="me-2fa" class="w-full py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm cursor-pointer">
+              ${t("two_factor_enable")}
+            </button>
+            <div id="me-qr" class="mt-4 flex flex-col items-center gap-3"></div>
+            <p id="me-2fa-msg" class="mt-2 text-center text-xs text-slate-400 font-mono"></p>
+          </div>
+
+          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl">
+            <h3 class="text-base font-semibold mb-1 tracking-wide uppercase text-slate-300">${t("username_change")}</h3>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">${t("username_change_desc")}</p>
+            <a href="/username-change" data-nav class="inline-block w-full text-center py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm no-underline">
+              ${t("username_change_action")}
+            </a>
+          </div>
+
+          <button id="me-logout" class="mt-4 py-3 px-4 bg-red-950/20 text-red-500 border border-red-900/30 hover:bg-red-900/30 transition-all rounded-md font-bold text-sm cursor-pointer uppercase tracking-widest">
+            ${t("logout")}
+          </button>
         </div>
-        <div class="me-section">
-          <h3 class="me-section-title">${t("username_change")}</h3>
-          <p class="me-section-desc">${t("username_change_desc")}</p>
-          <a class="me-link" href="/username-change" data-nav>
-            ${t("username_change_action")}
-          </a>
-        </div>
-        <button class="me-logout" id="me-logout">${t("logout")}</button>
-        </div>
-        <div class="me-side">
-          <h3 class="me-side-title">${t("match_results")}</h3>
-          <div class="me-matches-summary" id="me-matches-summary"></div>
-          <div class="me-matches" id="me-matches"></div>
-        </div>
-        <div class="me-friends-panel">
-          <h3 class="me-side-title">${t("friends")}</h3>
-          <div class="me-friends-list" id="me-friends-list"></div>
+
+        <div class="min-w-[85vw] shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
+                    md:w-full md:min-w-0 md:shrink">
+          <h3 class="text-lg font-bold mb-5 border-b border-slate-800 pb-3 flex justify-between items-end">
+            ${t("match_results")}
+            <span id="me-matches-summary" class="text-[10px] text-slate-500 font-mono font-normal"></span>
+          </h3>
+          <div id="me-matches" class="flex flex-col gap-3"></div>
+        </div> 
+
+        <div class="min-w-[85vw] shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
+                    md:w-full md:min-w-0 md:shrink">
+          <h3 class="text-lg font-bold mb-5 border-b border-slate-800 pb-3">${t("friends")}</h3>
+          <div id="me-friends-list" class="flex flex-col gap-3"></div>
         </div>
       </div>
     `;
@@ -95,10 +110,14 @@ const renderTwoFactorSecret = (secret: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-qr");
   if (!container) return;
   container.innerHTML = `
-    <div class="me-qr-token">${secret}</div>
-    <button type="button" class="me-qr-copy">Copy</button>
-    <div class="me-qr-copy-msg" aria-live="polite"></div>
-  `;
+    <div class="w-full p-3 bg-black border border-slate-800 rounded font-mono text-[11px] break-all text-blue-400 text-center">
+      ${secret}
+    </div>
+    <button type="button" class="me-qr-copy w-full py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors cursor-pointer text-sm font-bold">
+      COPY KEY
+    </button>
+    <div class="me-qr-copy-msg text-[10px] text-slate-500 italic" aria-live="polite"></div>
+  `; 
   const copyButton = container.querySelector<HTMLButtonElement>(".me-qr-copy");
   const copyMsg = container.querySelector<HTMLDivElement>(".me-qr-copy-msg");
   if (!copyButton) return;
@@ -316,10 +335,10 @@ const renderFriends = (items: FriendItem[]) => {
   }
   items.forEach((item) => {
     const row = document.createElement("div");
-    row.className = "me-friend";
+    row.className = "flex gap-2.5 items-center p-2 px-2.5 border border-slate-800 bg-slate-900/40 rounded-md";
 
     const avatar = document.createElement("img");
-    avatar.className = "me-friend-avatar";
+    avatar.className = "w-10 h-10 rounded-md object-cover border border-slate-700";;
     avatar.alt = word("profile_image_alt");
     if (item.profileImage && isProfileImageKey(item.profileImage)) {
       avatar.src = getProfileImageSrc(item.profileImage);
@@ -329,16 +348,17 @@ const renderFriends = (items: FriendItem[]) => {
     }
 
     const info = document.createElement("div");
-    info.className = "me-friend-info";
+    info.className = "flex flex-col gap-0.5 flex-1 min-w-0";;
 
     const nameLink = document.createElement("a");
-    nameLink.className = "me-friend-link";
+    nameLink.className = "text-slate-100 text-sm no-underline hover:underline truncate";
     nameLink.href = `/user?name=${encodeURIComponent(item.name)}`;
     nameLink.textContent = item.name;
     nameLink.setAttribute("data-name", item.name);
 
     const status = document.createElement("div");
-    status.className = "me-friend-status";
+    const statusColor = item.online ? "text-blue-400" : "text-slate-500";
+    status.className = `text-[11px] ${statusColor}`;
     if (item.status === "accepted") {
       status.textContent = item.online
         ? word("user_profile_online")
@@ -354,18 +374,19 @@ const renderFriends = (items: FriendItem[]) => {
     info.append(nameLink, status);
 
     const actions = document.createElement("div");
-    actions.className = "me-friend-actions";
+    actions.className = "flex gap-1.5";
     if (item.status === "pending_incoming") {
       const accept = document.createElement("button");
+      const buttonClass = "py-1 px-2 bg-slate-800 text-slate-200 border border-slate-600 rounded cursor-pointer text-[11px] hover:bg-slate-700 transition-colors";
       accept.type = "button";
-      accept.className = "me-friend-accept";
+      accept.className = buttonClass;
       accept.textContent = word("friend_accept");
       accept.setAttribute("data-id", String(item.id));
       accept.setAttribute("data-action", "accept");
 
       const decline = document.createElement("button");
       decline.type = "button";
-      decline.className = "me-friend-decline";
+      decline.className = buttonClass;
       decline.textContent = word("friend_decline");
       decline.setAttribute("data-id", String(item.id));
       decline.setAttribute("data-action", "decline");
@@ -523,21 +544,21 @@ const renderMatches = (
       : MATCH_RESULT_CONFIG.lose;
     const formattedDate = formatMatchDateByLang(item.createdAt);
 
-    row.className = `me-match-card ${statusClass}`;
+    row.className = `grid grid-cols-[50px_1fr_auto] items-center p-3.5 px-4.5 bg-black border border-slate-800 rounded transition-colors hover:border-slate-500 ${statusClass}`;
 
     row.innerHTML = `
-      <div class="card-left">
-        <span class="result-symbol">${symbol}</span>
-        <span class="result-label">${resultText}</span>
+      <div class="flex flex-col items-center justify-center leading-none gap-1">
+        <span class="text-xl leading-none">${symbol}</span>
+        <span class="text-[10px] font-bold tracking-wider">${resultText}</span>
       </div>
-      <div class="card-center">
-        <div class="opponent-name">${opponent}</div>
-        <div class="match-date">${formattedDate}</div>
+      <div class="px-4 flex flex-col gap-1 overflow-hidden">
+        <div class="text-[0.95rem] font-medium truncate">${opponent}</div>
+        <div class="text-[0.7rem] text-slate-500 font-mono">${formattedDate}</div>
       </div>
-      <div class="card-right">
-        <span class="score-num my-score">${myScore}</span>
-        <span class="score-sep">-</span>
-        <span class="score-num opp-score">${oppScore}</span>
+      <div class="flex items-center gap-2 font-mono text-xl tracking-tight">
+        <span class="my-score">${myScore}</span>
+        <span class="text-slate-700 text-base font-normal">-</span>
+        <span class="opp-score text-slate-500">${oppScore}</span>
       </div>
     `;
 
