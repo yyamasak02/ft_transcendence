@@ -3,7 +3,7 @@ services:
     build:
       context: ./nginx
       dockerfile: ./docker/Dockerfile
-    image: ft_nginx
+    image: ft_nginx_prd
     container_name: ft_nginx
     ports:
       - 8443:443
@@ -21,47 +21,39 @@ services:
       dockerfile: ./docker/Dockerfile
     image: ft_frontend
     container_name: ft_frontend
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
     env_file:
       - ./frontend/.env.local
     networks:
       - ft_network
+    command: ${FE_CMD:-npm run start}
   be_common:
     build:
       context: ./backends/common
       dockerfile: ./docker/Dockerfile
-    image: ft_be_common
+    image: ft_be_common_prd
     container_name: ft_be_common
-    volumes:
-      - ./backends/common:/app
-      - /app/node_modules
-      - /app/dist
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
     env_file:
       - ./backends/common/.env.development
     networks:
       - ft_network
+    command: ${BE_COM_CMD:-npm run start}
   be_connect:
     build:
       context: ./backends/connect
-      dockerfile: ./docker/Dockerfile.dev
-    image: ft_be_connect
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_connect_prd
     container_name: ft_be_connect
-    volumes:
-      - ./backends/connect:/app
-      - /app/node_modules
-      - /app/dist
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
     env_file:
       - ./backends/connect/.env.development
     networks:
       - ft_network
+    command: ${BE_CN_CMD:-npm run start}
 networks:
   ft_network:
     driver: bridge
