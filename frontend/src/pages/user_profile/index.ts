@@ -32,7 +32,11 @@ class UserProfileComponent {
               
               <section class="flex-shrink-0 w-full md:w-full snap-center flex flex-col items-center">
                 <div class="w-[90%] md:w-full flex flex-col items-center justify-start pt-10 pb-10 border border-slate-500 rounded-xl bg-slate-800/30">
-                  <div id="user-profile-name" class="text-xl font-semibold tracking-wider text-center mb-4 text-white"></div>
+                  <div id="user-profile-name"
+                       class="
+                        text-xl font-semibold tracking-wider text-center
+                        mb-4 text-white
+                       "></div>
                   <div class="mt-2.5 flex flex-col items-center gap-3">
                     <img id="user-profile-avatar"
                          class="w-40 h-40 object-cover border border-slate-300 rounded-lg"
@@ -40,13 +44,28 @@ class UserProfileComponent {
                     <div id="user-profile-status" class="text-sm text-red-300 text-center"></div>
                   </div>
                   
-                  <button id="user-profile-friend-request" class="mt-6 py-2 px-6 bg-slate-600 text-slate-100 font-semibold border border-zinc-800 rounded-md hover:bg-slate-700 active:scale-95 transition-transform">
+                  <button id="user-profile-friend-request"
+                          class="
+                            mt-6 py-2 px-6 bg-slate-600
+                            text-slate-100 font-semibold
+                            border border-zinc-800 rounded-md
+                            hover:bg-slate-700
+                            active:scale-95 transition-transform
+                          ">
                     ${t("friend_request_button")}
                   </button>
                   
-                  <div id="user-profile-friend-msg" class="mt-1.5 text-xs text-gray-300"></div>
+                  <div id="user-profile-friend-msg"
+                       class="mt-1.5 text-xs text-gray-300"></div>
                   
-                  <button id="user-profile-back" class="mt-3.5 py-2.5 px-4 bg-slate-700 text-slate-200 font-semibold border border-slate-600 rounded-md hover:bg-slate-800 active:scale-95 transition-transform">
+                  <button id="user-profile-back"
+                          class="
+                            mt-3.5 py-2.5 px-4 bg-slate-700
+                            text-slate-200 font-semibold
+                            border border-slate-600 rounded-md
+                            hover:bg-slate-800
+                            active:scale-95 transition-transform
+                          ">
                     ${t("my_profile")}
                   </button>
 
@@ -97,7 +116,6 @@ type FriendInfo = {
   friendId: number | null;
 };
 
-// PC用mobile用に配列で準備
 class UserProfileController {
   private nameEl: HTMLDivElement;
   private statusEl: HTMLDivElement;
