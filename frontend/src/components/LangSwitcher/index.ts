@@ -1,14 +1,6 @@
 import { langManager } from "@/i18n";
 import type { Lang } from "@/i18n/lang";
 
-// フラグイメージ
-const FLAG_SRC: Record<Lang, string> = {
-  en: "/flags/us.png",
-  ja: "/flags/ja.svg",
-  ita: "/flags/it.svg",
-  edo: "/flags/ja.svg",
-};
-
 export class LangSwitcher {
   private root: HTMLDivElement;
   private select: HTMLSelectElement;
@@ -16,7 +8,6 @@ export class LangSwitcher {
 
   constructor() {
     this.root = document.createElement("div");
-    // this.root.className = "lang-switcher";
     this.root.className = "inline-flex items-center gap-2";
 
     // フラグイメージ初期化
@@ -26,7 +17,6 @@ export class LangSwitcher {
     this.flagImg.decoding = "async";
 
     this.select = document.createElement("select");
-    // this.select.className = "lang-select";
     this.select.className = [
 			"cursor-pointer",
 			"rounded-md",
@@ -38,22 +28,27 @@ export class LangSwitcher {
 			"focus-visible:ring-2 focus-visible:ring-white/50",
 		].join(" ");
 
-    const langs: { lang: Lang; label: string }[] = [
-      { lang: "en", label: "English" },
-      { lang: "ja", label: "日本語" },
-			{ lang: "ita", label: "Italiano" },
-      { lang: "edo", label: "江戸言葉" },
+    // langsにflagを加える
+    const langs: { lang: Lang; label: string; flag: string }[] = [
+      { lang: "en", label: "English", flag: "/flags/us.png" },
+      { lang: "ja", label: "日本語", flag: "/flags/ja.svg"},
+			{ lang: "ita", label: "Italiano", flag: "/flags/it.svg" },
+      { lang: "edo", label: "江戸言葉", flag: "/flags/ja.svg" },
     ];
 
-    for (const { lang, label } of langs) {
+    for (const { lang, label, flag } of langs) {
       const option = document.createElement("option");
       option.value = lang;
       option.textContent = label;
+      option.dataset.flag = flag;
       this.select.appendChild(option);
     }
 
     // 初期状態を反映
     this.select.value = langManager.lang;
+    if (this.select.selectedOptions.length === 0) {
+      this.select.selectedIndex = 0;
+    }
     this.syncFlag();
 
     // UI → State
@@ -64,6 +59,9 @@ export class LangSwitcher {
     // State → UI（外部から言語が変わった場合）
     langManager.addEventListener("change", () => {
       this.select.value = langManager.lang;
+      if (this.select.selectedOptions.length === 0) {
+        this.select.selectedIndex = 0;
+      }
       this.syncFlag();
     });
 
@@ -73,8 +71,15 @@ export class LangSwitcher {
 
   // フラグイメージを同期させる
   private syncFlag() {
-    const lang = langManager.lang;
-    this.flagImg.src = FLAG_SRC[lang];
+    const opt = this.select.selectedOptions[0]; // 選択中の option ノード
+    if (opt && opt.dataset.flag) {
+      this.flagImg.src = opt.dataset.flag;
+      return;
+    }
+  
+    // fallback: 先頭 option の flag を使う（完全に壊れない）
+    const first = this.select.options[0];
+    this.flagImg.src = first?.dataset.flag ?? "";
   }
 
   mount(container: ParentNode) {
