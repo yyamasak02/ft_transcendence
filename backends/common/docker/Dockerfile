@@ -13,7 +13,7 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-EXPOSE 8080
+EXPOSE 80
 
 RUN npm run build
 
