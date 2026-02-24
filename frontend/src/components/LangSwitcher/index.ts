@@ -4,7 +4,17 @@ import type { Lang } from "@/i18n/lang";
 export class LangSwitcher {
   private root: HTMLDivElement;
   private select: HTMLSelectElement;
-  private flagImg: HTMLImageElement; 
+  private flagImg: HTMLImageElement;
+
+  private static readonly LANG_SETTING_MAP: Record<
+    Lang,
+    { label: string; flag: string }
+  > = {
+    en: { label: "English", flag: "/flags/us.png" },
+    ja: { label: "日本語", flag: "/flags/ja.svg" },
+    ita: { label: "Italiano", flag: "/flags/it.svg" },
+    edo: { label: "江戸言葉", flag: "/flags/ja.svg" },
+  };
 
   constructor() {
     this.root = document.createElement("div");
@@ -18,38 +28,27 @@ export class LangSwitcher {
 
     this.select = document.createElement("select");
     this.select.className = [
-			"cursor-pointer",
-			"rounded-md",
-			"border border-white/20",
-			"bg-black/40",
-			"px-2 py-1",
-			"text-sm text-white",
-			"outline-none",
-			"focus-visible:ring-2 focus-visible:ring-white/50",
-		].join(" ");
+      "cursor-pointer",
+      "rounded-md",
+      "border border-white/20",
+      "bg-black/40",
+      "px-2 py-1",
+      "text-sm text-white",
+      "outline-none",
+      "focus-visible:ring-2 focus-visible:ring-white/50",
+    ].join(" ");
 
-    // langsにflagを加える
-    const langs: { lang: Lang; label: string; flag: string }[] = [
-      { lang: "en", label: "English", flag: "/flags/us.png" },
-      { lang: "ja", label: "日本語", flag: "/flags/ja.svg"},
-			{ lang: "ita", label: "Italiano", flag: "/flags/it.svg" },
-      { lang: "edo", label: "江戸言葉", flag: "/flags/ja.svg" },
-    ];
-
-    for (const { lang, label, flag } of langs) {
+    for (const [lang, { label }] of Object.entries(
+      LangSwitcher.LANG_SETTING_MAP,
+    )) {
       const option = document.createElement("option");
       option.value = lang;
       option.textContent = label;
-      option.dataset.flag = flag;
       this.select.appendChild(option);
     }
 
     // 初期状態を反映
-    this.select.value = langManager.lang;
-    if (this.select.selectedOptions.length === 0) {
-      this.select.selectedIndex = 0;
-    }
-    this.syncFlag();
+    this.updateUI();
 
     // UI → State
     this.select.addEventListener("change", () => {
@@ -58,32 +57,21 @@ export class LangSwitcher {
 
     // State → UI（外部から言語が変わった場合）
     langManager.addEventListener("change", () => {
-      this.select.value = langManager.lang;
-      if (this.select.selectedOptions.length === 0) {
-        this.select.selectedIndex = 0;
-      }
-      this.syncFlag();
+      this.updateUI();
     });
 
     this.root.appendChild(this.flagImg);
     this.root.appendChild(this.select);
   }
 
-  // フラグイメージを同期させる
-  private syncFlag() {
-    const opt = this.select.selectedOptions[0]; // 選択中の option ノード
-    if (opt && opt.dataset.flag) {
-      this.flagImg.src = opt.dataset.flag;
-      return;
-    }
-  
-    // fallback: 先頭 option の flag を使う（完全に壊れない）
-    const first = this.select.options[0];
-    this.flagImg.src = first?.dataset.flag ?? "";
+  private updateUI() {
+    const lang = langManager.lang;
+    this.select.value = lang;
+    this.flagImg.src = LangSwitcher.LANG_SETTING_MAP[lang].flag;
   }
 
   mount(container: ParentNode) {
-		this.unmount();
+    this.unmount();
     container.appendChild(this.root);
   }
 
