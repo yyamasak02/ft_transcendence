@@ -28,7 +28,7 @@ class UserProfileComponent {
         <div class="max-w-[1000px] mx-auto p-6 md:p-10">
           <div class="w-full bg-transparent">
             
-            <div class="flex md:grid md:grid-cols-2 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory scrollbar-hide gap-6">
+            <div class="flex md:grid md:grid-cols-2 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory gap-6">
               
               <section class="flex-shrink-0 w-full md:w-full snap-center flex flex-col items-center">
                 <div class="w-[90%] md:w-full flex flex-col items-center justify-start pt-10 pb-10 border border-slate-500 rounded-xl bg-slate-800/30">
@@ -84,9 +84,14 @@ class UserProfileComponent {
               </section>
 
             </div>
-              <div id="slide-dots" class="md:hidden flex justify-center gap-2 mt-4">
-                <div class="dot w-4 h-2 rounded-full bg-indigo-600 transition-all duration-300"></div>
-                <div class="dot w-2 h-2 rounded-full bg-slate-700 transition-all duration-300></div>
+              <div id="slide-dots"
+                   class="md:hidden flex justify-center gap-2 mt-4"
+                   aria-label="Profile sections">
+                <div class="dot w-4 h-2 rounded-full bg-indigo-600 transition-all duration-300"
+                     aria-label="Section 1 of 2 (current)"
+                     aria-current="true"></div>
+                <div class="dot w-2 h-2 rounded-full bg-slate-700 transition-all duration-300"
+                     aria-label="Section 2 of 2"></div>
               </div>
           </div>  
         </div>
@@ -126,13 +131,13 @@ class UserProfileController {
   private matchesEl: HTMLDivElement;
 
   constructor() {
-    this.nameEl = document.getElementById("user-profile-name") as HTMLDivElement;
-    this.statusEl = document.getElementById("user-profile-status") as HTMLDivElement;
-    this.avatarEl = document.getElementById("user-profile-avatar") as HTMLImageElement;
-    this.friendButton = document.getElementById("user-profile-friend-request") as HTMLButtonElement;
-    this.friendMsg = document.getElementById("user-profile-friend-msg") as HTMLDivElement;
-    this.backButton = document.getElementById("user-profile-back") as HTMLButtonElement;
-    this.matchesEl = document.getElementById("user-profile-matches") as HTMLDivElement;
+    this.nameEl = document.getElementById("user-profile-name")! as HTMLDivElement;
+    this.statusEl = document.getElementById("user-profile-status")! as HTMLDivElement;
+    this.avatarEl = document.getElementById("user-profile-avatar")! as HTMLImageElement;
+    this.friendButton = document.getElementById("user-profile-friend-request")! as HTMLButtonElement;
+    this.friendMsg = document.getElementById("user-profile-friend-msg")! as HTMLDivElement;
+    this.backButton = document.getElementById("user-profile-back")! as HTMLButtonElement;
+    this.matchesEl = document.getElementById("user-profile-matches")! as HTMLDivElement;
   }
 
   // username, status
@@ -297,13 +302,18 @@ class UserProfileController {
       const oppScore = isOwner ? item.guestScore : item.ownerScore;
 
       const isWin = myScore > oppScore;
-      const { statusClass, symbol, resultText } = isWin
+      const { symbol, resultText } = isWin
         ? MATCH_RESULT_CONFIG.win
         : MATCH_RESULT_CONFIG.lose;
 
       const formattedDate = formatMatchDateByLang(item.createdAt);
 
-      row.className = `user-profile-match ${statusClass}`;
+      const baseClass = "flex items-center gap-4 rounded-lg border px-4 py-3 bg-slate-900/40 border-slate-700/80";
+      const rowStatusClass = isWin
+        ? "border-l-4 border-l-emerald-500"
+        : "border-l-4 border-l-rose-500 opacity-80";
+
+      row.className = `${baseClass} ${rowStatusClass}`;
 
       row.innerHTML = `
         <div class="card-left">

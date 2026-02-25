@@ -15,6 +15,7 @@ import {
 import { formatMatchDate } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
+import type { I18nKey } from "@/i18n/lang";
 
 const UPLOAD_IMAGE_SIZE = 256;
 
@@ -40,7 +41,7 @@ class MeComponent {
 
     return `
       <div class="
-            w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar
+            w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth
             md:grid md:grid-cols-[repeat(3,minmax(0,1fr))] md:overflow-visible md:flex-none
             gap-4 p-4 lg:gap-8 lg:p-8 text-white">
         
@@ -61,6 +62,10 @@ class MeComponent {
                            transition-colors cursor-pointer text-sm font-bold">
               ${t("user_search_button")}
             </button>
+            <p
+              id="me-user-search-msg"
+              class="mt-2 min-h-[1.5rem] text-sm text-red-400">
+            </p>
           </form>
 
           <h2 class="text-2xl font-bold tracking-wider text-center">${currentName}</h2>
@@ -70,7 +75,7 @@ class MeComponent {
                src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
 
           <div id="me-avatar-picker"
-               class="flex flex-col items-center mt-2 gap-4 p-4
+               class="hidden flex-col items-center mt-2 gap-4 p-4
                       bg-slate-900/60 rounded-lg border border-slate-800 w-full max-w-[240px]">
             <div class="grid grid-cols-3 gap-4 justify-items-center">
               ${pickerItems}
@@ -96,6 +101,11 @@ class MeComponent {
             <button id="me-2fa" class="w-full py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm">
               ${t("two_factor_enable")}
             </button>
+            <!-- 2FA 状態・メッセージ表示用（現時点では空） -->
+            <div
+              id="me-2fa-msg"
+              class="mt-2 text-xs text-slate-500 text-center"
+            ></div>
           </div>
 
           <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
@@ -134,6 +144,10 @@ const setTwoFactorMsg = (message: string) => {
   if (el) el.textContent = message;
 };
 
+// NOTE:
+// 2FA secret は実際に使用する（Stateとして保持）。
+// QRコード表示用コンテナ (#me-qr) は将来のUI実装向け。
+// 現在の画面ではUI未実装のため、表示処理はスキップする。
 const renderTwoFactorSecret = (secret: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-qr");
   if (!container) return;
@@ -300,8 +314,19 @@ const setupUserSearch = () => {
   const form = document.querySelector<HTMLFormElement>("#me-user-search");
   const message = document.querySelector<HTMLDivElement>("#me-user-search-msg");
   if (!form) return;
+
+  const setMsg = (key: I18nKey) => {
+    if (!message) return;
+    message.innerHTML = t(key);
+  };
+  const clearMsg = () => {
+    if (!message) return;
+    message.textContent = "";
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    clearMsg();
     if (message) message.textContent = "";
     const formData = new FormData(form);
     const name = String(formData.get("username") ?? "").trim();
@@ -311,7 +336,7 @@ const setupUserSearch = () => {
       ? (decodeJwtPayload(accessToken)?.name ?? "")
       : "";
     if (currentName && currentName.toLowerCase() === name.toLowerCase()) {
-      if (message) message.textContent = word("user_search_self");
+      setMsg("user_search_self");
       return;
     }
     if (!accessToken) {
@@ -330,17 +355,17 @@ const setupUserSearch = () => {
         },
       );
       if (res.status === 404) {
-        if (message) message.textContent = word("user_profile_not_found");
+        setMsg("user_profile_not_found");
         return;
       }
       if (!res.ok) {
-        if (message) message.textContent = word("user_search_failed");
+        setMsg("user_search_failed");
         return;
       }
       navigate(`/user?name=${encodeURIComponent(name)}`);
     } catch (error) {
       console.error("User search failed", error);
-      if (message) message.textContent = word("user_search_failed");
+      setMsg("user_search_failed");
     }
   });
 };
@@ -366,7 +391,7 @@ const renderFriends = (items: FriendItem[]) => {
     row.className = "flex gap-2.5 items-center p-2 px-2.5 border border-slate-800 bg-slate-900/40 rounded-md";
 
     const avatar = document.createElement("img");
-    avatar.className = "w-10 h-10 rounded-md object-cover border border-slate-700";;
+    avatar.className = "w-10 h-10 rounded-md object-cover border border-slate-700";
     avatar.alt = word("profile_image_alt");
     if (item.profileImage && isProfileImageKey(item.profileImage)) {
       avatar.src = getProfileImageSrc(item.profileImage);
@@ -376,7 +401,7 @@ const renderFriends = (items: FriendItem[]) => {
     }
 
     const info = document.createElement("div");
-    info.className = "flex flex-col gap-0.5 flex-1 min-w-0";;
+    info.className = "flex flex-col gap-0.5 flex-1 min-w-0";
 
     const nameLink = document.createElement("a");
     nameLink.className = "text-slate-100 text-sm no-underline hover:underline truncate";
@@ -721,6 +746,12 @@ const uploadProfileImage = async (imageBase64: string, name: string | null) => {
       }
       return;
     }
+
+    // upload成功後
+    const picker = document.querySelector<HTMLDivElement>("#me-avatar-picker");
+    if (picker) {
+      picker.classList.add("hidden");
+    }
     const img = document.querySelector<HTMLImageElement>("#me-avatar");
     if (img) {
       img.src = imageBase64;
@@ -739,11 +770,22 @@ const setupProfileImagePicker = () => {
   const uploadInput =
     document.querySelector<HTMLInputElement>("#me-avatar-upload");
   const message = document.querySelector<HTMLDivElement>("#me-avatar-msg");
-  if (!avatarImg || !picker) return;
-  avatarImg.addEventListener("click", (event) => {
-    event.preventDefault();
-    picker.classList.toggle("is-open");
-  });
+
+  if (!avatarImg || !picker || !uploadInput) return;
+  if (picker.dataset.bound === "1") return;
+
+  picker.dataset.bound = "1";
+
+  const closePicker = () => { picker.classList.add("hidden"); };
+  const togglePicker = () => { picker.classList.toggle("hidden"); };
+
+  avatarImg.addEventListener("click", togglePicker);
+  document.addEventListener("click", (e) => {
+    const target = e.target as Node;
+    if (picker.contains(target) || avatarImg.contains(target)) return;
+    closePicker();
+  })
+
   picker.addEventListener("click", (event) => {
     const target = event.target as HTMLElement | null;
     if (!target) return;
@@ -757,7 +799,6 @@ const setupProfileImagePicker = () => {
       ? (decodeJwtPayload(accessToken)?.name ?? null)
       : null;
     updateProfileImage(profileImage, name);
-    picker.classList.remove("is-open");
   });
   if (uploadInput) {
     uploadInput.addEventListener("change", () => {
@@ -777,7 +818,6 @@ const setupProfileImagePicker = () => {
         uploadInput.value = "";
         return;
       }
-      picker.classList.remove("is-open");
       const reader = new FileReader();
       reader.onload = () => {
         const result = typeof reader.result === "string" ? reader.result : null;

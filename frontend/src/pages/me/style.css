@@ -32,7 +32,7 @@
   cursor: pointer;
 } */
 
-/* .me-avatar-row {
+.me-avatar-row {
   margin-top: 10px;
   display: flex;
   align-items: center;
@@ -51,7 +51,7 @@
 
 .me-avatar-link:hover {
   color: #e0e0e0;
-} */
+}
 
 /* .me-avatar-picker {
   margin-top: 8px;
@@ -94,9 +94,9 @@
   border-color: #777;
 } */
 
-/* .me-avatar-upload input {
+.me-avatar-upload input {
   display: none;
-} */
+}
 
 /* .me-avatar-msg {
   margin-top: 8px;
@@ -148,9 +148,7 @@
 
 .me-qr img {
   display: block;
-  border: 6px solid #fff;
-  margin: 10px auto;
-  border-radius: 4px;
+  border: 6px solid #111;
   background: #111;
 }
 
@@ -267,9 +265,9 @@
   border-radius: 4px;
 } */
 
-/* .me-search-input::placeholder {
+.me-search-input::placeholder {
   color: #666;
-} */
+}
 
 /* .me-search-btn {
   padding: 8px 12px;
@@ -297,7 +295,7 @@
   gap: 10px;
 } */
 
-/* .me-match-card {
+.me-match-card {
   display: grid;
   grid-template-columns: 50px 1fr auto;
   align-items: center;
@@ -311,7 +309,7 @@
 
 .me-match-card:hover {
   border-color: #777;
-} */
+}
 
 /* .card-left {
   display: flex;
@@ -417,7 +415,7 @@
   color: #d0d0d0;
 } */
 
-/* .me-friend {
+.me-friend {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -483,4 +481,4 @@
 .me-friend-decline:hover {
   background: #3b3b3b;
   border-color: #777;
-} */
+}
