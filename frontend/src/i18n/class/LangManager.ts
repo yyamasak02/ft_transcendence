@@ -2,6 +2,7 @@
 import { en } from "../locale/en";
 import { ja } from "../locale/ja";
 import { edo } from "../locale/edo";
+import { ita } from "../locale/it";
 import type { Lang, I18nKey, I18nDict } from "../lang";
 
 const LANG_KEY = "app_lang";
@@ -18,7 +19,7 @@ export class LangManager extends EventTarget {
 
   constructor(defaultLang: Lang = "en") {
     super();
-    this._dict = { en, ja, edo };
+    this._dict = { en, ja, ita, edo };
     const stored = localStorage.getItem(LANG_KEY) as Lang | null;
     this._lang = stored && stored in this._dict ? stored : defaultLang;
   }
@@ -27,7 +28,7 @@ export class LangManager extends EventTarget {
     return this._lang;
   }
 
-  word(key: I18nKey): string {
+  word(key: I18nKey): string | undefined {
     return this._dict[this._lang][key];
   }
 
