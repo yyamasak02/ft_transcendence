@@ -298,6 +298,14 @@ class UserProfileController {
       const opponent = isOwner
         ? (item.guestName ?? word("unknown_user"))
         : item.ownerName;
+      const escapeHtml = (s: string) =>
+        s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      const safeOpponent = escapeHtml(opponent);
       const myScore = isOwner ? item.ownerScore : item.guestScore;
       const oppScore = isOwner ? item.guestScore : item.ownerScore;
 
@@ -321,7 +329,7 @@ class UserProfileController {
           <span class="text-xs font-semibold text-slate-400 tracking-tight">${resultText}</span>
         </div>
         <div class="flex flex-col flex-1 overflow-hidden">
-          <div class="text-base font-semibold text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis">${opponent}</div>
+          <div class="text-base font-semibold text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis">${safeOpponent}</div>
           <div class="text-xs text-slate-500 mt-0.5">${formattedDate}</div>
         </div>
         <div class="flex items-center gap-2 font-mono font-semibold text-xl ml-4">
