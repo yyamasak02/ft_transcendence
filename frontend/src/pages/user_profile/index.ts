@@ -286,7 +286,7 @@ class UserProfileController {
     if (!this.matchesEl) return;
 
     if (!items.length) {
-      this.matchesEl.textContent = word("no_matches");
+      this.matchesEl.textContent = word("no_matches") ?? null;
       return;
     }
 
@@ -398,7 +398,8 @@ class UserProfileController {
         );
         return;
       }
-      const profileName = String(body.name ?? name);
+      const profileName = body.name ?? name ?? "";
+      // const profileName = String(body.name ?? name);
       const online = Boolean(body.online);
       const friendInfo = await this.loadFriendStatus(profileName);
       this.setProfileHeader(profileName, online, friendInfo.isFriend);

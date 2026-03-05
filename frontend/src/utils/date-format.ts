@@ -1,4 +1,4 @@
-export type LangKey = "en" | "ja" | "edo";
+export type LangKey = "en" | "ja" | "ita" | "edo";
 
 const TIME_ZONE = "Asia/Tokyo";
 
