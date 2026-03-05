@@ -1,5 +1,6 @@
 // src/i18n/edo.ts
 export const edo = {
+  // navbar
   home: "根城",
   pingpong: "平面描画-打ち合い",
   pingpong3d: "立体描画-打ち合い",
@@ -7,6 +8,8 @@ export const edo = {
   login: "名乗り口",
   websocket: "早馬",
   home_return: "根城に戻る",
+
+  // setting
   score_to_win: "勝ちに要る点:",
   ball_speed: "玉の速さ:",
   count_speed: "合図の間:",
@@ -28,24 +31,33 @@ export const edo = {
   pink: "桃",
   length: "木刀の長さ",
   start: "勝負はじめ",
+
   settings: "支度",
   pause: "一服",
   resume: "続きだ",
   reset: "巻き戻し",
   camera_reset: "映写機巻き戻し",
+  
+  // login, register
   username: "名乗り",
   password: "秘密の言葉",
   password_confirm: "秘密の言葉をもう一度",
   keep_login: "名乗りを覚えとけ",
   enter: "これで決まりじゃ",
+
+  //finish
   wins: "が勝ちじゃ!",
   player1: "挑む者 その壱",
   player2: "挑む者 その弍",
+
+  // setting
   press_enter: "'Enter'を押せば始まりじゃ",
   local: "目の前の敵と戦う",
   online: "見えぬ敵と戦う",
   select_game_mode: "戦い方を選べ",
   select_method: "WやS あるいは ▲や▼ で選べるぞ",
+
+  // login, register
   confirm: "Enter(↩︎)を押せば決まりじゃ",
   signup: "名を刻む",
   register: "これで決まりじゃ",
@@ -53,6 +65,8 @@ export const edo = {
   to_signup: "名を刻みに行く",
   to_login: "名乗り口に戻る",
   other_login_methods: "他の名乗り方",
+
+  // google
   google_signup: "Googleで名を刻む",
   google_signup_desc: "Googleの見届けは済んだ。名を決めなされ。",
   google_signup_missing: "Googleの見届けが無い。もう一度名乗るのじゃ。",
@@ -65,6 +79,8 @@ export const edo = {
   google_login_error: "Googleの名乗りでしくじったのじゃ",
   google_client_id_missing: "VITE_GOOGLE_CLIENT_ID が無いぞ。",
   google_script_load_failed: "Googleの巻物が読めぬのじゃ",
+
+  // login
   login_required: "書状の宛先と合言葉を入れるのじゃ。",
   email_required: "書状の宛先を入れるのじゃ。",
   email_invalid: "書状の宛先が正しくないのじゃ。",
@@ -76,6 +92,8 @@ export const edo = {
   username_min_length: "名は五文字以上じゃ。",
   username_roman_only: "名は英数字のみじゃ。",
   username_taken: "その名は既に取られておる。",
+
+  // profile
   current_username: "いまの名",
   username_change: "名を改める",
   username_change_desc: "新しき名を刻むのじゃ。",
@@ -86,11 +104,16 @@ export const edo = {
   username_change_required: "新しき名を入れるのじゃ。",
   username_change_back: "名乗りへ戻る",
   login_required_for_change: "名を改めるにはログインが必要じゃ。",
+
+  // password
   password_min_length: "合言葉は八文字以上じゃ。",
   password_mismatch: "合言葉が合わぬ。",
   register_success: "名を刻めた。名乗りに行くのじゃ。",
   register_error: "名を刻む折にしくじったのじゃ",
+
   other_signup_methods: "他の名の刻み方",
+  
+  // profile
   recent_matches: "直近十の勝負",
   no_matches: "勝負の記録が無いぞ。",
   ai_opponent: "AI",
@@ -99,6 +122,7 @@ export const edo = {
   result_draw: "引き分け",
   match_results: "勝負の結果",
   match_results_fetch_failed: "勝負の記録を取れなんだ。",
+
   match_summary: "勝負の内訳",
   user_search_placeholder: "名で探す",
   user_search_button: "探す",
@@ -108,12 +132,14 @@ export const edo = {
   user_profile_not_found: "名が見つからぬ。",
   user_search_failed: "名探しにしくじったのじゃ。",
   user_search_self: "己の名は探せぬ。",
+
   my_profile: "己の名乗り",
   profile_image_change: "改める",
   profile_image_upload: "PNGを上げる",
   profile_image_alt: "名の絵",
   profile_image_invalid_type: "PNGのみ受け付ける。",
   profile_image_too_large: "絵は一MBまでじゃ。",
+
   friends: "朋",
   friends_empty: "朋がまだおらぬ。",
   friend_request_button: "朋申請",
@@ -126,7 +152,10 @@ export const edo = {
   friend_status_pending_outgoing: "申請を送った",
   friend_accept: "はい",
   friend_decline: "いいえ",
+
   user_menu: "名乗り",
+  
+  // 2FA
   two_factor: "二段の見届け",
   two_factor_desc: "名を守るため、二段の見届けを使うぞ。",
   two_factor_enable: "二段の見届けを有にする",
@@ -141,6 +170,8 @@ export const edo = {
   two_factor_code_required: "印を入れるのじゃ。",
   two_factor_verify_failed: "二段の見届けが通らなんだ",
   two_factor_already_enabled: "二段の見届けはもう有じゃ。",
+
+  // setting
   player2Type: "敵方",
   easyLv: "軍師(足軽)",
   normalLv: "軍師(武士)",
@@ -149,7 +180,11 @@ export const edo = {
   collapse_mode: "土俵際:",
   collapse_explanation: "前進する他、助かるすべなし",
   further: "進め!!!",
+
+  // profile
   logout: "お暇（いとま）する",
+  
+  // setting
   remote: "遠見",
   guest: "お客人",
   host: "亭主",
@@ -166,66 +201,86 @@ export const edo = {
   remote_game_starting_in: "始まりまであと",
   seconds_unit: "秒",
   remote_game_started: "勝負、始まりだ！",
+
   unknown_user: "名無しの権兵衛",
+  
   mode_local: "手前勝負",
   mode_local_desc: "一所に集いて相見える",
   mode_host: "座敷を構える",
   mode_host_desc: "主となり待ち人となる",
   mode_guest: "主を探す",
   mode_guest_desc: "一宿一飯の恩義を忘れることなかれ",
+
   room_id_placeholder_host: "割符は既にある。",
   room_id_placeholder_guest: "割符を示せ",
   click_to_copy: "写し身",
   copied: "忍!",
 	failed: "Copy failed!",
+
   htp_page1: '<span class="highlight">誉れ高き点のため、球を逃すな</span>',
   htp_page2: '<span class="key">W</span> <span class="key">S</span> あるいは <span class="key">↑</span> <span class="key">↓</span> で木刀を動かすのじゃ。',
   htp_page3: "画面をなぞると、見え方（視点）が回るぞ。",
   htp_page4: "右上の印で、一服や視点の戻し、支度（設定）ができるのじゃ。",
-	terms: "Terms of Service",
-	update: "Last updated:",
-	terms1: "This application is a student project developed as part of an educational program.",
-	terms2: "By accessing or using this application, you agree to the following terms:",
-	terms_l1: "This application is provided \"as is\", without warranties of any kind, express or implied.",
-	terms_l2: "The developers assume no responsibility for any damages, data loss, or issues resulting from use of this application.",
-	terms_l3: "The service may be modified, suspended, or discontinued at any time without prior notice.",
-	terms_l4: "You agree not to use this application for any unlawful, harmful, or malicious activities.",
-	terms3: "If you do not agree to these terms, please discontinue use of this application.",
-	privacy: "Privacy Policy",
-	privacy_s: "This Privacy Policy explains how this application collects, uses, and protects user information. This project was developed as part of an educational program and is not intended for commercial use.",
-	privacy_1_t: "1. Information We Collect",
-	privacy_1_s: "Depending on how you use the application, we may collect:",
-	privacy_1_l1: "Username",
-	privacy_1_l2: "Email address",
-	privacy_1_l3: "Authentication information via OAuth providers (Google, GitHub, 42, etc.)",
-	privacy_1_l4: "Game-related data (scores, match history, settings)",
-	privacy_1_l5: "Two-Factor Authentication status",
-	privacy_2: "2. How We Use Information",
-	privacy_2_l1: "To authenticate users",
-	privacy_2_l2: "To provide multiplayer and game features",
-	privacy_2_l3: "To manage user accounts and profiles",
-	privacy_2_l4: "To improve application functionality",
-	privacy_3: "3. Data Storage",
-	privacy_3_s1: "User data is stored in a database (e.g., SQLite) within a containerized development environment. Access is limited to project members.",
-	privacy_3_s2: "This project does not intentionally share user data with third parties.",
-	privacy_4: "4. OAuth Authentication",
-	privacy_4_s1: "When using external authentication providers (Google, GitHub, 42), the application receives basic profile information according to the provider’s authorization policies.",
-	privacy_4_s2: "Please refer to each provider’s privacy policy for details:",
-	privacy_4_l1: "Google Privacy Policy",
-	privacy_4_l2: "GitHub Privacy Policy",
-	privacy_4_l3: "42 Intranet Policies",
-	privacy_5: "5. Data Retention",
-	privacy_5_s1: "User data may be retained for the duration of the project.",
-	privacy_5_s2: "Accounts may be deleted upon request where technically feasible.",
-	privacy_5_s3: "Users may request deletion of their account and associated data by contacting the project team.",
-	privacy_5_s4: "Deletion requests will be processed where technically feasible.",
-	privacy_6: "6. Security",
-	privacy_6_s: "Reasonable security measures are implemented, including:",
-	privacy_6_l1: "JWT-based authentication",
-	privacy_6_l2: "Two-Factor Authentication support",
-	privacy_6_l3: "Secure containerized backend services",
-	privacy_7: "7. Limitation",
-	privacy_7_s: "As this is a student project, the application is provided 'as is' without guarantees of production-level security.",
-	privacy_8: "8. Contact",
-	privacy_8_s: "For privacy-related questions, please contact the project team through the repository or official communication channel.",
+
+  // terms
+	terms: "御定め",
+  update: "改め日：",
+  terms1: "これは学びのための拵え物でい。",
+  terms2: "使うなら、下の御定めに従いなせえ：",
+
+  terms_l1: "この拵えは『あるがまま』でい。",
+  terms_l2: "損や不都合は引き受けられねえ。",
+  terms_l3: "いつでも変わるやもしれねえ。",
+  terms_l4: "悪さには使うんじゃねえ。",
+  terms3: "承知できねえなら、おやめなせえ。",
+
+  // privacy
+  privacy: "身の内の定め",
+  privacy_s: "どう集め、どう使い、どう守るかの話でい。",
+
+  privacy_1_t: "一、集めるもの",
+  privacy_1_s: "使いようで集めることがある：",
+  privacy_1_l1: "名乗り",
+  privacy_1_l2: "宛先",
+  privacy_1_l3: "外の御印の手立て",
+  privacy_1_l4: "勝負の記し",
+  privacy_1_l5: "二重仕掛けの様子",
+  
+  privacy_2: "二、使い道",
+  privacy_2_l1: "本人確かめ",
+  privacy_2_l2: "勝負や仲間のため",
+  privacy_2_l3: "名札の手入れ",
+  privacy_2_l4: "より良くするため",
+  
+  privacy_3: "三、しまい所",
+  privacy_3_s1: "箱の中の帳面にしまってある。",
+  privacy_3_s2: "よそへは渡さねえ。",
+  
+  privacy_4: "四、外の御印",
+  privacy_4_s1: "外の御印から最低限の名を受け取る。",
+  privacy_4_s2: "詳しくはそれぞれの定めを見なせえ：",
+  privacy_4_l1: "ぐーぐるの定め",
+  privacy_4_l2: "ぎっとはぶの定め",
+  privacy_4_l3: "四十二の定め",
+  
+  privacy_5: "五、持ち置き",
+  privacy_5_s1: "学びの間は持ち置くことがある。",
+  privacy_5_s2: "願いがあれば消すこともある。",
+  privacy_5_s3: "消し願いはお知らせなせえ。",
+  privacy_5_s4: "叶う限り応じるでい。",
+  
+  privacy_6: "六、守り",
+  privacy_6_s: "そこそこ堅くしてある：",
+  privacy_6_l1: "札による確かめ",
+  privacy_6_l2: "二重仕掛け",
+  privacy_6_l3: "箱での守り",
+  
+  privacy_7: "七、但し書き",
+  privacy_7_s: "学びの拵えゆえ、世の本式ほどではねえ。",
+  
+  privacy_8: "八、問合せ",
+  privacy_8_s: "用向きは帳面や口伝で知らせなせえ。",
+  
+  // not found
+  notfound: "お探しのページは見当たらねぇようで",
 } as const;
