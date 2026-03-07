@@ -11,6 +11,7 @@ import {
 import { formatMatchDate } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
+import { escapeHtml } from "@/utils/escape";
 
 type MatchItem = {
   id: number;
@@ -105,14 +106,10 @@ const formatMatchDateByLang = (createdAt: string) =>
 
 const MATCH_RESULT_CONFIG = {
   win: {
-    statusClass: "status-win",
     symbol: "●",
-    resultText: "WIN",
   },
   lose: {
-    statusClass: "status-lose",
     symbol: "○",
-    resultText: "LOSE",
   },
 } as const;
 
@@ -144,9 +141,10 @@ class UserProfileController {
   setProfileHeader(name: string, online: boolean, isFriend: boolean) {
     if (!this.nameEl || !this.statusEl) return;
 
+    const safeName = escapeHtml(name);
     this.nameEl.innerHTML = isFriend
-      ? `<span class="text-yellow-200">&#9829;</span> ${name}`
-      : name;
+      ? `<span class="text-yellow-200">&#9829;</span> ${safeName}`
+      : safeName;
 
     const statusText = online ? word("user_profile_online") : word("user_profile_offline"); 
     this.statusEl.textContent = statusText;
@@ -297,26 +295,23 @@ class UserProfileController {
       const isOwner = item.ownerName === profileName;
       const opponent = isOwner
         ? (item.guestName ?? word("unknown_user"))
-        : item.ownerName;
-      const escapeHtml = (s: string) =>
-        s
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
+        : (item.ownerName ?? word("unknown_user"));
       const safeOpponent = escapeHtml(opponent);
       const myScore = isOwner ? item.ownerScore : item.guestScore;
       const oppScore = isOwner ? item.guestScore : item.ownerScore;
 
-      const isWin = myScore > oppScore;
-      const { symbol, resultText } = isWin
-        ? MATCH_RESULT_CONFIG.win
-        : MATCH_RESULT_CONFIG.lose;
-
       const formattedDate = formatMatchDateByLang(item.createdAt);
 
-      const baseClass = "flex items-center gap-4 rounded-lg border px-4 py-3 bg-slate-900/40 border-slate-700/80";
+      const isWin = myScore > oppScore;
+      const { symbol } = isWin
+        ? MATCH_RESULT_CONFIG.win
+        : MATCH_RESULT_CONFIG.lose;
+      const resultText = isWin ? t("result_win") : t("result_lose");
+
+      const baseClass = `
+        flex items-center gap-4 rounded-lg border
+        px-4 py-3 bg-slate-900/40 border-slate-700/80
+      `;
       const rowStatusClass = isWin
         ? "border-l-4 border-l-emerald-500"
         : "border-l-4 border-l-rose-500 opacity-80";

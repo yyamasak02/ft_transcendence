@@ -16,6 +16,7 @@ import { formatMatchDate } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
 import type { I18nKey } from "@/i18n/lang";
+import { escapeHtml } from "@/utils/escape";
 
 const UPLOAD_IMAGE_SIZE = 256;
 
@@ -23,14 +24,19 @@ class MeComponent {
   render = () => {
     const accessToken = getStoredAccessToken();
     const currentName = accessToken
-      ? (decodeJwtPayload(accessToken)?.name ?? word("user_menu"))
-      : word("user_menu");
+      ? (decodeJwtPayload(accessToken)?.name ?? null)
+      : null;
+    const safeCurrentName = currentName ? escapeHtml(currentName) : "";
     const pickerItems = PROFILE_IMAGES.map((item) => {
-      const imgSrc = getProfileImageSrc(item.key);
+    const imgSrc = getProfileImageSrc(item.key);
       return `
         <button type="button" 
                 data-profile="${item.key}" 
-                class="group relative w-12 h-12 rounded-lg border-2 border-slate-800 hover:border-blue-500 overflow-hidden transition-all bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="
+                  group relative w-12 h-12
+                  rounded-lg border-2 border-slate-800
+                  hover:border-blue-500 overflow-hidden transition-all
+                  bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <img src="${imgSrc}" 
               alt="${item.label}" 
               class="w-full h-full object-cover pointer-events-none" 
@@ -41,11 +47,12 @@ class MeComponent {
 
     return `
       <div class="
-            w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth
+            w-full flex overflow-x-auto snap-x snap-mandatory snap-stop-always
+            scrollbar-width:none -ms-overflow-style:none
             md:grid md:grid-cols-[repeat(3,minmax(0,1fr))] md:overflow-visible md:flex-none
-            gap-4 p-4 lg:gap-8 lg:p-8 text-white">
+            gap-4 lg:gap-8 lg:p-8 text-white">
         
-        <div class="w-[85vw] shrink-0 snap-center flex flex-col items-center gap-6 
+        <div class="w-screen shrink-0 snap-center flex flex-col items-center gap-6 
                     md:w-full md:min-w-0 md:shrink">
           
           <form id="me-user-search" class="flex flex-row gap-2 w-full">
@@ -68,7 +75,7 @@ class MeComponent {
             </p>
           </form>
 
-          <h2 class="text-2xl font-bold tracking-wider text-center">${currentName}</h2>
+          <h2 class="text-2xl font-bold tracking-wider text-center">${safeCurrentName}</h2>
           
           <img id="me-avatar"
                class="w-40 h-40 object-cover border border-slate-800 rounded-lg hover:opacity-80 hover:border-blue-500 cursor-pointer transition-all"
@@ -120,7 +127,7 @@ class MeComponent {
           </button>
         </div>
 
-        <div class="min-w-[85vw] shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
+        <div class="min-w-full shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
                     md:w-full md:min-w-0 md:shrink">
           <h3 class="text-lg font-bold mb-5 border-b border-slate-800 pb-3 flex justify-between items-end">
             ${t("match_results")}
@@ -129,7 +136,7 @@ class MeComponent {
           <div id="me-matches" class="flex flex-col gap-3"></div>
         </div> 
 
-        <div class="min-w-[85vw] shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
+        <div class="min-w-full shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
                     md:w-full md:min-w-0 md:shrink">
           <h3 class="text-lg font-bold mb-5 border-b border-slate-800 pb-3">${t("friends")}</h3>
           <div id="me-friends-list" class="flex flex-col gap-3"></div>
@@ -166,9 +173,9 @@ const renderTwoFactorSecret = (secret: string) => {
   copyButton.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(secret);
-      if (copyMsg) copyMsg.textContent = t("copied");
+      if (copyMsg) copyMsg.textContent = word("copied");
     } catch {
-      if (copyMsg) copyMsg.textContent = t("failed");
+      if (copyMsg) copyMsg.textContent = word("failed");
     }
   });
 };
@@ -540,14 +547,10 @@ const setupFriendActions = () => {
 
 const MATCH_RESULT_CONFIG = {
   win: {
-    statusClass: "status-win",
     symbol: "●",
-    resultText: "WIN",
   },
   lose: {
-    statusClass: "status-lose",
     symbol: "○",
-    resultText: "LOSE",
   },
 } as const;
 
@@ -581,7 +584,8 @@ const renderMatches = (
     const isOwner = currentName ? item.ownerName === currentName : true;
     const opponent = isOwner
       ? (item.guestName ?? word("unknown_user"))
-      : item.ownerName;
+      : (item.ownerName ?? word("unknown_user"));
+    const safeOpponent = escapeHtml(opponent);
     const myScore = isOwner ? item.ownerScore : item.guestScore;
     const oppScore = isOwner ? item.guestScore : item.ownerScore;
     const isWin = myScore > oppScore;
@@ -592,12 +596,25 @@ const renderMatches = (
       losses += 1;
     }
 
-    const { statusClass, symbol, resultText } = isWin
-      ? MATCH_RESULT_CONFIG.win
-      : MATCH_RESULT_CONFIG.lose;
     const formattedDate = formatMatchDateByLang(item.createdAt);
 
-    row.className = `grid grid-cols-[50px_1fr_auto] items-center p-3.5 px-4.5 bg-black border border-slate-800 rounded transition-colors hover:border-slate-500 ${statusClass}`;
+    const { symbol } = isWin
+      ? MATCH_RESULT_CONFIG.win
+      : MATCH_RESULT_CONFIG.lose;
+
+    const resultText = isWin ? t("result_win") : t("result_lose"); 
+
+    const baseClass = `
+      grid grid-cols-[50px_1fr_auto] items-center
+      p-3.5 px-4.5 bg-black border border-slate-800 rounded
+      transition-colors hover:border-slate-500
+    `;
+
+    const rowStatusClass = isWin
+      ? "border-l-4 border-l-emerald-500"
+      : "border-l-4 border-l-rose-500 opacity-80";
+
+    row.className = `${baseClass} ${rowStatusClass}`;
 
     row.innerHTML = `
       <div class="flex flex-col items-center justify-center leading-none gap-1">
@@ -605,7 +622,7 @@ const renderMatches = (
         <span class="text-[10px] font-bold tracking-wider">${resultText}</span>
       </div>
       <div class="px-4 flex flex-col gap-1 overflow-hidden">
-        <div class="text-[0.95rem] font-medium truncate">${opponent}</div>
+        <div class="text-[0.95rem] font-medium truncate">${safeOpponent}</div>
         <div class="text-[0.7rem] text-slate-500 font-mono">${formattedDate}</div>
       </div>
       <div class="flex items-center gap-2 font-mono text-xl tracking-tight">
