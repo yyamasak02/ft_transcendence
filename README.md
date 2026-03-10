@@ -155,13 +155,13 @@ Each module was implemented following the project architecture and thoroughly te
 
 ## Individual Contributions
 
-### yyamasak
+## 👤 yyamasak
 
  - **xx**
  - **xx**
  - **xx**
 
-### tashiget
+## 👤 tashiget
 #### User Management
 
 ##### Authentication
@@ -175,20 +175,52 @@ Each module was implemented following the project architecture and thoroughly te
 - **Friend System** – Add, remove, and manage friends
 - **Match History** – View past game results and match records
 
-### tobaba
+## 👤 tobaba
  - **xx**
  - **xx**
  - **xx**
 
-### rkawahar
+## 👤 rkawahar
 
  - **xx**
  - **xx**
  - **xx**
 
-### yotsurud
+## 👤 yotsurud
 
- - **xx**
- - **xx**
- - **xx**
+<span style="color:orange"><b>Project Contribution</b></span>
+- **Announced team meetings.**
+- **Wrote and shared meeting reports to keep all members informed of project progress.**
+
+<span style="color:orange"><b>Implementations</b></span>
+##### 🌍 Accessibility and Internationalization
+- **Implemented support for multiple languages.**
+- **Added localization for English, Italian, and Japanese.**
+- **Designed a structure that allows easy extension to additional languages.**
+##### 🎮 Gaming and User Experience
+- **Contributed to the implementation of the 3D Pong game.**
+- **Worked on improving the user interface and overall gameplay experience.**
+##### ⚙️ Game Customization Options
+- **Implemented customizable gameplay features including:**
+  - Power-ups
+  - Multiple court colors
+  - Adjustable game settings
+  - Default configuration options
+
+<span style="color:orange"><b>Challenges and Solutions</b></span>
+##### 💬 Remote Communication Challenges
+Because the project was conducted in a **fully remote environment**, it was sometimes difficult to maintain smooth communication among team members.
+**To address this issue:**
+  - Increased the frequency of updates and messages in the team communication channels.
+  - Regularly posted progress reports to keep everyone aligned.
+This helped maintain collaboration and ensured that development progressed smoothly despite the remote setup.
+
+##### 🧩 Code Readability in the 3D Game Implementation
+During the development of the **3D game**, the codebase became difficult to read due to the increasing complexity of the game logic.
+**To improve maintainability and readability:**
+  - Refactored the code by introducing **component-based structures**.
+  - Separated responsibilities into smaller, well-defined modules.
+  - Improved the overall organization of the game code.
+As a result, the code became easier for team members to understand, maintain, and extend.
+
 
