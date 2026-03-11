@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { word, t } from "@/i18n";
+import { t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { GOOGLE_ID_TOKEN_KEY, GOOGLE_LONG_TERM_KEY } from "@/constants/auth";
 import {
@@ -14,35 +14,88 @@ const API_BASE = "/api/common";
 class GoogleSignupComponent {
   render = () => {
     return `
-      <div class="google-signup-screen">
-        <div class="google-signup-box">
-          <h2 class="google-signup-title">${t("google_signup")}</h2>
-          <p class="google-signup-desc">${t("google_signup_desc")}</p>
+      <div class="
+            min-h-[calc(100vh-64px)]
+            flex items-center justify-center
+            bg-radial from-[#1c1c1c] to-[#0b0b0b]">
+        <div class="
+              w-full max-w-[380px]
+              p-8 bg-slate-900
+              text-center
+              border-2 border-slate-700 rounded-2xl
+              shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+          <h2 class="
+                text-slate-100 text-3xl
+                tracking-widest mb-3 font-bold
+              ">${t("google_signup")}</h2>
+          <p class="
+                text-slate-300 text-sm mb-5.5
+             ">${t("google_signup_desc")}</p>
 
           <form class="google-signup-form" id="google-signup-form">
-            <div class="google-signup-field">
-              <label for="username">${t("username")}</label>
+            <div class="mb-4.5">
+              <label
+                for="username"
+                class="
+                  block mb-1.5 text-sm font-bold
+                  tracking-wider text-slate-400
+                "
+              >
+                ${t("username")}
+              </label>
               <input
                 type="text"
                 id="username"
                 name="username"
-                placeholder="yourname"
+                ${i18nAttr("placeholder", "username")}
                 required
-                class="google-signup-input"
+                class="
+                  w-full py-2.5 px-3
+                  bg-slate-900 border border-slate-600
+                  text-slate-100 text-base rounded-md
+                  placeholder:text-slate-600
+                  focus:outline-none focus:border-slate-400
+                  focus:bg-slate-900
+                "
               />
             </div>
 
-            <button type="submit" class="google-signup-submit">
+            <button
+              type="submit"
+              class="
+                w-full mt-2 py-2.5
+                bg-slate-800 text-slate-100
+                border border-slate-600
+                text-base font-bold tracking-widest
+                cursor-pointer
+                transition duration-200 ease-in-out
+                hover:bg-slate-700 hover:border-slate-300
+                active:translate-y-px
+              "
+            >
               ${t("register")}
             </button>
 
-            <div class="google-signup-footer">
-              <a class="google-signup-link" href="/login">
+            <div class="mt-4.5 text-center">
+              <a href="/login"
+                 class="
+                  text-slate-300 non-underline text-sm
+                  tracking-wide
+                  hover:text-slate-100 hover:underline
+                 "
+              >
                 ${t("to_login")}
               </a>
             </div>
 
-            <p id="google-signup-msg" class="google-signup-msg"></p>
+            <p
+              id="google-signup-msg"
+              class="
+                mt-3 text-sm
+                text-slate-100 text-center
+                whitespace-pre-wrap
+              "
+            ></p>
           </form>
         </div>
       </div>
@@ -87,7 +140,7 @@ const setupGoogleSignupForm = () => {
   if (!form) return;
   const pending = getPendingGoogleSignup();
   if (!pending) {
-    setGoogleSignupMsg(word("google_signup_missing"));
+    setGoogleSignupMsg(t("google_signup_missing"));
     form.querySelectorAll("input, button").forEach((el) => {
       (el as HTMLInputElement | HTMLButtonElement).disabled = true;
     });
@@ -105,15 +158,15 @@ const setupGoogleSignupForm = () => {
     const longTerm = Boolean(formData.get("remember"));
 
     if (!name) {
-      setGoogleSignupMsg(word("username_required"));
+      setGoogleSignupMsg(t("username_required"));
       return;
     }
     if (name.length < MIN_USERNAME_LENGTH) {
-      setGoogleSignupMsg(word("username_min_length"));
+      setGoogleSignupMsg(t("username_min_length"));
       return;
     }
     if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setGoogleSignupMsg(word("username_roman_only"));
+      setGoogleSignupMsg(t("username_roman_only"));
       return;
     }
 
@@ -131,16 +184,16 @@ const setupGoogleSignupForm = () => {
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {
         if (body?.message === "Email already exists.") {
-          setGoogleSignupMsg(word("email_taken"));
+          setGoogleSignupMsg(t("email_taken"));
         } else {
-          setGoogleSignupMsg(word("username_taken"));
+          setGoogleSignupMsg(t("username_taken"));
         }
         return;
       }
       if (!res.ok) {
         setGoogleSignupMsg(
           body?.message ??
-            `${word("google_signup_failed")} (status ${res.status})`,
+            `${t("google_signup_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -149,7 +202,7 @@ const setupGoogleSignupForm = () => {
       clearReturnTo();
       navigate(getReturnTo());
     } catch (error) {
-      setGoogleSignupMsg(`${word("register_error")}: ${error}`);
+      setGoogleSignupMsg(`${t("register_error")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }
