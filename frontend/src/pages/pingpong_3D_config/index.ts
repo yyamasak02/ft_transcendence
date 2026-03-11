@@ -97,12 +97,15 @@ class PingPongComponent implements Component {
   }
 
   private _renderModeCards(): string {
+    const MODE_COUNT = MODES.length;
+    const MAIN_START_INDEX = MODE_COUNT;
+    const MAIN_END_INDEX = MAIN_START_INDEX + MODE_COUNT - 1;
     const repeatedModes = [...MODES, ...MODES, ...MODES];
     
-    return repeatedModes.map((mode, index) => {
-      const isMain = index >= 3 && index <= 5;
+return repeatedModes.map((mode, index) => {
+      const isMain = index >= MAIN_START_INDEX && index <= MAIN_END_INDEX;
       const cloneClass = isMain ? "" : "md:hidden";
-      const activeClass = index === 3 ? "active" : "";
+      const activeClass = index === MAIN_START_INDEX ? "active" : "";
 
       return `
       <div class="pp3d-mode-card flex flex-col justify-center items-center ${activeClass} ${cloneClass} snap-center w-[85%] shrink-0 md:w-auto md:flex-1" data-mode="${mode.id}" data-index="${index}">
