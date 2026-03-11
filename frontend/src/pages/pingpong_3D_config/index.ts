@@ -204,7 +204,7 @@ return repeatedModes.map((mode, index) => {
                       <div class="snap-center w-full shrink-0 md:w-full flex flex-col common-settings-group">
                           <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                               <label class="w-full text-left md:w-[140px] shrink-0">${t("color1")}</label>
-                              <select id="paddle1-color" class="pp3d-color-select w-full md:w-auto">
+                              <select id="paddle1-color" class="w-full md:w-[90px]">
                                   <option value="blue">${t("blue")}</option>
                                   <option value="green">${t("green")}</option>
                                   <option value="red">${t("red")}</option>
@@ -222,7 +222,7 @@ return repeatedModes.map((mode, index) => {
 
                           <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                               <label class="w-full text-left md:w-[140px] shrink-0">${t("color2")}</label>
-                              <select id="paddle2-color" class="pp3d-color-select w-full md:w-auto">
+                              <select id="paddle2-color" class="w-full md:w-[90px]">
                                   <option value="green">${t("green")}</option>
                                   <option value="blue">${t("blue")}</option>
                                   <option value="red">${t("red")}</option>
