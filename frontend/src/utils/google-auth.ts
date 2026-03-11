@@ -1,5 +1,7 @@
+type GoogleGsi = typeof google;
+
 export const loadGsi = () =>
-  new Promise<typeof globalThis.google | null>((resolve, reject) => {
+  new Promise<GoogleGsi | null>((resolve, reject) => {
     if (globalThis.google?.accounts?.id) {
       resolve(globalThis.google);
       return;
@@ -9,6 +11,7 @@ export const loadGsi = () =>
     script.async = true;
     script.defer = true;
     script.onload = () => resolve(globalThis.google ?? null);
-    script.onerror = () => reject(new Error("Failed to load Google Identity Services"));
+    script.onerror = () =>
+      reject(new Error("Failed to load Google Identity Services"));
     document.head.appendChild(script);
   });

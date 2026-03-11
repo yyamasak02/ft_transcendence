@@ -50,8 +50,8 @@ export class GameScreen {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private player1!: Player;
-  private player2!: Player;
+  private player1: Player | null = null;
+  private player2: Player | null = null;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
@@ -181,40 +181,38 @@ export class GameScreen {
       this.hud.clearCountdown();
     }
   }
-  private initPlayers(p1: Paddle, p2: Paddle) {
+  private initPlayers(
+    p1: Paddle,
+    p2: Paddle,
+  ): { player1: Player; player2: Player } {
+    let player1: Player;
+    let player2: Player;
     if (this.remoteMode) {
       const oppCtrl = new RemoteController();
       this.remoteOpponentCtrl = oppCtrl;
       if (this.remoteSide === "p1") {
         // Host (side="p1"): control player1(left) with ArrowUp/Down
-        this.player1 = new Player(
-          p1,
-          new HumanController(this.inputManager, 1),
-          1,
-        );
-        this.player2 = new Player(p2, oppCtrl, 2);
+        player1 = new Player(p1, new HumanController(this.inputManager, 1), 1);
+        player2 = new Player(p2, oppCtrl, 2);
       } else {
         // Guest (side="p2"): control player2(right) with ArrowUp/Down
-        this.player1 = new Player(p1, oppCtrl, 1);
-        this.player2 = new Player(
-          p2,
-          new HumanController(this.inputManager, 2),
-          2,
-        );
+        player1 = new Player(p1, oppCtrl, 1);
+        player2 = new Player(p2, new HumanController(this.inputManager, 2), 2);
       }
-      return;
+      return { player1, player2 };
     }
 
     const humanController1 = new HumanController(this.inputManager, 1);
-    this.player1 = new Player(p1, humanController1, 1);
+    player1 = new Player(p1, humanController1, 1);
 
     if (this.settings.player2Type !== "Player") {
       const aiController = new AIController(this.settings.player2Type);
-      this.player2 = new Player(p2, aiController, 2);
+      player2 = new Player(p2, aiController, 2);
     } else {
       const humanController2 = new HumanController(this.inputManager, 2);
-      this.player2 = new Player(p2, humanController2, 2);
+      player2 = new Player(p2, humanController2, 2);
     }
+    return { player1, player2 };
   }
 
   // ------------------------
@@ -242,7 +240,9 @@ export class GameScreen {
 
     // パドル生成 + プレイヤー生成（共通ロジック）
     const { p1, p2 } = createPaddles(this.scene, this.settings);
-    this.initPlayers(p1, p2);
+    const { player1, player2 } = this.initPlayers(p1, p2);
+    this.player1 = player1;
+    this.player2 = player2;
 
     this.ball = new Ball(
       this.scene,
@@ -384,7 +384,9 @@ export class GameScreen {
       this.player2.paddle.mesh.dispose();
 
       // 新しいパドルでプレイヤーを再生成（共通ロジック）
-      this.initPlayers(p1, p2);
+      const { player1, player2 } = this.initPlayers(p1, p2);
+      this.player1 = player1;
+      this.player2 = player2;
     }
 
     if (this.ball && this.player1 && this.player2) {

@@ -128,37 +128,37 @@ export class GameComponent implements Component {
                     </div>
                     <div id="game-ui-3d">
                         <button id="btn-3d-help" title="${word("how_to_play")}">
-                            <img src="../../public/button/help.svg" style="width: 24px; height: 24px;">
+                            <img src="/button/help.svg" style="width: 24px; height: 24px;">
                         </button>
                         <button id="btn-3d-home-nav" title="${word("home")}">
-                            <img src="../../public/button/home.svg" style="width: 24px; height: 24px;">
+                            <img src="/button/home.svg" style="width: 24px; height: 24px;">
                         </button>
                         <button id="btn-3d-settings-nav" title="${word("settings")}">
-                            <img src="../../public/button/gear.svg" style="width: 24px; height: 24px;">
+                            <img src="/button/gear.svg" style="width: 24px; height: 24px;">
                         </button>
                         <button id="btn-3d-pause" title="${word("pause")}">
-                            <img src="../../public/button/pause.svg" style="width: 24px; height: 24px;">
+                            <img src="/button/pause.svg" style="width: 24px; height: 24px;">
                         </button>
                         <button id="btn-3d-camera-reset" title="${word("camera_reset")}">
-                            <img src="../../public/button/camera.svg" style="width: 24px; height: 24px;">
+                            <img src="/button/camera.svg" style="width: 24px; height: 24px;">
                         </button>
                     </div>
 
                     <div id="central-menu-container">
                         <button id="btn-3d-resume" class="central-btn">
-                            <img src="../../public/button/resume.svg" style="width: 32px; height: 32px;">
+                            <img src="/button/resume.svg" style="width: 32px; height: 32px;">
                             <span>${t("resume")}</span>
                         </button>
                         <button id="btn-3d-reset" class="central-btn">
-                            <img src="../../public/button/reset.svg" style="width: 32px; height: 32px;">
+                            <img src="/button/reset.svg" style="width: 32px; height: 32px;">
                             <span>${t("reset")}</span>
                         </button>
                         <button id="btn-3d-settings" class="central-btn">
-                            <img src="../../public/button/gear.svg" style="width: 32px; height: 32px;">
+                            <img src="/button/gear.svg" style="width: 32px; height: 32px;">
                             <span>${t("settings")}</span>
                         </button>
                         <button id="btn-3d-home" class="central-btn">
-                            <img src="../../public/button/home.svg" style="width: 32px; height: 32px;">
+                            <img src="/button/home.svg" style="width: 32px; height: 32px;">
                             <span>${t("home")}</span>
                         </button>
                     </div>
