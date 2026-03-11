@@ -332,7 +332,7 @@ class PingPongComponent implements Component {
     // モードカードクリック時のイベント
 const modeSelector = this._get(".pp3d-mode-selector");
     let isWarping = false;
-    let scrollTimeout: number;
+    let scrollTimeout: number | undefined = undefined;
     const MOBILE_BREAKPOINT = 768;
     const MODE_COUNT = MODES.length;
     const MAIN_START_INDEX = MODE_COUNT;
@@ -378,7 +378,10 @@ const modeSelector = this._get(".pp3d-mode-selector");
         }
       });
 
-      clearTimeout(scrollTimeout);
+      if (scrollTimeout !== undefined)
+      {
+          clearTimeout(scrollTimeout);
+      }
       scrollTimeout = window.setTimeout(() => {
         if (!closestCard) return;
 
