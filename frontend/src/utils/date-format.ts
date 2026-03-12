@@ -13,8 +13,14 @@ export const parseMatchDate = (value: string) => {
   return null;
 };
 
-export const formatDateByLang = (date: Date, lang: LangKey) => {
-  return new Intl.DateTimeFormat("ja-JP", {
+const formatDateByLang = (date: Date, lang: LangKey) => {
+  const localeMap: Record<LangKey, string> = {
+    ja: "ja-JP",
+    en: "en-US",
+    ita: "it-IT",
+    edo: "ja-JP",
+  };
+  return new Intl.DateTimeFormat(localeMap[lang], {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: TIME_ZONE,
