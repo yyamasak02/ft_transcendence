@@ -23,7 +23,7 @@ class TwoFactorComponent {
               <input
                 type="text"
                 id="code"
-                name="code"
+                 name="code"
                 inputmode="numeric"
                 autocomplete="one-time-code"
                 placeholder="123456"
