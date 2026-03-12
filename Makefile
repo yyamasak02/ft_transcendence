@@ -1,7 +1,18 @@
 # Inception Project Makefile
 
 # Variables
-COMPOSE_FILE = docker-compose.local.yml
+env ?= dev
+
+# 条件分岐
+ifeq ($(env), prd)
+    COMPOSE_FILE := docker-compose.yml
+    MSG := "Running in PRODUCTION mode"
+	BE_COM_CMD := "sh -c 'npm run db:setup && npm run start'"
+else
+    COMPOSE_FILE := docker-compose.local.yml
+    MSG := "Running in DEVELOPMENT mode"
+	BE_COM_CMD := "sh -c 'npm run db:setup && npm run dev'"
+endif
 
 .PHONY: up down build clean logs status help secrets ensure_envs
 
@@ -35,6 +46,7 @@ ensure_envs:
 
 # Start all containers
 up: ensure_envs
+	@echo $(MSG)
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 
@@ -50,7 +62,7 @@ build: ensure_envs
 init: delete
 	@$(MAKE) secrets
 	@$(MAKE) ensure_envs
-	BE_COM_CMD="sh -c 'npm run db:setup && npm run dev'" \
+	BE_COM_CMD=$(BE_COM_CMD) \
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 

@@ -2,7 +2,7 @@ export type LangKey = "en" | "ja" | "ita" | "edo";
 
 const TIME_ZONE = "Asia/Tokyo";
 
-export const parseMatchDate = (value: string) => {
+const parseMatchDate = (value: string) => {
   const normalized = value.replace(" ", "T");
   const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(normalized);
   const withZone = hasTimezone ? normalized : `${normalized}Z`;

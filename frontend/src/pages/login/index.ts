@@ -240,7 +240,9 @@ const setupGoogleLogin = async () => {
       if (credential) handleGoogleCredential(credential, remember);
     },
   });
-  google.accounts.id.renderButton(document.getElementById("google-btn"), {
+  const googleButton = document.body.querySelector<HTMLElement>("#google-btn");
+  if (!googleButton) return;
+  google.accounts.id.renderButton(googleButton, {
     theme: "outline",
     size: "large",
     type: "standard",
@@ -250,7 +252,9 @@ const setupGoogleLogin = async () => {
 
 const setupLoginForm = () => {
   const form = document.querySelector<HTMLFormElement>("#login-form");
-  const submitButton = form?.querySelector<HTMLButtonElement>("button[type='submit']");
+  const submitButton = form?.querySelector<HTMLButtonElement>(
+    "button[type='submit']",
+  );
   const toSignupLink = document.querySelector<HTMLAnchorElement>(
     "a[data-nav][href='/register']",
   );
