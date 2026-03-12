@@ -79,7 +79,7 @@ const setupTwoFactorForm = () => {
 
   const twoFactorToken = getTwoFactorToken();
   if (!form || !twoFactorToken) {
-    setTwoFactorMsg(word("two_factor_missing"));
+    setTwoFactorMsg(t("two_factor_missing"));
     form?.querySelectorAll("input, button").forEach((el) => {
       (el as HTMLInputElement | HTMLButtonElement).disabled = true;
     });
@@ -92,7 +92,7 @@ const setupTwoFactorForm = () => {
     const formData = new FormData(form);
     const code = String(formData.get("code") ?? "").trim();
     if (!code) {
-      setTwoFactorMsg(word("two_factor_code_required"));
+      setTwoFactorMsg(t("two_factor_code_required"));
       return;
     }
     if (submitButton) submitButton.disabled = true;
@@ -115,7 +115,7 @@ const setupTwoFactorForm = () => {
         return;
       }
       if (!body?.accessToken) {
-        setTwoFactorMsg(word("two_factor_verify_failed"));
+        setTwoFactorMsg(t("two_factor_verify_failed"));
         return;
       }
       storeTokens(body.accessToken, body.longTermToken);
