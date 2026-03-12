@@ -32,7 +32,7 @@ class GoogleSignupComponent {
                 text-slate-300 text-sm mb-5.5
              ">${t("google_signup_desc")}</p>
 
-          <form class="google-signup-form" id="google-signup-form">
+          <form id="google-signup-form">
             <div class="mb-4.5">
               <label
                 for="username"
@@ -79,7 +79,7 @@ class GoogleSignupComponent {
             <div class="mt-4.5 text-center">
               <a href="/login"
                  class="
-                  text-slate-300 non-underline text-sm
+                  text-slate-300 no-underline text-sm
                   tracking-wide
                   hover:text-slate-100 hover:underline
                  "
@@ -122,13 +122,10 @@ const clearPendingGoogleSignup = () => {
 
 const setupGoogleSignupForm = () => {
   const form = document.querySelector<HTMLFormElement>("#google-signup-form");
-  const submitButton = form?.querySelector<HTMLButtonElement>(
-    ".google-signup-submit",
-  );
+  const submitButton = form?.querySelector<HTMLButtonElement>("button[type='submit']");
+  // remember checkbox (reserved for future feature)
   const rememberInput = form?.querySelector<HTMLInputElement>("#remember");
-  const toLoginLink = document.querySelector<HTMLAnchorElement>(
-    ".google-signup-link[href='/login']",
-  );
+  const toLoginLink = form?.querySelector<HTMLAnchorElement>("a[href='/login']");
 
   if (toLoginLink) {
     toLoginLink.addEventListener("click", (event) => {
