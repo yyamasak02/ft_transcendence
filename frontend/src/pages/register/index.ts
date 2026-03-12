@@ -281,15 +281,15 @@ const setupGoogleRegister = async () => {
       if (credential) handleGoogleCredential(credential);
     },
   });
-  google.accounts.id.renderButton(
-    document.getElementById("google-btn-register"),
-    {
-      theme: "outline",
-      size: "large",
-      type: "standard",
-      text: "continue_with",
-    },
-  );
+  const googleRegisButton: HTMLElement | null =
+    document.body.querySelector<HTMLElement>("#google-btn-register");
+  if (!googleRegisButton) return;
+  google.accounts.id.renderButton(googleRegisButton, {
+    theme: "outline",
+    size: "large",
+    type: "standard",
+    text: "continue_with",
+  });
 };
 
 const setupRegisterForm = () => {
