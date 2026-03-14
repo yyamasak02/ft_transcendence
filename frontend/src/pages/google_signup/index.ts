@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { t, i18nAttr } from "@/i18n";
+import { word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { GOOGLE_ID_TOKEN_KEY, GOOGLE_LONG_TERM_KEY } from "@/constants/auth";
 import {
@@ -33,7 +33,7 @@ class GoogleSignupComponent {
              ">${t("google_signup_desc")}</p>
 
           <form id="google-signup-form">
-            <div class="mb-[18px]>
+            <div class="mb-[18px]">
               <label
                 for="username"
                 class="
@@ -137,7 +137,7 @@ const setupGoogleSignupForm = () => {
   if (!form) return;
   const pending = getPendingGoogleSignup();
   if (!pending) {
-    setGoogleSignupMsg(t("google_signup_missing"));
+    setGoogleSignupMsg(word("google_signup_missing"));
     form.querySelectorAll("input, button").forEach((el) => {
       (el as HTMLInputElement | HTMLButtonElement).disabled = true;
     });
@@ -155,15 +155,15 @@ const setupGoogleSignupForm = () => {
     const longTerm = Boolean(formData.get("remember"));
 
     if (!name) {
-      setGoogleSignupMsg(t("username_required"));
+      setGoogleSignupMsg(word("username_required"));
       return;
     }
     if (name.length < MIN_USERNAME_LENGTH) {
-      setGoogleSignupMsg(t("username_min_length"));
+      setGoogleSignupMsg(word("username_min_length"));
       return;
     }
     if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setGoogleSignupMsg(t("username_roman_only"));
+      setGoogleSignupMsg(word("username_roman_only"));
       return;
     }
 
@@ -181,16 +181,16 @@ const setupGoogleSignupForm = () => {
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {
         if (body?.message === "Email already exists.") {
-          setGoogleSignupMsg(t("email_taken"));
+          setGoogleSignupMsg(word("email_taken"));
         } else {
-          setGoogleSignupMsg(t("username_taken"));
+          setGoogleSignupMsg(word("username_taken"));
         }
         return;
       }
       if (!res.ok) {
         setGoogleSignupMsg(
           body?.message ??
-            `${t("google_signup_failed")} (status ${res.status})`,
+            `${word("google_signup_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -199,7 +199,7 @@ const setupGoogleSignupForm = () => {
       clearReturnTo();
       navigate(getReturnTo());
     } catch (error) {
-      setGoogleSignupMsg(`${t("register_error")}: ${error}`);
+      setGoogleSignupMsg(`${word("register_error")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }

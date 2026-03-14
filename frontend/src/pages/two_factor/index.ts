@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { t } from "@/i18n";
+import { word, t } from "@/i18n";
 import { navigate } from "@/router";
 import {
   TWO_FACTOR_LONG_TERM_KEY,
@@ -136,7 +136,7 @@ const setupTwoFactorForm = () => {
 
   const twoFactorToken = getTwoFactorToken();
   if (!form || !twoFactorToken) {
-    setTwoFactorMsg(t("two_factor_missing"));
+    setTwoFactorMsg(word("two_factor_missing"));
     form?.querySelectorAll("input, button").forEach((el) => {
       (el as HTMLInputElement | HTMLButtonElement).disabled = true;
     });
@@ -149,7 +149,7 @@ const setupTwoFactorForm = () => {
     const formData = new FormData(form);
     const code = String(formData.get("code") ?? "").trim();
     if (!code) {
-      setTwoFactorMsg(t("two_factor_code_required"));
+      setTwoFactorMsg(word("two_factor_code_required"));
       return;
     }
     if (submitButton) submitButton.disabled = true;
@@ -167,12 +167,12 @@ const setupTwoFactorForm = () => {
       if (!res.ok) {
         setTwoFactorMsg(
           body?.message ??
-            `${t("two_factor_verify_failed")} (status ${res.status})`,
+            `${word("two_factor_verify_failed")} (status ${res.status})`,
         );
         return;
       }
       if (!body?.accessToken) {
-        setTwoFactorMsg(t("two_factor_verify_failed"));
+        setTwoFactorMsg(word("two_factor_verify_failed"));
         return;
       }
       storeTokens(body.accessToken, body.longTermToken);
@@ -180,7 +180,7 @@ const setupTwoFactorForm = () => {
       clearReturnTo();
       navigate(getReturnTo());
     } catch (error) {
-      setTwoFactorMsg(`${t("two_factor_verify_failed")}: ${error}`);
+      setTwoFactorMsg(`${word("two_factor_verify_failed")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }

@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { t, i18nAttr } from "@/i18n";
+import { word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import {
   MIN_USERNAME_LENGTH,
@@ -32,22 +32,12 @@ class UsernameChangeComponent {
           <p
             id="username-change-current"
             class="
-              mx-[18px] text-center text-slate-400
+              mb-4 mx-[18px] text-center text-slate-400
               text-sm tracking-wider
             "></p>
 
           <form class="username-change-form" id="username-change-form">
             <div class="mb-[18px]">
-              <label
-                for="username"
-                class="
-                  block mb-1.5
-                  text-sm font-bold tracking-wider
-                  text-slate-400
-                "
-              >
-                ${t("username")}
-              </label>
               <input
                 type="text"
                 id="username-change-input"
@@ -122,7 +112,7 @@ const setCurrentName = (accessToken: string | null) => {
   );
   if (!el) return;
   const name = accessToken ? (decodeJwtPayload(accessToken)?.name ?? "") : "";
-  el.textContent = name ? `${t("current_username")}: ${name}` : "";
+  el.textContent = name ? `${word("current_username")}: ${name}` : "";
 };
 
 const setupBackLink = () => {
@@ -144,7 +134,7 @@ const setupChangeForm = () => {
 
   const accessToken = getStoredAccessToken();
   if (!accessToken) {
-    setChangeMsg(t("login_required_for_change"));
+    setChangeMsg(word("login_required_for_change"));
     setReturnTo(getCurrentPath());
     navigate("/login");
     if (submitButton) submitButton.disabled = true;
@@ -161,15 +151,15 @@ const setupChangeForm = () => {
     const formData = new FormData(form);
     const name = String(formData.get("username") ?? "").trim();
     if (!name) {
-      setChangeMsg(t("username_change_required"));
+      setChangeMsg(word("username_change_required"));
       return;
     }
     if (name.length < MIN_USERNAME_LENGTH) {
-      setChangeMsg(t("username_min_length"));
+      setChangeMsg(word("username_min_length"));
       return;
     }
     if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setChangeMsg(t("username_roman_only"));
+      setChangeMsg(word("username_roman_only"));
       return;
     }
 
@@ -185,19 +175,19 @@ const setupChangeForm = () => {
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 401 || res.status === 404) {
-        setChangeMsg(t("login_required_for_change"));
+        setChangeMsg(word("login_required_for_change"));
         setReturnTo(getCurrentPath());
         navigate("/login");
         return;
       }
       if (res.status === 409) {
-        setChangeMsg(t("username_taken"));
+        setChangeMsg(word("username_taken"));
         return;
       }
       if (!res.ok) {
         setChangeMsg(
           body?.message ??
-            `${t("username_change_failed")} (status ${res.status})`,
+            `${word("username_change_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -209,10 +199,10 @@ const setupChangeForm = () => {
         storeTokens(nextAccessToken, longTermToken);
         setCurrentName(nextAccessToken);
       }
-      setChangeMsg(t("username_change_success"));
+      setChangeMsg(word("username_change_success"));
       form.reset();
     } catch (error) {
-      setChangeMsg(`${t("username_change_failed")}: ${error}`);
+      setChangeMsg(`${word("username_change_failed")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }
