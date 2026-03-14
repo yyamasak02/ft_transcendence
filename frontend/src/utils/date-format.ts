@@ -1,4 +1,4 @@
-export type LangKey = "en" | "ja" | "edo";
+export type LangKey = "en" | "ja" | "ita" | "edo";
 
 const TIME_ZONE = "Asia/Tokyo";
 
@@ -13,12 +13,22 @@ const parseMatchDate = (value: string) => {
   return null;
 };
 
-export const formatMatchDateByJp = (value: string) => {
-  const date = parseMatchDate(value);
-  if (!date) return value;
-  return new Intl.DateTimeFormat("ja-JP", {
+const formatDateByLang = (date: Date, lang: LangKey) => {
+  const localeMap: Record<LangKey, string> = {
+    ja: "ja-JP",
+    en: "en-US",
+    ita: "it-IT",
+    edo: "ja-JP",
+  };
+  return new Intl.DateTimeFormat(localeMap[lang], {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: TIME_ZONE,
   }).format(date);
+};
+
+export const formatMatchDate = (value: string, lang: LangKey) => {
+  const date = parseMatchDate(value);
+  if (!date) return value;
+  return formatDateByLang(date, lang);
 };

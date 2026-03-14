@@ -1,5 +1,6 @@
 import { LangManager } from "./class/LangManager";
 import type { I18nKey } from "./lang";
+import { escapeHtml } from "@/utils/escape";
 
 export const langManager = new LangManager("en");
 export function word(key: I18nKey): string {
@@ -15,12 +16,13 @@ export function t(key: I18nKey): string {
 	const text = typeof raw === "string" ? raw : `[missing:${String(key)}]`;
   // const text = langManager.word(key);
   // HTMLエスケープ（XSS対策）
-  const escaped = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  const escaped = escapeHtml(text);
+  // const escaped = text
+  //   .replace(/&/g, "&amp;")
+  //   .replace(/</g, "&lt;")
+  //   .replace(/>/g, "&gt;")
+  //   .replace(/"/g, "&quot;")
+  //   .replace(/'/g, "&#39;");
   return `<span data-i18n="${key}">${escaped}</span>`;
 }
 

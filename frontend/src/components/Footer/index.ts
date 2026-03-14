@@ -75,7 +75,8 @@ const rootClassNameStr: string = `
     z-[2147483647]
     bg-black/80 text-white
     px-3 py-1.5 rounded-lg
-    text-xs flex items-center gap-2
+    text-[10px] sm:text-xs flex items-center gap-2
+    w-max max-w-[90vw]
     `;
 const splitter: SplitterProps = { splitter: " ・ " };
 export const footer = new Footer(footerLinks, rootClassNameStr, splitter);
