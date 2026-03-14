@@ -16,7 +16,7 @@ class TwoFactorComponent {
       <div class="
             min-h-[calc(100vh-64px)]
             flex items-center justify-center
-            bg-radial from-[#1c1c1c] to-[#0b0b0b]">
+            bg-[radial-gradient(circle_at_center,#1c1c1c,#0b0b0b)]">
         <div class="
               w-full max-w-[380px]
               p-8 bg-slate-900
@@ -32,7 +32,7 @@ class TwoFactorComponent {
           ">${t("two_factor_prompt")}</p>
 
           <form id="two-factor-form">
-            <div class="mb-4.5">
+            <div class="mb-[18px]">
               <label
                 for="code"
                 class="
@@ -78,7 +78,7 @@ class TwoFactorComponent {
               ${t("two_factor_verify")}
             </button>
 
-            <div class="mt-4.5 text-center">
+            <div class="mt-[18px] text-center">
               <a 
                 href="/login"
                 class="

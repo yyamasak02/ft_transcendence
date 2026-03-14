@@ -1,5 +1,5 @@
 import type { Route } from "@/types/routes";
-import { word, t } from "@/i18n";
+import { t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import {
   MIN_USERNAME_LENGTH,
@@ -15,29 +15,91 @@ const API_BASE = "/api/common";
 class UsernameChangeComponent {
   render = () => {
     return `
-      <div class="username-change-screen">
-        <div class="username-change-box">
-          <h2 class="username-change-title">${t("username_change")}</h2>
-          <p class="username-change-current" id="username-change-current"></p>
+      <div class="
+            min-h-[calc(100vh-64px)]
+            flex items-center justify-center
+            bg-[radial-gradient(circle_at_center,#1c1c1c,#0b0b0b)]">
+        <div class="
+              w-full max-w-[380px]
+              p-8 bg-slate-900
+              text-center
+              border-2 border-slate-700 rounded-2xl
+              shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+          <h2 class="
+                text-slate-100 text-3xl
+                tracking-widest mb-3 font-bold
+              ">${t("username_change")}</h2>
+          <p
+            id="username-change-current"
+            class="
+              mx-[18px] text-center text-slate-400
+              text-sm tracking-wider
+            "></p>
+
           <form class="username-change-form" id="username-change-form">
-            <div class="username-change-field">
-              <label for="username-change-input">${t("username")}</label>
+            <div class="mb-[18px]">
+              <label
+                for="username"
+                class="
+                  block mb-1.5
+                  text-sm font-bold tracking-wider
+                  text-slate-400
+                "
+              >
+                ${t("username")}
+              </label>
               <input
                 type="text"
                 id="username-change-input"
                 name="username"
-                placeholder="yourname"
+                ${i18nAttr("placeholder", "username")}
                 required
-                class="username-change-input"
+                class="
+                  w-full py-2.5 px-3
+                  bg-slate-900 border border-slate-600
+                  text-slate-100 text-base rounded-md
+                  placeholder:text-slate-600
+                  focus:outline-none focus:border-slate-400  
+                "
               />
             </div>
-            <button type="submit" class="username-change-submit">
+
+            <button
+              type="submit"
+              class="
+                username-change-submit
+                w-full mt-2 py-2.5
+                bg-slate-800 text-slate-100
+                border border-slate-600
+                text-base font-bold tracking-widest
+                cursor-pointer
+                transition duration-200 ease-in-out
+                hover:bg-slate-700 hover:border-slate-300
+                active:translate-y-px
+              "
+            >
               ${t("username_change_submit")}
             </button>
-            <p id="username-change-msg" class="username-change-msg"></p>
+
+            <p
+              id="username-change-msg"
+              class="
+                mt-3 text-sm
+                text-slate-100 text-center
+                whitespace-pre-wrap 
+              "
+            ></p>
           </form>
-          <div class="username-change-footer">
-            <a class="username-change-link" href="/me" data-nav>
+
+          <div class="mt-[18px] text-center">
+            <a
+              href="/me" data-nav
+              class="
+                  text-slate-300 no-underline text-sm
+                  tracking-wide
+                  hover:text-slate-100 hover:underline 
+              "
+            >
               ${t("username_change_back")}
             </a>
           </div>
@@ -60,12 +122,12 @@ const setCurrentName = (accessToken: string | null) => {
   );
   if (!el) return;
   const name = accessToken ? (decodeJwtPayload(accessToken)?.name ?? "") : "";
-  el.textContent = name ? `${word("current_username")}: ${name}` : "";
+  el.textContent = name ? `${t("current_username")}: ${name}` : "";
 };
 
 const setupBackLink = () => {
   const link = document.querySelector<HTMLAnchorElement>(
-    ".username-change-link[href='/me']",
+    "a[href='/me'][data-nav]",
   );
   if (!link) return;
   link.addEventListener("click", (event) => {
@@ -82,7 +144,7 @@ const setupChangeForm = () => {
 
   const accessToken = getStoredAccessToken();
   if (!accessToken) {
-    setChangeMsg(word("login_required_for_change"));
+    setChangeMsg(t("login_required_for_change"));
     setReturnTo(getCurrentPath());
     navigate("/login");
     if (submitButton) submitButton.disabled = true;
@@ -99,15 +161,15 @@ const setupChangeForm = () => {
     const formData = new FormData(form);
     const name = String(formData.get("username") ?? "").trim();
     if (!name) {
-      setChangeMsg(word("username_change_required"));
+      setChangeMsg(t("username_change_required"));
       return;
     }
     if (name.length < MIN_USERNAME_LENGTH) {
-      setChangeMsg(word("username_min_length"));
+      setChangeMsg(t("username_min_length"));
       return;
     }
     if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setChangeMsg(word("username_roman_only"));
+      setChangeMsg(t("username_roman_only"));
       return;
     }
 
@@ -123,19 +185,19 @@ const setupChangeForm = () => {
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 401 || res.status === 404) {
-        setChangeMsg(word("login_required_for_change"));
+        setChangeMsg(t("login_required_for_change"));
         setReturnTo(getCurrentPath());
         navigate("/login");
         return;
       }
       if (res.status === 409) {
-        setChangeMsg(word("username_taken"));
+        setChangeMsg(t("username_taken"));
         return;
       }
       if (!res.ok) {
         setChangeMsg(
           body?.message ??
-            `${word("username_change_failed")} (status ${res.status})`,
+            `${t("username_change_failed")} (status ${res.status})`,
         );
         return;
       }
@@ -147,10 +209,10 @@ const setupChangeForm = () => {
         storeTokens(nextAccessToken, longTermToken);
         setCurrentName(nextAccessToken);
       }
-      setChangeMsg(word("username_change_success"));
+      setChangeMsg(t("username_change_success"));
       form.reset();
     } catch (error) {
-      setChangeMsg(`${word("username_change_failed")}: ${error}`);
+      setChangeMsg(`${t("username_change_failed")}: ${error}`);
     } finally {
       if (submitButton) submitButton.disabled = false;
     }
