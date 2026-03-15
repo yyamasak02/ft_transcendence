@@ -29,7 +29,7 @@ class GoogleSignupComponent {
                 tracking-widest mb-3 font-bold
               ">${t("google_signup")}</h2>
           <p class="
-                text-slate-300 text-sm mb-5.5
+                text-slate-300 text-sm mb-[22px]
              ">${t("google_signup_desc")}</p>
 
           <form id="google-signup-form">

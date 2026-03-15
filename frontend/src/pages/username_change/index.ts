@@ -38,6 +38,9 @@ class UsernameChangeComponent {
 
           <form class="username-change-form" id="username-change-form">
             <div class="mb-[18px]">
+              <label for="username-change-input" class="block text-left">
+                ${word("username")}
+              </label>
               <input
                 type="text"
                 id="username-change-input"

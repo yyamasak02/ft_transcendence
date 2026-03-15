@@ -28,7 +28,7 @@ class TwoFactorComponent {
                 tracking-widest mb-3 font-bold
           ">${t("two_factor_title")}</h2>
           <p class="
-              text-slate-300 text-sm mb-5.5          
+              text-slate-300 text-sm mb-[22px]          
           ">${t("two_factor_prompt")}</p>
 
           <form id="two-factor-form">
@@ -124,7 +124,8 @@ const setupTwoFactorForm = () => {
   const form = document.querySelector<HTMLFormElement>("#two-factor-form");
   const submitButton =
     form?.querySelector<HTMLButtonElement>("button[type='submit']");
-  const toLoginLink = document.querySelector<HTMLAnchorElement>("a[href='/login']");
+  const toLoginLink =
+    form?.querySelector<HTMLAnchorElement>("a[href='/login']");
 
   if (toLoginLink) {
     toLoginLink.addEventListener("click", (event) => {
