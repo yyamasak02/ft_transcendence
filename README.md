@@ -114,13 +114,76 @@ Overall, the project demonstrates the use of modern development practices, teamw
 
 ## Database Schema
 
-The database is structured to support xxxxxxxxxx.
+The database uses SQLite and is structured to support user management, authentication, social features, and game history.
 
-### Tables
- - **users**
-	- id (INT, PK)
-	- username (VARCHAR)
-	- email (VARCHAR)
+### users
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| email | TEXT | NOT NULL, UNIQUE |
+| name | TEXT | NOT NULL, UNIQUE |
+| password | TEXT | |
+| salt | TEXT | |
+| puid | TEXT | NOT NULL, UNIQUE |
+| two_factor_enabled | INTEGER | NOT NULL DEFAULT 0 |
+| two_factor_secret | TEXT | |
+| last_accessed_at | TEXT | |
+| profile_image | TEXT | DEFAULT 'Robot' |
+| profile_image_data | BLOB | |
+
+### google_accounts
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| user_id | INTEGER | NOT NULL, UNIQUE, FK → users(id) ON DELETE CASCADE |
+| google_sub | TEXT | NOT NULL, UNIQUE |
+| email | TEXT | |
+| email_verified | INTEGER | NOT NULL DEFAULT 0 |
+| created_at | TEXT | NOT NULL DEFAULT datetime('now') |
+
+### long_term_tokens
+| Column | Type | Constraints |
+|--------|------|-------------|
+| token_hash | TEXT | PRIMARY KEY |
+| user_id | INTEGER | NOT NULL, FK → users(id) ON DELETE CASCADE |
+| expires_at | TEXT | |
+| created_at | TEXT | DEFAULT CURRENT_TIMESTAMP |
+
+### friends
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| requester_puid | TEXT | NOT NULL, FK → users(puid) ON DELETE CASCADE |
+| addressee_puid | TEXT | NOT NULL, FK → users(puid) ON DELETE CASCADE |
+| status | TEXT | NOT NULL |
+| created_at | TEXT | NOT NULL DEFAULT datetime('now') |
+
+### match_sessions
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| owner_puid | TEXT | NOT NULL, FK → users(puid) ON DELETE CASCADE |
+| guest_puid | TEXT | FK → users(puid) ON DELETE CASCADE |
+| created_at | TEXT | NOT NULL DEFAULT datetime('now') |
+
+### match_results
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| owner_puid | TEXT | NOT NULL, FK → users(puid) ON DELETE CASCADE |
+| guest_puid | TEXT | FK → users(puid) ON DELETE CASCADE |
+| owner_score | INTEGER | NOT NULL |
+| guest_score | INTEGER | NOT NULL |
+| match_id | INTEGER | UNIQUE |
+| created_at | TEXT | NOT NULL DEFAULT datetime('now') |
+
+### messages
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| user_id | INTEGER | NOT NULL |
+| message | TEXT | NOT NULL |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
 
 ---
 
