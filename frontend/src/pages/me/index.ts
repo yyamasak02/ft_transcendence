@@ -108,7 +108,7 @@ class MeComponent {
             <button id="me-2fa" class="w-full py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm">
               ${t("two_factor_enable")}
             </button>
-            <!-- 2FA 状態・メッセージ表示用（現時点では空） -->
+            <div class="me-qr" id="me-qr"></div>
             <div
               id="me-2fa-msg"
               class="mt-2 text-xs text-slate-500 text-center"
