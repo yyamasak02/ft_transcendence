@@ -462,8 +462,8 @@ const renderFriends = (items: FriendItem[]) => {
       status.textContent = item.online
         ? word("user_profile_online")
         : word("user_profile_offline");
-      status.classList.toggle("is-online", item.online);
-      status.classList.toggle("is-offline", !item.online);
+      // status.classList.toggle("is-online", item.online);
+      // status.classList.toggle("is-offline", !item.online);
     } else if (item.status === "pending_incoming") {
       status.textContent = word("friend_status_pending_incoming");
     } else {
@@ -644,11 +644,9 @@ const renderMatches = (
     const resultText = isWin ? t("result_win") : t("result_lose"); 
 
     const baseClass = `
-      grid grid-cols-[50px_1fr_auto] items-center
-      p-3.5 px-4.5 bg-black border border-slate-800 rounded
-      transition-colors hover:border-slate-500
+      flex items-center gap-4 rounded-lg border
+      px-4 py-3 bg-slate-900/40 border-slate-700/80
     `;
-
     const rowStatusClass = isWin
       ? "border-l-4 border-l-emerald-500"
       : "border-l-4 border-l-rose-500 opacity-80";
@@ -656,18 +654,18 @@ const renderMatches = (
     row.className = `${baseClass} ${rowStatusClass}`;
 
     row.innerHTML = `
-      <div class="flex flex-col items-center justify-center leading-none gap-1">
-        <span class="text-xl leading-none">${symbol}</span>
-        <span class="text-[10px] font-bold tracking-wider">${resultText}</span>
+      <div class="flex flex-col items-center justify-center gap-1 shrink-0">
+        <span class="mt-0.5 text-xl text-slate-100 leading-none">${symbol}</span>
+        <span class="text-xs font-semibold text-slate-400 tracking-tight">${resultText}</span>
       </div>
-      <div class="px-4 flex flex-col gap-1 overflow-hidden">
-        <div class="text-[0.95rem] font-medium truncate">${safeOpponent}</div>
-        <div class="text-[0.7rem] text-slate-500 font-mono">${formattedDate}</div>
+      <div class="flex flex-col flex-1 overflow-hidden">
+        <div class="text-base font-semibold text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis">${safeOpponent}</div>
+        <div class="text-xs text-slate-500 mt-0.5">${formattedDate}</div>
       </div>
-      <div class="flex items-center gap-2 font-mono text-xl tracking-tight">
-        <span class="my-score">${myScore}</span>
-        <span class="text-slate-700 text-base font-normal">-</span>
-        <span class="opp-score text-slate-500">${oppScore}</span>
+      <div class="flex items-center gap-2 font-mono font-semibold text-xl ml-4">
+        <span class="min-w-[20px] text-white">${myScore}</span>
+        <span class="text-slate-600 text-base">-</span>
+        <span class="min-w-[20px] text-slate-500">${oppScore}</span>
       </div>
     `;
 

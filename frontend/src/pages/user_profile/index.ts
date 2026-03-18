@@ -319,7 +319,7 @@ class UserProfileController {
       row.className = `${baseClass} ${rowStatusClass}`;
 
       row.innerHTML = `
-        <div class="card-left">
+        <div class="flex flex-col items-center justify-center gap-1 shrink-0">
           <span class="mt-0.5 text-xl text-slate-100 leading-none">${symbol}</span>
           <span class="text-xs font-semibold text-slate-400 tracking-tight">${resultText}</span>
         </div>
