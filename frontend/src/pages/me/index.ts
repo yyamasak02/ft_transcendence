@@ -77,9 +77,16 @@ class MeComponent {
 
           <h2 class="text-2xl font-bold tracking-wider text-center">${safeCurrentName}</h2>
           
-          <img id="me-avatar"
-               class="w-40 h-40 object-cover border border-slate-800 rounded-lg hover:opacity-80 hover:border-blue-500 cursor-pointer transition-all"
-               src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
+          <img
+            id="me-avatar"
+            class="
+              w-40 h-40 object-cover
+              border border-slate-800 rounded-lg
+              hover:opacity-80 hover:border-blue-500
+              cursor-pointer transition-all
+            "
+            src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image"
+          />
 
           <div id="me-avatar-picker"
                class="hidden flex-col items-center mt-2 gap-4 p-4
@@ -96,7 +103,12 @@ class MeComponent {
                      fill="none"
                      viewBox="0 0 24 24"
                      stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
               </label>
             </div>
@@ -104,11 +116,30 @@ class MeComponent {
           <div id="me-avatar-msg" class="text-xs text-slate-500 text-center"></div>
 
           <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
-            <h3 class="text-base font-semibold mb-3 tracking-wide uppercase text-slate-300 text-center md:text-left">${t("two_factor")}</h3>
-            <button id="me-2fa" class="w-full py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm">
+            <h3
+              class="
+                text-base font-semibold
+                mb-3 tracking-wide uppercase text-slate-300
+                text-center md:text-left
+              "
+            >
+              ${t("two_factor")}
+            </h3>
+            <button
+              id="me-2fa"
+              class="
+                w-full py-2 px-3.5
+                bg-slate-800
+                text-slate-100 font-semibold text-sm
+                border border-slate-700 rounded-md
+                cursor-pointer
+                hover:bg-slate-700 transition-colors">
               ${t("two_factor_enable")}
             </button>
-            <div class="me-qr" id="me-qr"></div>
+            <div
+              id="me-qr"
+              class="mt-3 flex flex-col items-center gap-2.5"
+            ></div>
             <div
               id="me-2fa-msg"
               class="mt-2 text-xs text-slate-500 text-center"
@@ -116,7 +147,15 @@ class MeComponent {
           </div>
 
           <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
-            <h3 class="text-base font-semibold mb-3 tracking-wide uppercase text-slate-300 text-center md:text-left">${t("username_change")}</h3>
+            <h3
+              class="
+                text-base font-semibold mb-3
+                tracking-wide uppercase text-slate-300 text-center
+                md:text-left
+              "
+            >
+              ${t("username_change")}
+            </h3>
             <a href="/username-change" data-nav class="inline-block w-full text-center py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm no-underline">
               ${t("username_change_action")}
             </a>

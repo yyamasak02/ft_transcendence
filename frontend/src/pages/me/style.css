@@ -138,13 +138,13 @@
   border-color: #777;
 } */
 
-.me-qr {
+/* .me-qr {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-}
+} */
 
 .me-qr img {
   display: block;
