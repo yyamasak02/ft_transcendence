@@ -239,9 +239,13 @@ Each module was implemented following the project architecture and thoroughly te
 - **Match History** – View past game results and match records
 
 ## 👤 tobaba
- - **xx**
- - **xx**
- - **xx**
+#### 3D PingPong Game Engine
+- **Advanced AI Controller** – Engineered a sophisticated, human-like AI from scratch, featuring custom trajectory prediction algorithms and dynamic difficulty scaling (Easy/Normal/Hard). Conducted thousands of rigorous, hands-on test plays with relentless stamina to fine-tune parameters, achieving a perfectly balanced, adrenaline-pumping gameplay experience rather than a purely mechanical opponent.
+- **Immersive Game Effects** – Integrated high-performance particle systems and visual effects utilizing Three.js. Leveraged sheer perseverance to continuously optimize complex 3D rendering down to the millimeter, creating a deeply immersive and exhilarating gaming environment.
+
+#### Frontend Development & User Interface
+- **Emotional Game Flow** – Designed and implemented highly dynamic game introductions and dramatic match result sequences. Relentlessly refined every detail of the animations to maximize the player's emotional engagement, amplifying the thrill of victory and the sting of defeat.
+- **Sophisticated Lobby & Settings** – Developed an intuitive and visually striking matchmaking lobby and game settings UI. Transformed the static waiting experience into one that builds anticipation, delivering a seamless, stylish, and highly user-centric frontend architecture.
 
 ## 👤 rkawahar
 
