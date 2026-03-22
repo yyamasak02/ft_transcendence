@@ -14,7 +14,10 @@ import { GAME_CONFIG } from "../core/constants3D";
 import { Paddle } from "./Paddle";
 import { Ball } from "./Ball";
 import { createCourtMaterial } from "./materials/courtMaterial";
-import { setupCameraForMobile } from "./stageControl/cameraControl";
+import {
+  applyPlayRadiusToCamera,
+  setupCameraForMobile,
+} from "./stageControl/cameraControl";
 import {
   createMainLight,
   createShadowLight,
@@ -112,7 +115,7 @@ export class Stage {
   public resetCamera(): void {
     this.camera.alpha = Math.PI / 2;
     this.camera.beta = Math.PI / 5;
-    this.camera.radius = 80;
+    applyPlayRadiusToCamera(this.camera);
     this.camera.setTarget(new Vector3(0, 0, 0));
   }
 

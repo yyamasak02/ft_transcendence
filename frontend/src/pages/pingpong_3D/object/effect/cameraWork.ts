@@ -1,4 +1,5 @@
 import { ArcRotateCamera, Vector3 } from "@babylonjs/core";
+import { getPlayRadius } from "../stageControl/cameraControl";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 let zoomIntervalID: number | null = null;
@@ -15,7 +16,7 @@ export function transitionToPlayView(
     }
     const targetAlpha = Math.PI / 2;
     const targetBeta = Math.PI / 5;
-    const targetRadius = 80;
+    const targetRadius = getPlayRadius();
 
     const startAlpha = camera.alpha;
     const startBeta = camera.beta;

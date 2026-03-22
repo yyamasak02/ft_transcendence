@@ -92,83 +92,89 @@ export class GameComponent implements Component {
   render(): string {
     const slidesHtml = HELP_SLIDES.map(
       (slide, index) => `
-      <div class="help-slide ${index === 0 ? "active" : ""}" data-index="${index}">
-        <div class="help-slide-image">
-          <img src="${slide.image}" alt="tutorial image">
+      <div class="help-slide absolute inset-0 w-full h-full flex flex-col items-center justify-center text-center transition-opacity duration-500 ease-in-out ${index === 0 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}" data-index="${index}">
+        <div class="mb-4 flex w-full max-w-full shrink-0 items-center justify-center px-2 sm:mb-10 sm:px-0">
+          <img src="${slide.image}" alt="tutorial image" class="pointer-events-none max-h-[min(42vh,400px)] w-full max-w-[600px] object-contain brightness-0 invert drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-[400px] sm:max-h-none">
         </div>
-        <p class="help-slide-desc">${slide.desc}</p>
+        <p class="help-slide-desc z-[5] max-h-[38vh] overflow-y-auto px-4 py-0 font-sans text-sm font-semibold leading-snug text-white sm:max-h-none sm:px-20 sm:text-2xl sm:leading-normal [&_.highlight]:text-[#ffeb3b] [&_.highlight]:font-bold [&_.key]:inline-block [&_.key]:bg-[#222] [&_.key]:text-white [&_.key]:py-1 [&_.key]:px-3 [&_.key]:rounded-md [&_.key]:border [&_.key]:border-[#666] [&_.key]:font-mono [&_.key]:shadow-[0_3px_0_#111] [&_.key]:mx-1">${slide.desc}</p>
       </div>
     `,
     ).join("");
 
     const indicatorsHtml = HELP_SLIDES.map(
       (_, index) => `
-      <div class="help-indicator ${index === 0 ? "active" : ""}" data-index="${index}"></div>
+      <div class="help-indicator h-3 w-3 cursor-pointer rounded-full transition-all duration-300 ${index === 0 ? "scale-125 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "scale-100 bg-white/40"}" data-index="${index}"></div>
     `,
     ).join("");
 
     return `
             <div id="pingpong-3d-root">
-                <div id="game-container-3d">
-                    <canvas id="gameCanvas3D"></canvas>
-                    <div id="pause-overlay"></div>
-                    <div id="help-overlay">
-                        <div class="help-content">
-                            <div class="help-slider-container">
+                <div id="game-container-3d" class="relative h-[100dvh] min-h-[100dvh] w-screen max-w-full overflow-hidden">
+                    <canvas id="gameCanvas3D" class="pointer-events-auto relative z-[9999] box-border block h-full max-h-full w-full max-w-full cursor-default touch-none border-none bg-transparent"></canvas>
+                    <div id="pause-overlay" class="pointer-events-none fixed inset-0 z-[10000] hidden h-[100dvh] w-screen bg-black/60 backdrop-blur-[5px]"></div>
+                    <div id="help-overlay" class="fixed inset-0 z-[20000] hidden h-[100dvh] w-screen items-center justify-center overflow-y-auto bg-black/85 p-3 opacity-0 backdrop-blur-md animate-[fadeIn_0.3s_ease_forwards] sm:p-0">
+                        <div class="flex w-[min(100%,1000px)] max-w-[1000px] flex-col rounded-2xl border border-white/10 bg-black p-0 text-center font-['Bebas_Neue',sans-serif] text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+                            <div class="relative h-[min(600px,75dvh)] min-h-[220px] w-full overflow-hidden rounded-2xl sm:h-[600px] sm:min-h-0">
                                 ${slidesHtml}
-                                
-                                <button class="help-nav prev-btn" id="help-prev">&#10094;</button>
-                                <button class="help-nav next-btn" id="help-next">&#10095;</button>
-                                
-                                <div class="help-indicators">
+                                <button type="button" class="help-nav absolute bottom-0 left-0 top-0 z-10 flex w-10 cursor-pointer select-none items-center justify-center border-none bg-transparent text-3xl text-white/50 transition-all duration-300 hover:bg-black/30 hover:text-white sm:w-20 sm:text-5xl" id="help-prev">&#10094;</button>
+                                <button type="button" class="help-nav absolute bottom-0 right-0 top-0 z-10 flex w-10 cursor-pointer select-none items-center justify-center border-none bg-transparent text-3xl text-white/50 transition-all duration-300 hover:bg-black/30 hover:text-white sm:w-20 sm:text-5xl" id="help-next">&#10095;</button>
+                                <div class="help-indicators absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2 sm:bottom-6 sm:gap-4">
                                     ${indicatorsHtml}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="game-ui-3d">
-                        <button id="btn-3d-help" title="${word("how_to_play")}">
-                            <img src="../../public/button/help.svg" style="width: 24px; height: 24px;">
+                    <div id="game-ui-3d" class="absolute right-2 top-2 z-[10000] flex max-w-[calc(100vw-1rem)] flex-wrap justify-end gap-1.5 sm:right-5 sm:top-5 sm:gap-2.5">
+                        <button type="button" id="btn-3d-help" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("how_to_play")}">
+                            <img src="../../public/button/help.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
-                        <button id="btn-3d-home-nav" title="${word("home")}">
-                            <img src="../../public/button/home.svg" style="width: 24px; height: 24px;">
+                        <button type="button" id="btn-3d-home-nav" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("home")}">
+                            <img src="../../public/button/home.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
-                        <button id="btn-3d-settings-nav" title="${word("settings")}">
-                            <img src="../../public/button/gear.svg" style="width: 24px; height: 24px;">
+                        <button type="button" id="btn-3d-settings-nav" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("settings")}">
+                            <img src="../../public/button/gear.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
-                        <button id="btn-3d-pause" title="${word("pause")}">
-                            <img src="../../public/button/pause.svg" style="width: 24px; height: 24px;">
+                        <button type="button" id="btn-3d-pause" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("pause")}">
+                            <img src="../../public/button/pause.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
-                        <button id="btn-3d-camera-reset" title="${word("camera_reset")}">
-                            <img src="../../public/button/camera.svg" style="width: 24px; height: 24px;">
+                        <button type="button" id="btn-3d-camera-reset" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("camera_reset")}">
+                            <img src="../../public/button/camera.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                     </div>
 
-                    <div id="central-menu-container">
-                        <button id="btn-3d-resume" class="central-btn">
-                            <img src="../../public/button/resume.svg" style="width: 32px; height: 32px;">
-                            <span>${t("resume")}</span>
+                    <div id="central-menu-container" class="pointer-events-none absolute left-1/2 top-1/2 z-[10001] flex w-[min(100%,340px)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 sm:gap-5">
+                        <button type="button" id="btn-3d-resume" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
+                            <img src="../../public/button/resume.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <span class="mt-1">${t("resume")}</span>
                         </button>
-                        <button id="btn-3d-reset" class="central-btn">
-                            <img src="../../public/button/reset.svg" style="width: 32px; height: 32px;">
-                            <span>${t("reset")}</span>
+                        <button type="button" id="btn-3d-reset" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
+                            <img src="../../public/button/reset.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <span class="mt-1">${t("reset")}</span>
                         </button>
-                        <button id="btn-3d-settings" class="central-btn">
-                            <img src="../../public/button/gear.svg" style="width: 32px; height: 32px;">
-                            <span>${t("settings")}</span>
+                        <button type="button" id="btn-3d-settings" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
+                            <img src="../../public/button/gear.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <span class="mt-1">${t("settings")}</span>
                         </button>
-                        <button id="btn-3d-home" class="central-btn">
-                            <img src="../../public/button/home.svg" style="width: 32px; height: 32px;">
-                            <span>${t("home")}</span>
+                        <button type="button" id="btn-3d-home" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
+                            <img src="../../public/button/home.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <span class="mt-1">${t("home")}</span>
                         </button>
                     </div>
                 </div>
             </div>
         `;
   }
+
   onMount() {
-    this._appElm.classList.add("no-overflow");
-    document.body.classList.add("game-body");
+    this._appElm.classList.add("overflow-hidden");
+    document.body.classList.add(
+      "bg-black",
+      "text-white",
+      "h-screen",
+      "overflow-hidden",
+      "m-0",
+      "font-['Bebas_Neue',sans-serif]",
+    );
     const root = this._appElm.querySelector<HTMLElement>("#pingpong-3d-root");
     if (!root) {
       throw new Error("root element not found");
@@ -176,7 +182,6 @@ export class GameComponent implements Component {
     this._rootElm = root;
     this.initButtonUIElements();
 
-    // ゲーム初期化（phaseChangeコールバックを渡す）
     const canvas =
       this._rootElm.querySelector<HTMLCanvasElement>("#gameCanvas3D");
     if (!canvas) {
@@ -199,31 +204,26 @@ export class GameComponent implements Component {
     };
 
     const { hud, menu } = this._uiElements;
-    // SETTINGSボタン
     hud.settings?.addEventListener("click", handleSettings);
     menu.settings?.addEventListener("click", handleSettings);
-    // HOMEボタン
     hud.home?.addEventListener("click", handleHome);
     menu.home?.addEventListener("click", handleHome);
-    // PAUSEボタン
     hud.pause?.addEventListener("click", () => this._gameInstance.pauseGame());
     menu.resume?.addEventListener("click", () =>
       this._gameInstance.resumeGame(),
     );
-    // RESETボタン
     menu.reset?.addEventListener("click", () => {
       if (this._gameInstance.gameState.resetLocked) return;
       this._gameInstance.resetGame();
     });
-    // CAMERA RESETボタン
     hud.cameraReset?.addEventListener("click", () =>
       this._gameInstance.resetCamera(),
     );
 
-    // ヘルプボタン
     hud.help?.addEventListener("click", () => {
       if (this._uiElements.helpOverlay) {
-        this._uiElements.helpOverlay.style.display = "flex";
+        this._uiElements.helpOverlay.classList.remove("hidden");
+        this._uiElements.helpOverlay.classList.add("flex");
         this.updateUIButtons(
           this._gameInstance.gameState.phase,
           this._gameInstance.gameState.resetLocked,
@@ -231,7 +231,6 @@ export class GameComponent implements Component {
       }
     });
 
-    // 背景クリック
     this._uiElements.helpOverlay?.addEventListener("click", (e) => {
       if (e.target === this._uiElements.helpOverlay) {
         this.closeHelpOverlay();
@@ -266,22 +265,31 @@ export class GameComponent implements Component {
     const prevBtn = this._rootElm.querySelector<HTMLElement>("#help-prev");
 
     slides.forEach((slide, idx) => {
-      slide.classList.toggle("active", idx === index);
+      const on = idx === index;
+      slide.classList.toggle("opacity-100", on);
+      slide.classList.toggle("pointer-events-auto", on);
+      slide.classList.toggle("opacity-0", !on);
+      slide.classList.toggle("pointer-events-none", !on);
     });
     indicators.forEach((ind, idx) => {
-      ind.classList.toggle("active", idx === index);
+      const on = idx === index;
+      ind.classList.toggle("scale-125", on);
+      ind.classList.toggle("bg-white", on);
+      ind.classList.toggle("shadow-[0_0_8px_rgba(255,255,255,0.8)]", on);
+      ind.classList.toggle("scale-100", !on);
+      ind.classList.toggle("bg-white/40", !on);
     });
 
     if (prevBtn) {
-      prevBtn.style.visibility = this._helpLogic.isFirst()
-        ? "hidden"
-        : "visible";
+      prevBtn.classList.toggle("invisible", this._helpLogic.isFirst());
+      prevBtn.classList.toggle("visible", !this._helpLogic.isFirst());
     }
   }
 
   private closeHelpOverlay() {
     if (this._uiElements.helpOverlay) {
-      this._uiElements.helpOverlay.style.display = "none";
+      this._uiElements.helpOverlay.classList.add("hidden");
+      this._uiElements.helpOverlay.classList.remove("flex");
       this._helpLogic.goTo(0);
       this.updateUIButtons(
         this._gameInstance.gameState.phase,
@@ -307,36 +315,25 @@ export class GameComponent implements Component {
       settings: this._rootElm.querySelector("#btn-3d-settings"),
       home: this._rootElm.querySelector("#btn-3d-home"),
       all: Array.from(
-        this._rootElm.querySelectorAll<HTMLButtonElement>(".central-btn"),
+        this._rootElm.querySelectorAll<HTMLButtonElement>("[data-central-btn]"),
       ),
     };
   }
 
-  // ------------------------
-  // button更新（phase変更時にGameScreenから呼ばれる）
-  // ------------------------
   private updateUIButtons(phase: GamePhase, resetLocked: boolean) {
+    const help = this._uiElements.helpOverlay;
     const isHelpVisible =
-      this._uiElements.helpOverlay?.style.display === "flex";
+      help !== null && !help.classList.contains("hidden");
 
-    // Phase別UI状態の取得
     const visibility = this.getUIVisibility(phase, isHelpVisible);
-
-    // UI状態を適用
     this.applyUIVisibility(visibility);
-
-    // Resetボタンの特別処理
     this.updateResetButtonState(resetLocked);
   }
 
-  /**
-   * 現在のphaseとヘルプ表示状態からUI表示設定を取得
-   */
   private getUIVisibility(
     phase: GamePhase,
     isHelpVisible: boolean,
   ): ButtonUIVisibility {
-    // ヘルプ表示中はナビボタンを隠す
     if (isHelpVisible) {
       return {
         overlay: false,
@@ -347,7 +344,6 @@ export class GameComponent implements Component {
       };
     }
 
-    // Phase別の設定
     switch (phase) {
       case "menu":
         return {
@@ -386,69 +382,71 @@ export class GameComponent implements Component {
     }
   }
 
-  /**
-   * UI表示設定を実際のDOMに適用
-   */
   private applyUIVisibility(visibility: ButtonUIVisibility) {
     const { overlay, helpOverlay, menuButtons, hudNavButtons, hudGameButtons } =
       visibility;
     const { hud, menu } = this._uiElements;
 
-    // Overlay
     if (this._uiElements.overlay) {
-      this._uiElements.overlay.style.display = overlay ? "block" : "none";
+      this.setDisplay(this._uiElements.overlay, overlay, "block");
     }
 
-    // Help Overlay
     if (this._uiElements.helpOverlay) {
-      this._uiElements.helpOverlay.style.display = helpOverlay
-        ? "flex"
-        : "none";
+      this.setDisplay(this._uiElements.helpOverlay, helpOverlay, "flex");
     }
 
     menu.all.forEach((btn) => {
-      btn.style.display = menuButtons ? "inline-flex" : "none";
+      this.setDisplay(btn, menuButtons, "inline-flex");
     });
 
-    // Nav buttons
-    this.setButtonVisibility(hud.help, hudNavButtons);
-    this.setButtonVisibility(hud.home, hudNavButtons);
-    this.setButtonVisibility(hud.settings, hudNavButtons);
-
-    // Game buttons
-    this.setButtonVisibility(hud.pause, hudGameButtons);
-    this.setButtonVisibility(
+    this.setHudButtonVisibility(hud.help, hudNavButtons);
+    this.setHudButtonVisibility(hud.home, hudNavButtons);
+    this.setHudButtonVisibility(hud.settings, hudNavButtons);
+    this.setHudButtonVisibility(hud.pause, hudGameButtons);
+    this.setHudButtonVisibility(
       hud.cameraReset,
       hudGameButtons || this._gameInstance.gameState.phase === "pause",
     );
   }
 
-  /**
-   * ボタンの表示/非表示を設定
-   */
-  private setButtonVisibility(
-    button: HTMLButtonElement | null,
+  private setDisplay(
+    el: HTMLElement,
     visible: boolean,
+    visibleClass: "block" | "flex" | "inline-flex",
   ) {
-    if (button) {
-      button.style.display = visible ? "inline-flex" : "none";
+    if (visible) {
+      el.classList.remove("hidden");
+      el.classList.add(visibleClass);
+    } else {
+      el.classList.add("hidden");
+      el.classList.remove("block", "flex", "inline-flex");
     }
   }
 
-  /**
-   * Resetボタンの状態を更新
-   */
+  private setHudButtonVisibility(
+    button: HTMLButtonElement | null,
+    visible: boolean,
+  ) {
+    if (button) this.setDisplay(button, visible, "inline-flex");
+  }
+
   private updateResetButtonState(resetLocked: boolean) {
     const { reset } = this._uiElements.menu;
     if (reset) {
       reset.disabled = resetLocked;
-      reset.classList.toggle("btn-disabled", resetLocked);
     }
   }
 
   onUnmount() {
-    this._appElm.classList.remove("no-overflow");
-    document.body.classList.remove("game-body");
+    this._appElm.classList.remove("overflow-hidden");
+    document.body.classList.remove(
+      "bg-black",
+      "text-white",
+      "h-screen",
+      "overflow-hidden",
+      "m-0",
+      "font-['Bebas_Neue',sans-serif]",
+    );
     this._gameInstance.stopGame();
     this._helpLogic.stop();
   }

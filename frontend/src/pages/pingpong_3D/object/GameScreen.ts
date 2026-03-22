@@ -25,6 +25,10 @@ import { HumanController } from "./player/HumanController";
 import { AIController } from "./player/AIController";
 import { RemoteController } from "./player/RemoteController";
 import type { GamePhase } from "../core/game";
+import {
+  applyPlayRadiusToCamera,
+  getEndGameZoomRadius,
+} from "./stageControl/cameraControl";
 
 const MAIN_CONSTS = {
   RALLY_DEBOUNCE_MS: 100,
@@ -50,8 +54,8 @@ export class GameScreen {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private player1!: Player;
-  private player2!: Player;
+  private player1: Player | null = null;
+  private player2: Player | null = null;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
@@ -96,6 +100,9 @@ export class GameScreen {
     this.inputManager = new InputManager({
       onResize: () => {
         this.engine.resize();
+        if (this.stage?.camera) {
+          applyPlayRadiusToCamera(this.stage.camera);
+        }
       },
     });
     this.onUIUpdate = onUIUpdate;
@@ -238,11 +245,13 @@ export class GameScreen {
     this.p2Score = 0;
 
     this.hud = new GameHUD(this.scene);
-    this.inputManager.setup();
 
     // パドル生成 + プレイヤー生成（共通ロジック）
     const { p1, p2 } = createPaddles(this.scene, this.settings);
     this.initPlayers(p1, p2);
+    if (!this.player1 || !this.player2) {
+      throw new Error("GameScreen: players not initialized");
+    }
 
     this.ball = new Ball(
       this.scene,
@@ -267,6 +276,8 @@ export class GameScreen {
       this.stage.camera.beta = MAIN_CONSTS.MENU_CAMERA.BETA;
       this.stage.camera.radius = MAIN_CONSTS.MENU_CAMERA.RADIUS;
     }
+
+    this.inputManager.setup();
 
     this.hud.setScore(this.p1Score, this.p2Score);
     this.hud.hideScore();
@@ -741,7 +752,7 @@ export class GameScreen {
     stopZoomOut();
     zoomOut(
       this.stage.camera,
-      MAIN_CONSTS.END_GAME_CAMERA.TARGET_RADIUS,
+      getEndGameZoomRadius(),
       MAIN_CONSTS.END_GAME_CAMERA.ZOOM_OUT_DURATION,
     );
   }
