@@ -6,10 +6,13 @@ env ?= dev
 # 条件分岐
 ifeq ($(env), prd)
     COMPOSE_FILE := docker-compose.yml
+	ENV_FILE := .env
     MSG := "Running in PRODUCTION mode"
 	BE_COM_CMD := "sh -c 'npm run db:setup && npm run start'"
 else
     COMPOSE_FILE := docker-compose.local.yml
+# 	TODO: local実行時に必要であれば、.env.localで切り替えるようにする
+    ENV_FILE := .env
     MSG := "Running in DEVELOPMENT mode"
 	BE_COM_CMD := "sh -c 'npm run db:setup && npm run dev'"
 endif
@@ -38,9 +41,9 @@ urls:
 
 ensure_envs:
 	@for f in \
-		./frontend/.env.local \
-		./backends/common/.env.development \
-		./backends/connect/.env.development; do \
+		./frontend/$(ENV_FILE) \
+		./backends/common/$(ENV_FILE) \
+		./backends/connect/$(ENV_FILE); do \
 		[ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
 	done
 
@@ -77,7 +80,7 @@ clean: ensure_envs
 delete: clean
 	rm -f backends/common/db/app.db
 	rm -f backends/common/db/common.sqlite
-	rm -f backends/common/.env.development frontend/.env.local
+	rm -f backends/common/$(ENV_FILE) frontend/$(ENV_FILE)
 
 # Show logs
 logs: ensure_envs

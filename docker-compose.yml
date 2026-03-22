@@ -9,8 +9,10 @@ services:
       - 8443:443
     networks:
       - ft_network
-    env_file:
-      - ./nginx/.env.local
+    environment:
+      - DOMAIN_NAME=localhost
+      - SSL_CERT=/etc/nginx/ssl/localhost.crt
+      - SSL_KEY=/etc/nginx/ssl/localhost.key
     depends_on:
       - frontend
       - be_common
@@ -24,7 +26,7 @@ services:
     environment:
       NODE_ENV: production
     env_file:
-      - ./frontend/.env.local
+      - ./frontend/.env
     networks:
       - ft_network
     command: ${FE_CMD:-npm run start}
@@ -37,7 +39,7 @@ services:
     environment:
       NODE_ENV: production
     env_file:
-      - ./backends/common/.env.development
+      - ./backends/common/.env
     networks:
       - ft_network
     command: ${BE_COM_CMD:-npm run start}
@@ -50,7 +52,7 @@ services:
     environment:
       NODE_ENV: production
     env_file:
-      - ./backends/connect/.env.development
+      - ./backends/connect/.env
     networks:
       - ft_network
     command: ${BE_CN_CMD:-npm run start}
