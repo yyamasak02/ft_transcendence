@@ -80,7 +80,12 @@ clean: ensure_envs
 delete: clean
 	rm -f backends/common/db/app.db
 	rm -f backends/common/db/common.sqlite
-	rm -f backends/common/$(ENV_FILE) frontend/$(ENV_FILE)
+	@for f in \
+		./frontend/$(ENV_FILE) \
+		./backends/common/$(ENV_FILE) \
+		./backends/connect/$(ENV_FILE); do \
+		rm -f "$$f"; \
+	done
 
 # Show logs
 logs: ensure_envs
