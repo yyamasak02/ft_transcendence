@@ -49,6 +49,27 @@ Overall, the project demonstrates the use of modern development practices, teamw
 ## Resources
  - **[Project Specificatons](./subjects/en.subject.pdf)**
 
+ - **Frontend**
+   - [TypeScript](https://www.typescriptlang.org/docs/)
+   - [Tailwind CSS](https://tailwindcss.com/docs)
+
+ - **Backend**
+   - [Node.js](https://nodejs.org/en/docs)
+   - [Fastify](https://fastify.dev/docs/latest/)
+
+ - **Database**
+   - [SQLite](https://www.sqlite.org/docs.html)
+
+ - **Infrastructure**
+   - [Docker](https://docs.docker.com/)
+   - [Nginx](https://nginx.org/en/docs/)
+
+ - **Authentication**
+   - [JWT (RFC 7519)](https://datatracker.ietf.org/doc/html/rfc7519)
+   - [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
+   - [TOTP (RFC 6238)](https://datatracker.ietf.org/doc/html/rfc6238)
+   - [Argon2](https://github.com/P-H-C/phc-winner-argon2)
+
  - **Use of AI Tools**
 		AI tools (Copilot, ChatGPT) were used in the following ways:
 
@@ -188,7 +209,7 @@ The database uses SQLite and is structured to support user management, authentic
 ---
 
 ## Features
-
+Click Link:https://docs.google.com/spreadsheets/d/17Zzqtc-Kt7rOGMgjCKm4IlfExPgKOZ_PsDcWadULh7k/edit?gid=1123937038#gid=1123937038
 
 
 ---
@@ -208,7 +229,6 @@ The database uses SQLite and is structured to support user management, authentic
  - **Implement advanced 3D graphics using a library like Three.js or Babylon.js.**
  - **Game customization options.**
 
- **Selected module list** https://docs.google.com/spreadsheets/d/17Zzqtc-Kt7rOGMgjCKm4IlfExPgKOZ_PsDcWadULh7k/edit?gid=1123937038#gid=1123937038
 
 ### Implementation Details
 
