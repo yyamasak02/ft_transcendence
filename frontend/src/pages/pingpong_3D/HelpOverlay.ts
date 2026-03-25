@@ -1,4 +1,4 @@
-// pingpong_3D/HelpOverlay.ts
+// pingpong_3D/HelpOverlay.ts ヘルプ画面スマホビュー差し込み用
 import { HELP_SLIDES } from "./helpSlider";
 
 export function renderHelpOverlay(): string {
