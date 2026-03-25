@@ -40,6 +40,12 @@ const SLIDES: BannerSlide[] = [
     alt: "event5",
     link: "https://42tokyo.jp/",
   },
+    {
+    id: 6,
+    src: "/banner/event6.png",
+    alt: "event6",
+    link: "https://42tokyo.jp/",
+  },
 ];
 
 class HomeComponent implements Component {
@@ -58,7 +64,8 @@ class HomeComponent implements Component {
     return `
       <div class="
 				min-h-[calc(100vh-4rem)]
-				flex items-center justify-center
+				flex items-start justify-center
+        pt-30 sm:pt-10
 				px-4
 			">
 				<div class="flex flex-col items-center gap-8 w-full">
