@@ -172,15 +172,18 @@ export class BannerSlider implements Component {
 
     return `
       <div class="banner-wrapper">
-        <div class="banner-container" id="${this.targetId}-container">
-          ${slidesHtml}
-          
-          <button class="banner-nav prev-btn" id="${this.targetId}-prev">&#10094;</button>
-          <button class="banner-nav next-btn" id="${this.targetId}-next">&#10095;</button>
-          
+        <div class="banner-slide-block" id="${this.targetId}-root">
+
+          <div class="banner-container" id="${this.targetId}-container">
+            ${slidesHtml}            
+            <button class="banner-nav prev-btn" id="${this.targetId}-prev">&#10094;</button>
+            <button class="banner-nav next-btn" id="${this.targetId}-next">&#10095;</button>
+          </div>
+
           <div class="banner-indicators">
             ${indicatorsHtml}
           </div>
+
         </div>
       </div>
     `;
@@ -200,12 +203,13 @@ export class BannerSlider implements Component {
   };
 
   private addEventListeners = () => {
+    const root = document.getElementById(`${this.targetId}-root`);
     const container = document.getElementById(`${this.targetId}-container`);
-    if (!container) return;
+    if (!root || !container) return;
 
     const prevBtn = container.querySelector(`#${this.targetId}-prev`);
     const nextBtn = container.querySelector(`#${this.targetId}-next`);
-    const indicators = container.querySelectorAll(".indicator");
+    const indicators = root.querySelectorAll(".indicator");
 
     prevBtn?.addEventListener("click", this.handlePrev);
     nextBtn?.addEventListener("click", this.handleNext);
@@ -216,12 +220,13 @@ export class BannerSlider implements Component {
   };
 
   private removeEventListeners = () => {
+    const root = document.getElementById(`${this.targetId}-root`);
     const container = document.getElementById(`${this.targetId}-container`);
-    if (!container) return;
+    if (!root || !container) return;
 
     const prevBtn = container.querySelector(`#${this.targetId}-prev`);
     const nextBtn = container.querySelector(`#${this.targetId}-next`);
-    const indicators = container.querySelectorAll(".indicator");
+    const indicators = root.querySelectorAll(".indicator");
 
     prevBtn?.removeEventListener("click", this.handlePrev);
     nextBtn?.removeEventListener("click", this.handleNext);
@@ -232,11 +237,12 @@ export class BannerSlider implements Component {
   };
 
   private updateDOM = () => {
+    const root = document.getElementById(`${this.targetId}-root`);
     const container = document.getElementById(`${this.targetId}-container`);
-    if (!container) return;
+    if (!root || !container) return;
 
     const slides = container.querySelectorAll(".banner-slide");
-    const indicators = container.querySelectorAll(".indicator");
+    const indicators = root.querySelectorAll(".indicator");
     const current = this.logic.current;
 
     slides.forEach((slide, idx) => {
