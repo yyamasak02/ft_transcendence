@@ -28,6 +28,7 @@ import type { GamePhase } from "../core/game";
 import {
   applyPlayRadiusToCamera,
   getEndGameZoomRadius,
+  isMobileViewport,
 } from "./stageControl/cameraControl";
 
 const MAIN_CONSTS = {
@@ -103,6 +104,7 @@ export class GameScreen {
         if (this.stage?.camera) {
           applyPlayRadiusToCamera(this.stage.camera);
         }
+        this.applyLocalTwoPlayerMobileCameraControls();
       },
     });
     this.onUIUpdate = onUIUpdate;
@@ -128,6 +130,22 @@ export class GameScreen {
       const startAt = params.get("startAt");
       this.remoteStartAt = startAt ? Number(startAt) : null;
       this.serverAuthority = params.get("auth") === "server";
+    }
+  }
+
+  /**
+   * ローカル対戦（P2が人間）かつ狭い画面では、ドラッグでカメラではなくパドルを動かす
+   */
+  private applyLocalTwoPlayerMobileCameraControls(): void {
+    if (!this.stage) return;
+    const localTwoHuman =
+      !this.remoteMode && this.settings.player2Type === "Player";
+    if (localTwoHuman && isMobileViewport()) {
+      this.stage.setCameraControlsEnabled(this.canvas, false);
+      this.inputManager.enableLocalTwoPlayerTouch(this.canvas);
+    } else {
+      this.stage.setCameraControlsEnabled(this.canvas, true);
+      this.inputManager.disableLocalTwoPlayerTouch();
     }
   }
 
@@ -278,6 +296,7 @@ export class GameScreen {
     }
 
     this.inputManager.setup();
+    this.applyLocalTwoPlayerMobileCameraControls();
 
     this.hud.setScore(this.p1Score, this.p2Score);
     this.hud.hideScore();
@@ -417,6 +436,8 @@ export class GameScreen {
         this.uiLockController,
       );
     }
+
+    this.applyLocalTwoPlayerMobileCameraControls();
   }
 
   // ------------------------
@@ -453,6 +474,8 @@ export class GameScreen {
   // ------------------------
   private gameLoop() {
     if (!this.player1 || !this.player2 || !this.ball) return;
+
+    this.inputManager.beginInputFrame();
 
     const deltaTime = this.engine.getDeltaTime();
 

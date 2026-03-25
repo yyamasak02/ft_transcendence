@@ -26,5 +26,9 @@ export function createCourtMaterial(scene: Scene, settings: GameSettings) {
       mat.emissiveColor = new Color3(0.0, 0.2, 0.7);
       break;
   }
+
+  // 照明のスペキュラー反射を抑えて盤面を見やすく（デフォルトの白スペキュラーだと眩しい）
+  mat.specularColor = new Color3(0.02, 0.02, 0.02);
+  mat.specularPower = 8;
   return mat;
 }

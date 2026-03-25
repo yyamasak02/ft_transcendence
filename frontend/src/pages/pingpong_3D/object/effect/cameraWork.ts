@@ -1,5 +1,9 @@
 import { ArcRotateCamera, Vector3 } from "@babylonjs/core";
-import { getPlayRadius } from "../stageControl/cameraControl";
+import {
+  getPlayCameraAngles,
+  getPlayRadius,
+  PLAY_TOP_DOWN_BETA,
+} from "../stageControl/cameraControl";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 let zoomIntervalID: number | null = null;
@@ -14,8 +18,7 @@ export function transitionToPlayView(
     if (transitionIntervalID !== null) {
       clearInterval(transitionIntervalID);
     }
-    const targetAlpha = Math.PI / 2;
-    const targetBeta = Math.PI / 5;
+    const { alpha: targetAlpha, beta: targetBeta } = getPlayCameraAngles();
     const targetRadius = getPlayRadius();
 
     const startAlpha = camera.alpha;
@@ -47,10 +50,12 @@ export function transitionToPlayView(
 // カットイン
 export async function cutIn(camera: ArcRotateCamera, ballPosition: Vector3) {
   const CUT_IN_DELAY = 500;
+  const { alpha: playAlpha } = getPlayCameraAngles();
+  const isPortraitMobile = playAlpha === 0;
   const configs = [
-    { alpha: Math.PI / 2, beta: Math.PI / 2.5, radius: 15 },
-    { alpha: camera.alpha, beta: 0.1, radius: 10 },
-    { alpha: Math.PI / 4, beta: Math.PI / 4, radius: 20 },
+    { alpha: isPortraitMobile ? 0 : Math.PI / 2, beta: PLAY_TOP_DOWN_BETA, radius: 15 },
+    { alpha: camera.alpha, beta: PLAY_TOP_DOWN_BETA, radius: 10 },
+    { alpha: isPortraitMobile ? -Math.PI / 4 : Math.PI / 4, beta: PLAY_TOP_DOWN_BETA, radius: 20 },
   ];
 
   for (const config of configs) {
@@ -72,6 +77,8 @@ export function zoomOut(
 
   const startRadius = camera.radius;
   const startAlpha = camera.alpha;
+  const startBeta = camera.beta;
+  const { beta: endBeta } = getPlayCameraAngles();
   const startTime = Date.now();
   const TOTAL_ROTATION = Math.PI * 3;
 
@@ -83,7 +90,7 @@ export function zoomOut(
     camera.setTarget(Vector3.Zero());
     camera.radius = startRadius + (targetRadius - startRadius) * easeOutT;
     camera.alpha = startAlpha + TOTAL_ROTATION * easeOutT;
-    camera.beta = Math.PI / 5 + (Math.PI / 10) * easeOutT;
+    camera.beta = startBeta + (endBeta - startBeta) * easeOutT;
 
     if (t === 1) {
       stopZoomOut();

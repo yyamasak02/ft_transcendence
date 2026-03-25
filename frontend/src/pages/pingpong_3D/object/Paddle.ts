@@ -7,6 +7,8 @@ import { createPaddleMaterial } from "./materials/paddleMaterial";
 export type PaddleInput = {
   up: boolean;
   down: boolean;
+  /** ローカル2Pタッチ: このフレームのZ変位（ワールド）。キーボードの定速移動と加算可 */
+  touchDeltaZ?: number;
 };
 
 const { COURT_HEIGHT, PADDLE_THICKNESS } = GAME_CONFIG;
@@ -125,13 +127,17 @@ function updateImp(paddle: Paddle, deltaTime: number, input: PaddleInput) {
   const halfHeight = COURT_HEIGHT / 2;
   const margin = PADDLE_CONSTS.MOVE_MARGIN;
 
-  // 移動
+  let dz = 0;
+  if (input.touchDeltaZ !== undefined && input.touchDeltaZ !== 0) {
+    dz += input.touchDeltaZ;
+  }
   if (input.up) {
-    paddle.mesh.position.z -= speed;
+    dz -= speed;
   }
   if (input.down) {
-    paddle.mesh.position.z += speed;
+    dz += speed;
   }
+  paddle.mesh.position.z += dz;
 
   // 上限下限
   const limit = halfHeight - margin;

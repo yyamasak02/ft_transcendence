@@ -16,6 +16,8 @@ export function createPaddleMaterial(id: string, color: string, scene: Scene) {
 	mat.diffuseColor = map[color] ?? new Color3(1, 1, 1);
 	mat.ambientColor = new Color3(0.1, 0.1, 0.1);
 	mat.emissiveColor = new Color3(0, 0, 0);
+	mat.specularColor = new Color3(0.08, 0.08, 0.08);
+	mat.specularPower = 16;
 	mat.backFaceCulling = false;
 
 	return mat;

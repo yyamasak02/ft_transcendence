@@ -4,6 +4,9 @@ import { ArcRotateCamera } from "@babylonjs/core";
 /** デスクトップ想定のプレイ中カメラ距離 */
 export const BASE_PLAY_RADIUS = 80;
 
+/** 真上から見るときの仰角（beta≈0 でY軸上。0 だと不安定になりやすいので極小値） */
+export const PLAY_TOP_DOWN_BETA = 0.05;
+
 export function isMobileViewport(): boolean {
   return window.innerWidth < 768;
 }
@@ -18,10 +21,12 @@ export function getPlayRadius(): number {
   const w = window.innerWidth;
   const h = window.innerHeight;
   const aspect = h / Math.max(w, 1);
-  // ポートレートほど横が狭いので同じ80だとコートが画面からはみ出す → 半径を伸ばす
-  const baseFactor = 1.85;
-  const extra = Math.min(0.55, Math.max(0, aspect - 1.25) * 0.45);
-  return BASE_PLAY_RADIUS * (baseFactor + extra);
+
+  // モバイル縦向きでは「カメラが遠すぎて小さく見える」傾向があるため、
+  // 画面比率に応じてプレイ距離（radius）の倍率を控えめに調整する。
+  // 値は見た目合わせのためクランプして暴れを防ぐ。
+  const factor = Math.min(1.4, Math.max(1.05, 1.25 + (aspect - 1) * 0.1));
+  return BASE_PLAY_RADIUS * factor;
 }
 
 /** ゲームオーバー時のズームアウト先半径 */
@@ -54,4 +59,12 @@ export function applyPlayRadiusToCamera(camera: ArcRotateCamera): void {
     camera.lowerRadiusLimit = 0.01;
     camera.upperRadiusLimit = 20000;
   }
+}
+
+export function getPlayCameraAngles(): { alpha: number; beta: number } {
+  // ArcRotateCamera: alpha は水平回転、beta は垂直（小さいほど真上に近い）。
+  const isPortraitMobile = isMobileViewport() && window.innerHeight > window.innerWidth;
+  const alpha = isPortraitMobile ? 0 : Math.PI / 2;
+  const beta = PLAY_TOP_DOWN_BETA;
+  return { alpha, beta };
 }

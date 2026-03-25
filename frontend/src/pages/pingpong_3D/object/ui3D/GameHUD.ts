@@ -7,6 +7,7 @@ import {
   TextBlock,
   StackPanel,
 } from "@babylonjs/gui";
+import { isMobileViewport } from "../stageControl/cameraControl";
 
 interface FloatingText {
   textBlock: TextBlock;
@@ -40,7 +41,10 @@ export class GameHUD {
   private static readonly FONT_SIZE_NOTIFICATION = 80;
   private static readonly FONT_SIZE_RESULT_WINNER = 80;
   private static readonly FONT_SIZE_RESULT_SCORE = 70;
-  private static readonly FONT_SIZE_FLOATING = 120;
+  private static readonly FONT_SIZE_FLOATING = 72;
+
+  /** モバイルではベースサイズに対してこの倍率で描画（文字がはみ出しにくくする） */
+  private static readonly MOBILE_FONT_SCALE = 0.5;
 
   // UI配置・サイズ
   private static readonly SCORE_TOP_PX = -70;
@@ -49,11 +53,12 @@ export class GameHUD {
   private static readonly RALLY_PANEL_SIZE_PX = 200;
   private static readonly RALLY_PANEL_OFFSET_PX = 30;
   private static readonly RALLY_LABEL_TOP_OFFSET_PX = -10;
+  /** モバイルで得点をラリーパネル右に置くときの隙間 */
+  private static readonly SCORE_GAP_FROM_RALLY_PX = 10;
 
   private static readonly NOTIFICATION_TOP_PX = 150;
 
-  private static readonly RESULT_PANEL_WIDTH_PX = 1000;
-  private static readonly RESULT_PANEL_START_LEFT_PX = 1200;
+  /** リザルトパネルは画面外右からスライド（開始オフセットは動的に決める） */
   private static readonly RESULT_PANEL_TARGET_LEFT_PX = -80;
   private static readonly RESULT_PANEL_TOP_PX = -80;
 
@@ -85,7 +90,7 @@ export class GameHUD {
   private static readonly FLOATING_LIFETIME_SEC = 6;
   private static readonly FLOATING_INITIAL_LIFE_SEC = 8;
   private static readonly FLOATING_MAX_COUNT = 6;
-  private static readonly FLOATING_MAX_SCALE_ADDITION = 4.0;
+  private static readonly FLOATING_MAX_SCALE_ADDITION = 1.0;
   private static readonly FLOATING_MAX_ALPHA = 0.4;
 
   // カラーパレット
@@ -107,6 +112,8 @@ export class GameHUD {
   private screenTexture: AdvancedDynamicTexture;
 
   private scoreText: TextBlock;
+  /** モバイル時のみ: ラリー表示の右隣に出す得点 */
+  private scoreTextScreen: TextBlock | null = null;
   private countdownText: TextBlock;
   private infoText: TextBlock;
   private titleText: TextBlock;
@@ -135,7 +142,7 @@ export class GameHUD {
       { width: GameHUD.PLANE_WIDTH, height: GameHUD.PLANE_HEIGHT },
       scene,
     );
-    // billboard　と衝突するので rotation と lookAt は使わない
+    // billboardと衝突するので rotation と lookAt は使わない
     this.plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
     this.plane.position = GameHUD.PLANE_POSITION;
     this.plane.scaling = GameHUD.PLANE_SCALING;
@@ -144,24 +151,34 @@ export class GameHUD {
 
     // スコア
     this.scoreText = new TextBlock("score", "0 - 0");
-    this.scoreText.fontSize = GameHUD.FONT_SIZE_SCORE;
+    this.scoreText.fontSize = GameHUD.scaledFontSize(GameHUD.FONT_SIZE_SCORE);
     this.scoreText.color = GameHUD.COLOR_WHITE;
     this.scoreText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
     this.scoreText.top = `${GameHUD.SCORE_TOP_PX}px`;
+    this.scoreText.width = "96%";
+    this.scoreText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.meshTexture.addControl(this.scoreText);
 
     // カウントダウン
     this.countdownText = new TextBlock("countdown", "");
-    this.countdownText.fontSize = GameHUD.FONT_SIZE_COUNTDOWN;
+    this.countdownText.fontSize = GameHUD.scaledFontSize(
+      GameHUD.FONT_SIZE_COUNTDOWN,
+    );
     this.countdownText.color = GameHUD.COLOR_YELLOW;
+    this.countdownText.width = "96%";
+    this.countdownText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.countdownText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
     this.meshTexture.addControl(this.countdownText);
 
     // メッセージ (Game Over など)
     this.infoText = new TextBlock("info", "");
-    this.infoText.fontSize = GameHUD.FONT_SIZE_INFO;
+    this.infoText.fontSize = GameHUD.scaledFontSize(GameHUD.FONT_SIZE_INFO);
     this.infoText.color = GameHUD.COLOR_LIGHTGRAY;
     this.infoText.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.infoText.top = `${GameHUD.INFO_TOP_PX}px`;
+    this.infoText.width = "92%";
+    this.infoText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.infoText.textWrapping = true;
     this.meshTexture.addControl(this.infoText);
 
     this.screenTexture = AdvancedDynamicTexture.CreateFullscreenUI(
@@ -170,10 +187,13 @@ export class GameHUD {
       scene,
     );
 
-    // ラリーパネル
+    // ラリーパネル（モバイルは文字に合わせて枠もやや小さく）
+    const rallyPanelPx = isMobileViewport()
+      ? Math.max(140, Math.round(GameHUD.RALLY_PANEL_SIZE_PX * 0.78))
+      : GameHUD.RALLY_PANEL_SIZE_PX;
     this.rallyPanel = new StackPanel("rallyPanel");
-    this.rallyPanel.width = `${GameHUD.RALLY_PANEL_SIZE_PX}px`;
-    this.rallyPanel.height = `${GameHUD.RALLY_PANEL_SIZE_PX}px`;
+    this.rallyPanel.width = `${rallyPanelPx}px`;
+    this.rallyPanel.height = `${rallyPanelPx}px`;
     this.rallyPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.rallyPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
     this.rallyPanel.left = `${GameHUD.RALLY_PANEL_OFFSET_PX}px`;
@@ -183,22 +203,32 @@ export class GameHUD {
 
     // ラリー数
     this.rallyCountText = new TextBlock("rallyCount", "0");
-    this.rallyCountText.fontSize = GameHUD.FONT_SIZE_RALLY_COUNT;
-    this.rallyCountText.height = `${GameHUD.FONT_SIZE_RALLY_COUNT}px`;
+    this.rallyCountText.fontSize = GameHUD.scaledFontSize(
+      GameHUD.FONT_SIZE_RALLY_COUNT,
+    );
+    this.rallyCountText.height = `${GameHUD.scaledFontSize(GameHUD.FONT_SIZE_RALLY_COUNT)}px`;
     this.rallyCountText.fontFamily = "Bebas Neue, sans-serif";
     this.rallyCountText.color = GameHUD.COLOR_GOLD;
-    this.rallyCountText.outlineWidth = GameHUD.OUTLINE_WIDTH_NORMAL;
+    this.rallyCountText.outlineWidth = GameHUD.scaledFontSize(
+      GameHUD.OUTLINE_WIDTH_NORMAL,
+    );
     this.rallyCountText.outlineColor = GameHUD.COLOR_BLACK;
     this.rallyCountText.shadowBlur = 0;
     this.rallyCountText.shadowColor = GameHUD.COLOR_BLACK;
-    this.rallyCountText.shadowOffsetX = GameHUD.SHADOW_OFFSET;
-    this.rallyCountText.shadowOffsetY = GameHUD.SHADOW_OFFSET;
+    this.rallyCountText.shadowOffsetX = GameHUD.scaledFontSize(
+      GameHUD.SHADOW_OFFSET,
+    );
+    this.rallyCountText.shadowOffsetY = GameHUD.scaledFontSize(
+      GameHUD.SHADOW_OFFSET,
+    );
     this.rallyPanel.addControl(this.rallyCountText);
 
     // ラリーラベル
     this.rallyLabelText = new TextBlock("rallyLabel", "RALLY");
-    this.rallyLabelText.fontSize = GameHUD.FONT_SIZE_RALLY_LABEL;
-    this.rallyLabelText.height = `${GameHUD.FONT_SIZE_RALLY_LABEL}px`;
+    this.rallyLabelText.fontSize = GameHUD.scaledFontSize(
+      GameHUD.FONT_SIZE_RALLY_LABEL,
+    );
+    this.rallyLabelText.height = `${GameHUD.scaledFontSize(GameHUD.FONT_SIZE_RALLY_LABEL)}px`;
     this.rallyLabelText.fontFamily = "Bebas Neue, sans-serif";
     this.rallyLabelText.color = GameHUD.COLOR_WHITE;
     this.rallyLabelText.outlineWidth = 0;
@@ -206,65 +236,122 @@ export class GameHUD {
     this.rallyLabelText.top = `${GameHUD.RALLY_LABEL_TOP_OFFSET_PX}px`;
     this.rallyPanel.addControl(this.rallyLabelText);
 
+    // モバイル: 得点をラリーパネルの右隣（ゲーム中は 3D プレーン上の得点は使わない）
+    if (isMobileViewport()) {
+      this.scoreText.isVisible = false;
+      this.scoreTextScreen = new TextBlock("scoreScreen", "0 - 0");
+      this.scoreTextScreen.fontSize = GameHUD.scaledFontSize(
+        GameHUD.FONT_SIZE_SCORE,
+      );
+      this.scoreTextScreen.color = GameHUD.COLOR_WHITE;
+      this.scoreTextScreen.fontFamily = "Bebas Neue, sans-serif";
+      this.scoreTextScreen.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      this.scoreTextScreen.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      this.scoreTextScreen.left = `${GameHUD.RALLY_PANEL_OFFSET_PX + rallyPanelPx + GameHUD.SCORE_GAP_FROM_RALLY_PX}px`;
+      this.scoreTextScreen.top = `${GameHUD.RALLY_PANEL_OFFSET_PX}px`;
+      this.scoreTextScreen.textHorizontalAlignment =
+        Control.HORIZONTAL_ALIGNMENT_LEFT;
+      this.scoreTextScreen.zIndex = 5;
+      this.scoreTextScreen.isVisible = false;
+      this.screenTexture.addControl(this.scoreTextScreen);
+    }
+
     // 前進通知
     this.notificationText = new TextBlock("notification", "");
-    this.notificationText.fontSize = GameHUD.FONT_SIZE_NOTIFICATION;
+    this.notificationText.fontSize = GameHUD.scaledFontSize(
+      GameHUD.FONT_SIZE_NOTIFICATION,
+    );
     this.notificationText.fontFamily = "Bebas Neue, sans-serif";
     this.notificationText.color = GameHUD.COLOR_CYAN;
     this.notificationText.textVerticalAlignment =
       Control.VERTICAL_ALIGNMENT_TOP;
     this.notificationText.top = `${GameHUD.NOTIFICATION_TOP_PX}px`;
-    this.notificationText.outlineWidth = 5;
+    this.notificationText.width = "88%";
+    this.notificationText.textHorizontalAlignment =
+      Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.notificationText.textWrapping = true;
+    this.notificationText.outlineWidth = GameHUD.scaledFontSize(5);
     this.notificationText.outlineColor = GameHUD.COLOR_BLACK;
     this.notificationText.isVisible = false;
     this.screenTexture.addControl(this.notificationText);
 
     // タイトル
     this.titleText = new TextBlock("title", "");
-    this.titleText.fontSize = GameHUD.FONT_SIZE_TITLE;
+    this.titleText.fontSize = GameHUD.scaledFontSize(GameHUD.FONT_SIZE_TITLE);
     this.titleText.color = GameHUD.COLOR_TITLE_TEXT;
     this.titleText.fontWeight = "bold";
-    this.titleText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
+    this.titleText.outlineWidth = GameHUD.scaledFontSize(
+      GameHUD.OUTLINE_WIDTH_BOLD,
+    );
     this.titleText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
+    this.titleText.width = "92%";
+    this.titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+    this.titleText.textWrapping = true;
     this.titleText.isVisible = false;
     this.titleText.zIndex = 100;
     this.screenTexture.addControl(this.titleText);
 
-    // リザルトパネル
+    // リザルトパネル（clip すると折り返し長文の上下が欠けるためクリップしない）
     this.resultPanel = new StackPanel("resultPanel");
-    this.resultPanel.width = `${GameHUD.RESULT_PANEL_WIDTH_PX}px`;
+    this.resultPanel.width = "88%";
+    this.resultPanel.clipChildren = false;
+    this.resultPanel.spacing = 6;
     this.resultPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
     this.resultPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-    this.resultPanel.leftInPixels = GameHUD.RESULT_PANEL_START_LEFT_PX;
+    this.resultPanel.leftInPixels = GameHUD.getResultPanelStartLeftPx(scene);
     this.resultPanel.topInPixels = GameHUD.RESULT_PANEL_TOP_PX;
     this.resultPanel.isVisible = false;
     this.screenTexture.addControl(this.resultPanel);
 
-    // リザルト(勝者名)
+    // リザルト(勝者名) — 固定 height は行数・アウトラインで不足しがちなので内容に合わせる
     this.resultWinnerText = new TextBlock("resultWinner", "");
-    this.resultWinnerText.height = "120px";
-    this.resultWinnerText.fontSize = GameHUD.FONT_SIZE_RESULT_WINNER;
+    this.resultWinnerText.fontSize = GameHUD.scaledFontSize(
+      GameHUD.FONT_SIZE_RESULT_WINNER,
+    );
     this.resultWinnerText.color = GameHUD.COLOR_WINNER_TEXT;
     this.resultWinnerText.fontWeight = "bold";
-    this.resultWinnerText.outlineWidth = GameHUD.OUTLINE_WIDTH_NORMAL;
+    this.resultWinnerText.outlineWidth = GameHUD.scaledFontSize(
+      GameHUD.OUTLINE_WIDTH_NORMAL,
+    );
     this.resultWinnerText.outlineColor = GameHUD.COLOR_BLACK;
+    this.resultWinnerText.width = "100%";
     this.resultWinnerText.textHorizontalAlignment =
       Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    this.resultWinnerText.textWrapping = true;
     this.resultWinnerText.resizeToFit = true;
     this.resultPanel.addControl(this.resultWinnerText);
 
     // リザルト(スコア)
     this.resultScoreText = new TextBlock("resultScore", "");
-    this.resultScoreText.height = "80px";
-    this.resultScoreText.fontSize = GameHUD.FONT_SIZE_RESULT_SCORE;
+    this.resultScoreText.fontSize = GameHUD.scaledFontSize(
+      GameHUD.FONT_SIZE_RESULT_SCORE,
+    );
     this.resultScoreText.color = GameHUD.COLOR_WHITE;
-    this.resultScoreText.outlineWidth = GameHUD.OUTLINE_WIDTH_NORMAL;
+    this.resultScoreText.outlineWidth = GameHUD.scaledFontSize(
+      GameHUD.OUTLINE_WIDTH_NORMAL,
+    );
     this.resultScoreText.outlineColor = GameHUD.COLOR_BLACK;
+    this.resultScoreText.width = "100%";
     this.resultScoreText.textHorizontalAlignment =
       Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    this.resultScoreText.textWrapping = true;
     this.resultScoreText.resizeToFit = true;
     this.resultPanel.addControl(this.resultScoreText);
   }
+
+  /** 画面右外にパネルを置くための left（幅に依存するため動的） */
+  private static getResultPanelStartLeftPx(scene: Scene): number {
+    return scene.getEngine().getRenderWidth() + 80;
+  }
+
+  /** デスクトップはベース値、モバイルは縮小 */
+  private static scaledFontSize(base: number): number {
+    if (typeof window === "undefined") return base;
+    if (!isMobileViewport()) return base;
+    return Math.max(10, Math.round(base * GameHUD.MOBILE_FONT_SCALE));
+  }
+
 
   // ラリー数更新と演出
   setRallyCount(count: number) {
@@ -374,8 +461,9 @@ export class GameHUD {
 
       if (this.titleText.isVisible) {
         const pulse = (Math.sin(now * GameHUD.TITLE_PULSE_SPEED) + 1) / 2;
-        this.titleText.outlineWidth =
-          GameHUD.TITLE_PULSE_MIN_WIDTH + pulse * GameHUD.TITLE_PULSE_RANGE;
+        const minO = GameHUD.scaledFontSize(GameHUD.TITLE_PULSE_MIN_WIDTH);
+        const rangeO = GameHUD.scaledFontSize(GameHUD.TITLE_PULSE_RANGE);
+        this.titleText.outlineWidth = minO + pulse * rangeO;
       }
 
       if (now - this.lastSpawnTime > GameHUD.FLOATING_SPAWN_INTERVAL_MS) {
@@ -414,12 +502,15 @@ export class GameHUD {
     this.isNextPing = !this.isNextPing;
 
     const text = new TextBlock("ft", textContent);
-    text.fontSize = GameHUD.FONT_SIZE_FLOATING;
+    text.fontSize = GameHUD.scaledFontSize(GameHUD.FONT_SIZE_FLOATING);
     text.color =
       textContent === "PING" ? GameHUD.COLOR_PING : GameHUD.COLOR_PONG;
     text.fontWeight = "bold";
-    text.outlineWidth = GameHUD.OUTLINE_WIDTH_THIN;
+    text.outlineWidth = GameHUD.scaledFontSize(GameHUD.OUTLINE_WIDTH_THIN);
     text.outlineColor = GameHUD.COLOR_WHITE;
+    text.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    text.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+    text.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 
     text.leftInPixels = 0;
     text.topInPixels = 0;
@@ -444,7 +535,7 @@ export class GameHUD {
       scene.onBeforeRenderObservable.remove(this.slideInObserver);
     }
 
-    const startLeft = GameHUD.RESULT_PANEL_START_LEFT_PX;
+    const startLeft = GameHUD.getResultPanelStartLeftPx(scene);
     const targetLeft = GameHUD.RESULT_PANEL_TARGET_LEFT_PX;
 
     this.slideInObserver = scene.onBeforeRenderObservable.add(() => {
@@ -489,11 +580,17 @@ export class GameHUD {
 
   clearFinalResult() {
     this.resultPanel.isVisible = false;
-    this.resultPanel.leftInPixels = GameHUD.RESULT_PANEL_START_LEFT_PX;
+    this.resultPanel.leftInPixels = GameHUD.getResultPanelStartLeftPx(
+      this.plane.getScene(),
+    );
   }
 
   setScore(p1: number, p2: number) {
-    this.scoreText.text = `${p1} - ${p2}`;
+    const s = `${p1} - ${p2}`;
+    this.scoreText.text = s;
+    if (this.scoreTextScreen) {
+      this.scoreTextScreen.text = s;
+    }
   }
 
   setCountdown(text: string) {
@@ -506,9 +603,17 @@ export class GameHUD {
 
   hideScore() {
     this.scoreText.isVisible = false;
+    if (this.scoreTextScreen) {
+      this.scoreTextScreen.isVisible = false;
+    }
   }
   showScore() {
-    this.scoreText.isVisible = true;
+    if (this.scoreTextScreen) {
+      this.scoreTextScreen.isVisible = true;
+      this.scoreText.isVisible = false;
+    } else {
+      this.scoreText.isVisible = true;
+    }
   }
 
   clearGameOver() {
