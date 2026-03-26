@@ -40,6 +40,12 @@ const SLIDES: BannerSlide[] = [
     alt: "event5",
     link: "https://42tokyo.jp/",
   },
+  {
+    id: 7,
+    src: "/banner/event7.png",
+    alt: "event7",
+    link: "https://42tokyo.jp/",
+  },
 ];
 
 class HomeComponent implements Component {
