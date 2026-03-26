@@ -5,11 +5,12 @@ export function renderHelpOverlay(): string {
   const slidesHtml = HELP_SLIDES.map((slide, index) => {
     return `
       <div class="help-slide ${index === 0 ? "active" : ""}" data-index="${index}">
-        <img
-          src="${slide.image}"
-          alt="help slide ${index + 1}"
-          class="help-slide-image"
-        />
+        <div class="help-slide-image">
+          <img
+            src="${slide.image}"
+            alt="help slide ${index + 1}"
+          />
+        </div>
         <p class="help-slide-desc">
           ${slide.desc}
         </p>
@@ -29,7 +30,7 @@ export function renderHelpOverlay(): string {
   }).join("");
 
   return `
-    <div id="help-overlay" class="hidden">
+    <div id="help-overlay" style="display: none;">
       <div class="help-content">
         <div class="help-slider-block">
           <div class="help-slider-container">
