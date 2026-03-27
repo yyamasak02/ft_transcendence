@@ -16,8 +16,8 @@ import { Ball } from "./Ball";
 import { createCourtMaterial } from "./materials/courtMaterial";
 import {
   applyPlayRadiusToCamera,
-  setupCameraForMobile,
   getPlayCameraAngles,
+  setupCameraForMobile,
 } from "./stageControl/cameraControl";
 import {
   createMainLight,
@@ -77,12 +77,11 @@ export class Stage {
     );
     this.court.material = createCourtMaterial(scene, settings);
 
-    // camera（プレイ時は真上に近い beta を getPlayCameraAngles と揃える）
-    const { alpha: camAlpha, beta: camBeta } = getPlayCameraAngles();
+    // camera
     this.camera = new ArcRotateCamera(
       "camera",
-      camAlpha,
-      camBeta,
+      Math.PI / 2,
+      Math.PI / 5,
       80,
       new Vector3(0, 0, 0),
       scene,
@@ -123,7 +122,8 @@ export class Stage {
   }
 
   /**
-   * false のときキャンバス上のドラッグでカメラが回らない（ローカル2P・モバイルでパドル操作に回す）
+   * false のときキャンバス上ドラッグでカメラを動かさない
+   * （ローカル2Pモバイルでタッチ入力をパドル操作へ回すため）
    */
   public setCameraControlsEnabled(
     canvas: HTMLCanvasElement,

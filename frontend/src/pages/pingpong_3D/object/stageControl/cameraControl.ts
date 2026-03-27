@@ -62,9 +62,12 @@ export function applyPlayRadiusToCamera(camera: ArcRotateCamera): void {
 }
 
 export function getPlayCameraAngles(): { alpha: number; beta: number } {
-  // ArcRotateCamera: alpha は水平回転、beta は垂直（小さいほど真上に近い）。
-  const isPortraitMobile = isMobileViewport() && window.innerHeight > window.innerWidth;
-  const alpha = isPortraitMobile ? 0 : Math.PI / 2;
-  const beta = PLAY_TOP_DOWN_BETA;
-  return { alpha, beta };
+  // ArcRotateCamera: alpha は水平回転、beta は垂直（小さいほど真上）。
+  // 要件:
+  // - モバイル: 真上寄り（top-down）
+  // - PC: 既存の斜め視点（alpha=PI/2, beta=PI/5）
+  if (isMobileViewport()) {
+    return { alpha: 0, beta: PLAY_TOP_DOWN_BETA };
+  }
+  return { alpha: Math.PI / 2, beta: Math.PI / 5 };
 }
