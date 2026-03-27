@@ -1,6 +1,7 @@
 // pingpong_3D/object/materials/courtMaterial.ts
 import { Scene, StandardMaterial, Color3 } from "@babylonjs/core";
 import type { GameSettings } from "../../../../utils/pingpong3D/gameSettings";
+import { isMobileViewport } from "../stageControl/cameraControl";
 
 export function createCourtMaterial(scene: Scene, settings: GameSettings) {
   const mat = new StandardMaterial("courtMat", scene);
@@ -27,8 +28,10 @@ export function createCourtMaterial(scene: Scene, settings: GameSettings) {
       break;
   }
 
-  // 照明のスペキュラー反射を抑えて盤面を見やすく（デフォルトの白スペキュラーだと眩しい）
-  mat.specularColor = new Color3(0.02, 0.02, 0.02);
-  mat.specularPower = 8;
+  // モバイルのみ反射を抑える。PC は従来どおり（specular 未指定）で見た目を維持。
+  if (isMobileViewport()) {
+    mat.specularColor = new Color3(0.02, 0.02, 0.02);
+    mat.specularPower = 8;
+  }
   return mat;
 }
