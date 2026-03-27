@@ -12,32 +12,38 @@ import "@/components/banner-slider/style.css"; // コンポーネントのCSSを
 const SLIDES: BannerSlide[] = [
   {
     id: 1,
-    src: "../../public/banner/event1.png",
+    src: "/banner/event1.png",
     alt: "event1",
     link: "#",
   },
   {
     id: 2,
-    src: "../../public/banner/event2.png",
+    src: "/banner/event2.png",
     alt: "event2",
     link: "https://42tokyo.jp/",
   },
   {
     id: 3,
-    src: "../../public/banner/event3.png",
+    src: "/banner/event3.png",
     alt: "event3",
     link: "https://42tokyo.jp/",
   },
   {
     id: 4,
-    src: "../../public/banner/event4.png",
+    src: "/banner/event4.png",
     alt: "event4",
     link: "https://42tokyo.jp/",
   },
   {
     id: 5,
-    src: "../../public/banner/event5.png",
+    src: "/banner/event5.png",
     alt: "event5",
+    link: "https://42tokyo.jp/",
+  },
+  {
+    id: 7,
+    src: "/banner/event7.png",
+    alt: "event7",
     link: "https://42tokyo.jp/",
   },
 ];

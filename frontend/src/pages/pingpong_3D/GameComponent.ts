@@ -126,37 +126,37 @@ export class GameComponent implements Component {
                     </div>
                     <div id="game-ui-3d" class="absolute right-2 top-2 z-[10000] flex max-w-[calc(100vw-1rem)] flex-wrap justify-end gap-1.5 sm:right-5 sm:top-5 sm:gap-2.5">
                         <button type="button" id="btn-3d-help" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("how_to_play")}">
-                            <img src="../../public/button/help.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
+                            <img src="/button/help.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                         <button type="button" id="btn-3d-home-nav" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("home")}">
-                            <img src="../../public/button/home.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
+                            <img src="/button/home.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                         <button type="button" id="btn-3d-settings-nav" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("settings")}">
-                            <img src="../../public/button/gear.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
+                            <img src="/button/gear.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                         <button type="button" id="btn-3d-pause" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("pause")}">
-                            <img src="../../public/button/pause.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
+                            <img src="/button/pause.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                         <button type="button" id="btn-3d-camera-reset" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("camera_reset")}">
-                            <img src="../../public/button/camera.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
+                            <img src="/button/camera.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                     </div>
 
                     <div id="central-menu-container" class="pointer-events-none absolute left-1/2 top-1/2 z-[10001] flex w-[min(100%,340px)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 sm:gap-5">
                         <button type="button" id="btn-3d-resume" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
-                            <img src="../../public/button/resume.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <img src="/button/resume.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
                             <span class="mt-1">${t("resume")}</span>
                         </button>
                         <button type="button" id="btn-3d-reset" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
-                            <img src="../../public/button/reset.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <img src="/button/reset.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
                             <span class="mt-1">${t("reset")}</span>
                         </button>
                         <button type="button" id="btn-3d-settings" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
-                            <img src="../../public/button/gear.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <img src="/button/gear.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
                             <span class="mt-1">${t("settings")}</span>
                         </button>
                         <button type="button" id="btn-3d-home" data-central-btn class="pointer-events-auto hidden min-h-[60px] w-full cursor-pointer items-center justify-start gap-3 rounded-[14px] border-none bg-[#f77001] pl-10 text-base uppercase tracking-wide text-white shadow-[0_8px_0_#b35100] transition-all duration-100 ease-out hover:-translate-y-0.5 hover:bg-[#ff8c33] hover:pl-12 hover:shadow-[0_10px_0_#b35100] active:translate-y-1.5 active:shadow-[0_2px_0_#b35100] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-30 disabled:shadow-none disabled:grayscale disabled:pointer-events-none sm:h-[75px] sm:gap-5 sm:pl-[60px] sm:text-[1.8rem] sm:tracking-[2px] sm:hover:pl-[65px]">
-                            <img src="../../public/button/home.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
+                            <img src="/button/home.svg" class="pointer-events-none h-7 w-7 brightness-0 invert sm:h-8 sm:w-8" alt="">
                             <span class="mt-1">${t("home")}</span>
                         </button>
                     </div>
