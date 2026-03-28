@@ -357,7 +357,9 @@ export class GameHUD {
     this.resultPanel.addControl(this.resultScoreText);
 
     this.applyResultPanelLayout();
-    window.addEventListener("resize", this.boundOnViewportResize);
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", this.boundOnViewportResize);
+    }
   }
 
   // ラリー数更新と演出
@@ -626,7 +628,9 @@ export class GameHUD {
   }
 
   public dispose() {
-    window.removeEventListener("resize", this.boundOnViewportResize);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("resize", this.boundOnViewportResize);
+    }
     const scene = this.plane.getScene();
 
     // Observer の解除
