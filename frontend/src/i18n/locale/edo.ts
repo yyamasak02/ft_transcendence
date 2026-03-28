@@ -52,6 +52,8 @@ export const edo = {
 
   // setting
   press_enter: "'Enter'を押せば始まりじゃ",
+  pingpong3d_splash_title: "PING PONG 3D",
+  press_enter_or_click_to_start: "Enterを押すか画面を叩けば始まりじゃ",
   local: "目の前の敵と戦う",
   online: "見えぬ敵と戦う",
   select_game_mode: "戦い方を選べ",

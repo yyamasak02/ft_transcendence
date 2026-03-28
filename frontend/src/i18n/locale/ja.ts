@@ -52,6 +52,8 @@ export const ja = {
   
   // setting
   press_enter: "'Enter'を押すとスタートします",
+  pingpong3d_splash_title: "PING PONG 3D",
+  press_enter_or_click_to_start: "Enterキーまたはクリックでスタート",
   local: "ローカルバトル",
   online: "オンラインバトル",
   select_game_mode: "ゲームモード選択",

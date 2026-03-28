@@ -52,6 +52,8 @@ export const ita = {
 
 	// setting
   press_enter: "Premi 'Invio' per iniziare",
+  pingpong3d_splash_title: "PING PONG 3D",
+  press_enter_or_click_to_start: "PREMI INVIO O FAI CLIC PER INIZIARE",
   local: "SFIDA LOCALE",
   online: "SFIDA ONLINE",
   select_game_mode: "SELEZIONA MODALITÀ DI GIOCO",

@@ -63,8 +63,6 @@ export class GameHUD {
   private static readonly FONT_SIZE_RESULT_WINNER_NARROW = 38;
   private static readonly FONT_SIZE_RESULT_SCORE_NARROW = 34;
   private static readonly TITLE_SCREEN_MARGIN_PX = 24;
-  private static readonly TITLE_SCREEN_COPY =
-    "PING PONG 3D\n\nPRESS ENTER OR CLICK TO START";
 
   // アウトライン
   private static readonly OUTLINE_WIDTH_BOLD = 10;
@@ -211,7 +209,7 @@ export class GameHUD {
   }
 
   private refreshTitleText(): void {
-    this.titleText.text = GameHUD.TITLE_SCREEN_COPY;
+    this.titleText.text = `${word("pingpong3d_splash_title")}\n\n${word("press_enter_or_click_to_start")}`;
   }
 
   // 初期生成
