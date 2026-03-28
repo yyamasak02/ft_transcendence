@@ -240,9 +240,17 @@ Each module was implemented following the project architecture and thoroughly te
 
 ## 👤 yyamasak
 
- - **xx**
- - **xx**
- - **xx**
+#### Architecture & Technical Direction
+- **Technical Foundations** - Established repository baseline, development workflow, and core engineering conventions.
+- **Review Standards** - Defined and maintained code review instructions and quality criteria across feature branches.
+- **Integration Strategy** - Led technical integration flow and release readiness from `dev` to `main`.
+
+#### Major Feature Implementation
+- **Remote Match Feature** - Implemented and integrated remote match functionality.
+
+#### Documentation & Maintenance
+- **Build/Repo Maintenance** - Updated issue templates, Makefile, and related project-level settings.
+- **Documentation** - Maintained README and wiki notes for onboarding and team operation.
 
 ## 👤 tashiget
 #### User Management
