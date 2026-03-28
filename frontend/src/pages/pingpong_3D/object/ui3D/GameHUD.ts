@@ -135,7 +135,7 @@ export class GameHUD {
       { width: GameHUD.PLANE_WIDTH, height: GameHUD.PLANE_HEIGHT },
       scene,
     );
-    // billboard　と衝突するので rotation と lookAt は使わない
+    // billboardと衝突するので rotation と lookAt は使わない
     this.plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
     this.plane.position = GameHUD.PLANE_POSITION;
     this.plane.scaling = GameHUD.PLANE_SCALING;
@@ -466,7 +466,7 @@ export class GameHUD {
   }
 
   showTitle() {
-    this.titleText.text = "PING PONG 3D\n\nPRESS ENTER TO START";
+    this.titleText.text = "PING PONG 3D\n\nPRESS ENTER OR CLICK TO START";
     this.titleText.isVisible = true;
   }
 
