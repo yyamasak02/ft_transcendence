@@ -23,6 +23,7 @@
   width: 850px;
   max-width: 95%;
   padding: 40px;
+  padding-bottom: 40px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -85,6 +86,12 @@
   margin: 0;
 }
 
+@media (max-width: 640px) {
+  .pp3d-title-holo {
+    font-size: 24px;
+  }
+}
+
 /* ルームID表示 */
 .pp3d-room-display {
   position: relative;
@@ -140,10 +147,17 @@
 
 .pp3d-room-value {
   font-family: "Bebas Neue", monospace;
-  font-size: 3rem;
+  font-size: 2rem;
   color: #fff;
   letter-spacing: 4px;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+@media (max-widh: 640px) {
+  .pp3d-room-value {
+    font-size: 10px;
+    word-break: break-all;
+  }
 }
 
 .pp3d-copy-hint {
@@ -189,6 +203,13 @@
   position: relative;
   overflow: visible;
   width: 100%;
+  margin-top: 40px;
+}
+
+@media (max-width:640px) {
+  .pp3d-status-area {
+    margin-top: 20px;
+  }
 }
 
 /* ローダーコンテナ */
@@ -199,7 +220,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
-  margin: 0 auto;
+  margin-top: -20px;
+  transform: translateY(-60px);
 }
 
 .walking-number {
@@ -213,6 +235,40 @@
   filter: drop-shadow(2px 2px 0px rgba(255, 255, 255, 0.2))
     drop-shadow(0 0 10px rgba(var(--pp3d-primary-rgb), 0.6));
   transform-origin: bottom center;
+}
+
+@media (max-width: 640px) {
+  .pp3d-loading-42 {
+    transform: translateY(-30px);
+  }
+
+  .pp3d-status-text {
+    transform: translateY(-20px);
+  }
+
+  .pp3d-ready-btn {
+    transform: translateY(-10px);
+  }
+
+  .walking-number {
+    font-size: 40px;
+  }
+
+  .pp3d-status-area {
+    margin-top: -30px;
+  }
+
+  .pp3d-wait-card {
+    padding-bottom: 20px;
+  }
+
+  .pp3d-wait-wrapper {
+    align-items: flex-start;
+  }
+
+  .pp3d-ready-btn {
+    bottom: 50px;
+  }
 }
 
 .pp3d-status-text {
