@@ -230,6 +230,19 @@
   letter-spacing: 0.08em;
 }
 
+.me-swipe-hint {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  color: #666;
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .me-swipe-hint {
+    display: block;
+  }
+}
+
 .me-search {
   display: flex;
   gap: 8px;

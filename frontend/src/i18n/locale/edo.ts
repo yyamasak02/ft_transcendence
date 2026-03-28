@@ -162,4 +162,6 @@ export const edo = {
   seconds_unit: "秒",
   remote_game_started: "勝負、始まりだ！",
   unknown_user: "名無しの権兵衛",
+  not_found: "ページが見当たらぬ",
+  swipe_for_match_results: "横へ進んで勝負の結果を見よ",
 } as const;

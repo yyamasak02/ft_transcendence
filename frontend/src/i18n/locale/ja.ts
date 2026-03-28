@@ -166,4 +166,6 @@ export const ja = {
   seconds_unit: "秒",
   remote_game_started: "ゲーム開始！",
   unknown_user: "不明なユーザー",
+  not_found: "ページが見つかりません",
+  swipe_for_match_results: "スワイプして試合結果を見る",
 } as const;

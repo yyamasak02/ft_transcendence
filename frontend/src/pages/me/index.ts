@@ -74,6 +74,7 @@ class MeComponent {
         </div>
         <div class="me-side">
           <h3 class="me-side-title">${t("match_results")}</h3>
+          <p class="me-swipe-hint">${t("swipe_for_match_results")}</p>
           <div class="me-matches-summary" id="me-matches-summary"></div>
           <div class="me-matches" id="me-matches"></div>
         </div>

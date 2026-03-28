@@ -162,4 +162,6 @@ export const en = {
   seconds_unit: "seconds",
   remote_game_started: "Game started!",
   unknown_user: "Unknown user",
+  not_found: "Not Found",
+  swipe_for_match_results: "Swipe for Match Results",
 } as const;
