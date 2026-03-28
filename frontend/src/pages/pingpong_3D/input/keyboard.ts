@@ -7,6 +7,10 @@ export class InputManager {
   private handlers: KeyboardHandlers;
   private pointerTarget: HTMLCanvasElement | null = null;
   private tapToStartPending = false;
+  private virtualP1Up = false;
+  private virtualP1Down = false;
+  private virtualP2Up = false;
+  private virtualP2Down = false;
 
   constructor(handlers: KeyboardHandlers) {
     this.handlers = handlers;
@@ -55,7 +59,27 @@ export class InputManager {
     }
 
     this.tapToStartPending = false;
+    this.virtualP1Up = false;
+    this.virtualP1Down = false;
+    this.virtualP2Up = false;
+    this.virtualP2Down = false;
     Object.keys(this.keysPressed).forEach((k) => (this.keysPressed[k] = false));
+  }
+
+  setVirtualP1Up(pressed: boolean) {
+    this.virtualP1Up = pressed;
+  }
+
+  setVirtualP1Down(pressed: boolean) {
+    this.virtualP1Down = pressed;
+  }
+
+  setVirtualP2Up(pressed: boolean) {
+    this.virtualP2Up = pressed;
+  }
+
+  setVirtualP2Down(pressed: boolean) {
+    this.virtualP2Down = pressed;
   }
 
   /** メニュー「タップで開始」用。呼ぶとフラグは false に戻る（1 回だけ有効）。 */
@@ -68,12 +92,12 @@ export class InputManager {
   getPaddleInputs(): { p1: PaddleInput; p2: PaddleInput } {
     return {
       p1: {
-        up: !!this.keysPressed["w"],
-        down: !!this.keysPressed["s"],
+        up: !!this.keysPressed["w"] || this.virtualP1Up,
+        down: !!this.keysPressed["s"] || this.virtualP1Down,
       },
       p2: {
-        up: !!this.keysPressed["ArrowUp"],
-        down: !!this.keysPressed["ArrowDown"],
+        up: !!this.keysPressed["ArrowUp"] || this.virtualP2Up,
+        down: !!this.keysPressed["ArrowDown"] || this.virtualP2Down,
       },
     };
   }

@@ -124,6 +124,10 @@ export class GameScreen {
     }
   }
 
+  getInputManager(): InputManager {
+    return this.inputManager;
+  }
+
   private applyServerState() {
     if (!this.serverState || !this.player1 || !this.player2 || !this.ball)
       return;
