@@ -1,4 +1,5 @@
 import { ArcRotateCamera, Vector3 } from "@babylonjs/core";
+import { isMobileViewport } from "../../core/viewport";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 let zoomIntervalID: number | null = null;
@@ -13,9 +14,10 @@ export function transitionToPlayView(
     if (transitionIntervalID !== null) {
       clearInterval(transitionIntervalID);
     }
-    const targetAlpha = Math.PI / 2;
+
+    const targetAlpha = isMobileViewport() ? Math.PI : Math.PI / 2;
     const targetBeta = Math.PI / 5;
-    const targetRadius = 80;
+    const targetRadius = isMobileViewport() ? 80 * 1.8 : 80;
 
     const startAlpha = camera.alpha;
     const startBeta = camera.beta;
