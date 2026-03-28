@@ -4,7 +4,8 @@ import { escapeHtml } from "@/utils/escape";
 
 export const langManager = new LangManager("en");
 export function word(key: I18nKey): string {
-  return langManager.word(key) ?? "";
+  const raw = langManager.word(key);
+  return typeof raw === "string" ? raw : `[missing:${String(key)}]`;
 }
 
 // DOMに紐づくi18nテキストノードを生成（data-i18n付与）
@@ -16,12 +17,6 @@ export function t(key: I18nKey): string {
   // const text = langManager.word(key);
   // HTMLエスケープ（XSS対策）
   const escaped = escapeHtml(text);
-  // const escaped = text
-  //   .replace(/&/g, "&amp;")
-  //   .replace(/</g, "&lt;")
-  //   .replace(/>/g, "&gt;")
-  //   .replace(/"/g, "&quot;")
-  //   .replace(/'/g, "&#39;");
   return `<span data-i18n="${key}">${escaped}</span>`;
 }
 
