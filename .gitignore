@@ -1,16 +1,17 @@
-.venv
-prompts/
-convertPDFtoHTML.py
+# 全ての .env 系ファイル
 .env*
 *.env
 *.env.*
+# .env.exampleは無視しない
+!.env.example
+# secretの設定ファイル
 secret.txt
 secret.yaml
 secret.yml
-docker-compose.local.yml
+
 node_modules
 *.sqlite
 
-memo.*
-new_pingpong_3D/
+prompts/
+.venv
 infra/

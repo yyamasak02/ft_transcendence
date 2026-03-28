@@ -32,9 +32,9 @@ root = Path(sys.argv[1])
 secret_path = Path(sys.argv[2])
 
 TARGETS = {
-    "common": root / "backends/common/.env.development",
-    "connect": root / "backends/connect/.env.development",
-    "frontend": root / "frontend/.env.local",
+    "common": root / "backends/common/.env",
+    "connect": root / "backends/connect/.env",
+    "frontend": root / "frontend/.env",
 }
 
 def load_secrets(path: Path):

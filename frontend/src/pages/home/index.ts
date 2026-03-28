@@ -40,10 +40,10 @@ const SLIDES: BannerSlide[] = [
     alt: "event5",
     link: "https://42tokyo.jp/",
   },
-    {
-    id: 6,
-    src: "/banner/event6.png",
-    alt: "event6",
+  {
+    id: 7,
+    src: "/banner/event7.png",
+    alt: "event7",
     link: "https://42tokyo.jp/",
   },
 ];
