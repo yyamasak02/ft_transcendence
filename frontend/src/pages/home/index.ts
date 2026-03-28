@@ -65,7 +65,7 @@ class HomeComponent implements Component {
       <div class="
 				min-h-[calc(100vh-4rem)]
 				flex items-start justify-center
-        pt-30 sm:pt-10
+        pt-28 sm:pt-10
 				px-4
 			">
 				<div class="flex flex-col items-center gap-8 w-full">

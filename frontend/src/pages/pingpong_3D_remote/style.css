@@ -23,7 +23,6 @@
   width: 850px;
   max-width: 95%;
   padding: 40px;
-  padding-bottom: 40px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -153,9 +152,9 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-@media (max-widh: 640px) {
+@media (max-width: 640px) {
   .pp3d-room-value {
-    font-size: 10px;
+    font-size: 20px;
     word-break: break-all;
   }
 }

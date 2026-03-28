@@ -5,6 +5,7 @@ import { navigate } from "@/router";
 import type { GamePhase } from "./core/game";
 import { SliderLogic } from "@/components/banner-slider";
 import { renderHelpOverlay } from "./HelpOverlay";
+import { HELP_SLIDES } from "./helpSlider";
 
 type ButtonUIElements = {
   overlay: HTMLElement | null;
@@ -32,25 +33,6 @@ type ButtonUIVisibility = {
   hudNavButtons: boolean;
   hudGameButtons: boolean;
 };
-
-const HELP_SLIDES = [
-  {
-    image: "/howToPlay/page1.png",
-    desc: t("htp_page1"),
-  },
-  {
-    image: "/howToPlay/page2.png",
-    desc: t("htp_page2"),
-  },
-  {
-    image: "/howToPlay/page3.png",
-    desc: t("htp_page3"),
-  },
-  {
-    image: "/howToPlay/page4.png",
-    desc: t("htp_page4"),
-  },
-];
 
 export class GameComponent implements Component {
   private _appElm: HTMLElement;
