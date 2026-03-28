@@ -449,6 +449,8 @@ export class GameScreen {
   private gameLoop() {
     if (!this.player1 || !this.player2 || !this.ball) return;
 
+    this.inputManager.setTapToStartAccepting(this.gameState.phase === "menu");
+
     const deltaTime = this.engine.getDeltaTime();
 
     // Apply server state early in server-authoritative mode (for countdown display)

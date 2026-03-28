@@ -6,6 +6,8 @@ export class InputManager {
   private keysPressed: Record<string, boolean> = {};
   private handlers: KeyboardHandlers;
   private pointerTarget: HTMLCanvasElement | null = null;
+  /** メニュー画面のときだけ true（GameScreen が毎フレーム同期） */
+  private tapToStartAccepting = false;
   private tapToStartPending = false;
   private virtualP1Up = false;
   private virtualP1Down = false;
@@ -32,6 +34,7 @@ export class InputManager {
 
   private handlePointerDown = (e: PointerEvent) => {
     if (e.button !== 0) return;
+    if (!this.tapToStartAccepting) return;
     this.tapToStartPending = true;
   };
 
@@ -58,6 +61,7 @@ export class InputManager {
       this.pointerTarget = null;
     }
 
+    this.tapToStartAccepting = false;
     this.tapToStartPending = false;
     this.virtualP1Up = false;
     this.virtualP1Down = false;
@@ -80,6 +84,17 @@ export class InputManager {
 
   setVirtualP2Down(pressed: boolean) {
     this.virtualP2Down = pressed;
+  }
+
+  /**
+   * メニュー中のみタップで開始を受け付ける。オフにすると未消費のタップも破棄する。
+   * （プレイ中のクリックがメニュー復帰後に誤ってスタートしないようにする）
+   */
+  setTapToStartAccepting(enabled: boolean) {
+    this.tapToStartAccepting = enabled;
+    if (!enabled) {
+      this.tapToStartPending = false;
+    }
   }
 
   /** メニュー「タップで開始」用。呼ぶとフラグは false に戻る（1 回だけ有効）。 */
