@@ -1,7 +1,21 @@
 # Inception Project Makefile
 
 # Variables
-COMPOSE_FILE = docker-compose.local.yml
+env ?= dev
+
+# 条件分岐
+ifeq ($(env), prd)
+    COMPOSE_FILE := docker-compose.yml
+	ENV_FILE := .env
+    MSG := "Running in PRODUCTION mode"
+	BE_COM_CMD := "sh -c 'npm run db:setup && npm run start'"
+else
+    COMPOSE_FILE := docker-compose.local.yml
+# 	TODO: local実行時に必要であれば、.env.localで切り替えるようにする
+    ENV_FILE := .env
+    MSG := "Running in DEVELOPMENT mode"
+	BE_COM_CMD := "sh -c 'npm run db:setup && npm run dev'"
+endif
 
 .PHONY: up down build clean logs status help secrets ensure_envs
 
@@ -27,14 +41,15 @@ urls:
 
 ensure_envs:
 	@for f in \
-		./frontend/.env.local \
-		./backends/common/.env.development \
-		./backends/connect/.env.development; do \
+		./frontend/$(ENV_FILE) \
+		./backends/common/$(ENV_FILE) \
+		./backends/connect/$(ENV_FILE); do \
 		[ -f "$$f" ] || { mkdir -p "$$(dirname "$$f")"; touch "$$f"; }; \
 	done
 
 # Start all containers
 up: ensure_envs
+	@echo $(MSG)
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 
@@ -50,7 +65,7 @@ build: ensure_envs
 init: delete
 	@$(MAKE) secrets
 	@$(MAKE) ensure_envs
-	BE_COM_CMD="sh -c 'npm run db:setup && npm run dev'" \
+	BE_COM_CMD=$(BE_COM_CMD) \
 	docker compose -f $(COMPOSE_FILE) up -d
 	@$(MAKE) urls
 
@@ -65,7 +80,12 @@ clean: ensure_envs
 delete: clean
 	rm -f backends/common/db/app.db
 	rm -f backends/common/db/common.sqlite
-	rm -f backends/common/.env.development frontend/.env.local
+	@for f in \
+		./frontend/$(ENV_FILE) \
+		./backends/common/$(ENV_FILE) \
+		./backends/connect/$(ENV_FILE); do \
+		rm -f "$$f"; \
+	done
 
 # Show logs
 logs: ensure_envs

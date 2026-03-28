@@ -40,20 +40,20 @@ jobs:
 
       - name: make init (compose up)
         run: |
-          make init
+          make env=prd init
 
       - name: HTTP health checks
         run: |
           set -euxo pipefail
           urls=(
-            "http://localhost:8080/api/docs/"
-            "http://localhost:8083/api/docs/"
+            "https://localhost:8443/api/common/docs/"
+            "https://localhost:8443/api/connect/docs/"
           )
           for url in "${urls[@]}"; do
             echo "Checking $url"
             ok=false
             for i in {1..60}; do
-              if curl -fLsS "$url" >/dev/null 2>&1; then
+              if curl -k -fLsS "$url" >/dev/null 2>&1; then
                 ok=true
                 break
               fi
@@ -70,10 +70,10 @@ jobs:
           echo "Waiting for containers to stabilize..."
           success=false
           for i in {1..10}; do
-            STATUS=$(docker compose -f docker-compose.local.yml ps | grep -E 'Exit|restarting' || true)
+            STATUS=$(docker compose -f docker-compose.yml ps | grep -E 'Exit|restarting' || true)
             if [ -z "$STATUS" ]; then
               echo "✅ All required services are running smoothly."
-              docker compose -f docker-compose.local.yml ps
+              docker compose -f docker-compose.yml ps
               success=true
               break
             fi
@@ -83,7 +83,7 @@ jobs:
 
           if [ "$success" = false ]; then
             echo "--- ERROR: Some containers failed to start ---"
-            docker compose -f docker-compose.local.yml ps
+            docker compose -f docker-compose.yml ps
             exit 1
           fi
 
@@ -91,14 +91,14 @@ jobs:
         if: failure()
         run: |
           echo "=== Container status ==="
-          docker compose -f docker-compose.local.yml ps -a
+          docker compose -f docker-compose.yml ps -a
           echo
           echo "=== Logs from containers ==="
-          docker compose -f docker-compose.local.yml logs --no-color --tail=200 || true
+          docker compose -f docker-compose.yml logs --no-color --tail=200 || true
 
       - name: Cleanup containers
         if: always()
-        run: docker compose -f docker-compose.local.yml down
+        run: docker compose -f docker-compose.yml down
 
       - name: Cleanup secret.yaml
         if: always()

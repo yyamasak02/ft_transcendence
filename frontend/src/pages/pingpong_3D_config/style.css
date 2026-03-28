@@ -19,15 +19,7 @@
   line-height: 1;
 }
 
-.pp3d-mode-selector {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
 .pp3d-mode-card {
-  flex: 1;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid #333;
   border-radius: 10px;
@@ -36,10 +28,6 @@
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   min-height: 90px;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   overflow: hidden;
 }
 
@@ -145,7 +133,6 @@
 }
 
 .pp3d-config label {
-  min-width: 140px;
   font-weight: 500;
   color: #ddd;
   font-size: 0.95rem;
@@ -168,7 +155,15 @@
     border-color 0.2s,
     box-shadow 0.2s;
   flex: 1;
-  max-width: 300px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .pp3d-config input[type="text"],
+  .pp3d-config input[type="number"],
+  .pp3d-config select {
+    max-width: 300px;
+  }
 }
 
 .pp3d-config input:focus,
@@ -180,9 +175,15 @@
 .pp3d-config input[type="range"] {
   accent-color: #f77001;
   cursor: pointer;
-  max-width: 200px;
+  width: 100%;
   height: auto;
   padding: 0;
+}
+
+@media (min-width: 768px) {
+  .pp3d-config input[type="range"] {
+    max-width: 200px;
+  }
 }
 
 .pp3d-config button#pingpong-start-btn {
@@ -227,37 +228,14 @@
   background: black;
 }
 
-.pp3d-inline-row {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
 .pp3d-label {
   min-width: 140px;
 }
 
 .pp3d-sub-label {
-  margin-left: 20px;
   font-size: 0.9em;
   color: #aaa;
   min-width: auto;
-}
-
-.pp3d-color-select {
-  width: 90px;
-}
-
-.pp3d-length-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pp3d-toggle-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .pp3d-toggle-input {
@@ -273,4 +251,12 @@
 
 .on-overflow {
   overflow: hidden;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

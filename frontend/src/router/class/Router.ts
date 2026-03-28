@@ -1,7 +1,6 @@
 // src/router/Router.ts
 import { routes } from "../routers";
 import { buildLayout } from "@/layout/renderLayout";
-import { footer } from "@/components/Footer";
 import { domRoots } from "@/layout/root";
 import { StyleManager } from "@/router/class/StyleManager";
 import type { RouteConfig } from "@/types/routes";

@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   server: {
-    allowedHosts: ["frontend"], // viteバージョンアップに伴い、明示的にホストの指定が必要
+    allowedHosts: ["frontend"],
     host: process.env.VITE_HOST || "0.0.0.0",
     port: Number(process.env.VITE_PORT),
     // ft_frontendコンテナに直接アクセスして操作するときでもAPIサーバーに繋がるようにする
@@ -29,8 +29,13 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    strictPort: true,
+    allowedHosts: ["frontend"],
+    host: process.env.VITE_HOST || "0.0.0.0",
+    port: Number(process.env.VITE_PORT),
+  },
   plugins: [tsconfigPaths(), tailwindcss()],
-  // 新たに加えた部分 by yotsurud
   optimizeDeps: {
     exclude: ["@babylonjs/core", "@babylonjs/gui", "@babylonjs/loaders"],
   },
