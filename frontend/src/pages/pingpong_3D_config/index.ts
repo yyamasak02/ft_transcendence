@@ -311,7 +311,7 @@ return repeatedModes.map((mode, index) => {
   }
 
   onMount() {
-    document.body.classList.add("pingpong-page", "overflow-hidden");
+    document.body.classList.add("pingpong-page");
     document.documentElement.classList.add("overflow-hidden");
 
     this.init();
@@ -547,7 +547,7 @@ const modeSelector = this._get(".pp3d-mode-selector");
   onUnmount() {
     this._previewUI.scene?.dispose();
     this._previewUI.scene = null;
-    document.body.classList.remove("pingpong-page", "overflow-hidden");
+    document.body.classList.remove("pingpong-page");
     document.documentElement.classList.remove("overflow-hidden");
   }
 }

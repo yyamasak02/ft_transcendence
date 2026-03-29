@@ -4,6 +4,8 @@ import { GameScreen } from "./object/GameScreen";
 import { navigate } from "@/router";
 import type { GamePhase } from "./core/game";
 import { SliderLogic } from "@/components/banner-slider";
+import { renderHelpOverlay } from "./HelpOverlay";
+import { HELP_SLIDES } from "./helpSlider";
 
 type ButtonUIElements = {
   overlay: HTMLElement | null;
@@ -32,25 +34,6 @@ type ButtonUIVisibility = {
   hudNavButtons: boolean;
   hudGameButtons: boolean;
 };
-
-const HELP_SLIDES = [
-  {
-    image: "/howToPlay/page1.png",
-    desc: t("htp_page1"),
-  },
-  {
-    image: "/howToPlay/page2.png",
-    desc: t("htp_page2"),
-  },
-  {
-    image: "/howToPlay/page3.png",
-    desc: t("htp_page3"),
-  },
-  {
-    image: "/howToPlay/page4.png",
-    desc: t("htp_page4"),
-  },
-];
 
 export class GameComponent implements Component {
   private _appElm: HTMLElement;
@@ -93,40 +76,13 @@ export class GameComponent implements Component {
   }
 
   render(): string {
-    const slidesHtml = HELP_SLIDES.map(
-      (slide, index) => `
-      <div class="help-slide absolute inset-0 w-full h-full flex flex-col items-center justify-center text-center transition-opacity duration-500 ease-in-out ${index === 0 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}" data-index="${index}">
-        <div class="mb-4 flex w-full max-w-full shrink-0 items-center justify-center px-2 sm:mb-10 sm:px-0">
-          <img src="${slide.image}" alt="tutorial image" class="pointer-events-none max-h-[min(42vh,400px)] w-full max-w-[600px] object-contain brightness-0 invert drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-[400px] sm:max-h-none">
-        </div>
-        <p class="help-slide-desc z-[5] max-h-[38vh] overflow-y-auto px-4 py-0 font-sans text-sm font-semibold leading-snug text-white sm:max-h-none sm:px-20 sm:text-2xl sm:leading-normal [&_.highlight]:text-[#ffeb3b] [&_.highlight]:font-bold [&_.key]:inline-block [&_.key]:bg-[#222] [&_.key]:text-white [&_.key]:py-1 [&_.key]:px-3 [&_.key]:rounded-md [&_.key]:border [&_.key]:border-[#666] [&_.key]:font-mono [&_.key]:shadow-[0_3px_0_#111] [&_.key]:mx-1">${slide.desc}</p>
-      </div>
-    `,
-    ).join("");
-
-    const indicatorsHtml = HELP_SLIDES.map(
-      (_, index) => `
-      <div class="help-indicator h-3 w-3 cursor-pointer rounded-full transition-all duration-300 ${index === 0 ? "scale-125 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "scale-100 bg-white/40"}" data-index="${index}"></div>
-    `,
-    ).join("");
 
     return `
             <div id="pingpong-3d-root">
                 <div id="game-container-3d" class="relative h-[100dvh] min-h-[100dvh] w-screen max-w-full overflow-hidden">
                     <canvas id="gameCanvas3D" class="pointer-events-auto relative z-[9999] box-border block h-full max-h-full w-full max-w-full cursor-default touch-none border-none bg-transparent"></canvas>
                     <div id="pause-overlay" class="pointer-events-none fixed inset-0 z-[10000] hidden h-[100dvh] w-screen bg-black/60 backdrop-blur-[5px]"></div>
-                    <div id="help-overlay" class="fixed inset-0 z-[20000] hidden h-[100dvh] w-screen items-center justify-center overflow-y-auto bg-black/85 p-3 opacity-0 backdrop-blur-md animate-[fadeIn_0.3s_ease_forwards] sm:p-0">
-                        <div class="flex w-[min(100%,1000px)] max-w-[1000px] flex-col rounded-2xl border border-white/10 bg-black p-0 text-center font-['Bebas_Neue',sans-serif] text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
-                            <div class="relative h-[min(600px,75dvh)] min-h-[220px] w-full overflow-hidden rounded-2xl sm:h-[600px] sm:min-h-0">
-                                ${slidesHtml}
-                                <button type="button" class="help-nav absolute bottom-0 left-0 top-0 z-10 flex w-10 cursor-pointer select-none items-center justify-center border-none bg-transparent text-3xl text-white/50 transition-all duration-300 hover:bg-black/30 hover:text-white sm:w-20 sm:text-5xl" id="help-prev">&#10094;</button>
-                                <button type="button" class="help-nav absolute bottom-0 right-0 top-0 z-10 flex w-10 cursor-pointer select-none items-center justify-center border-none bg-transparent text-3xl text-white/50 transition-all duration-300 hover:bg-black/30 hover:text-white sm:w-20 sm:text-5xl" id="help-next">&#10095;</button>
-                                <div class="help-indicators absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2 sm:bottom-6 sm:gap-4">
-                                    ${indicatorsHtml}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        ${renderHelpOverlay()}
                     <div id="game-ui-3d" class="absolute right-2 top-2 z-[10000] flex max-w-[calc(100vw-1rem)] flex-wrap justify-end gap-1.5 sm:right-5 sm:top-5 sm:gap-2.5">
                         <button type="button" id="btn-3d-help" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("how_to_play")}">
                             <img src="/button/help.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
@@ -284,19 +240,10 @@ export class GameComponent implements Component {
     const prevBtn = this._rootElm.querySelector<HTMLElement>("#help-prev");
 
     slides.forEach((slide, idx) => {
-      const on = idx === index;
-      slide.classList.toggle("opacity-100", on);
-      slide.classList.toggle("pointer-events-auto", on);
-      slide.classList.toggle("opacity-0", !on);
-      slide.classList.toggle("pointer-events-none", !on);
+      slide.classList.toggle("active", idx === index);
     });
     indicators.forEach((ind, idx) => {
-      const on = idx === index;
-      ind.classList.toggle("scale-125", on);
-      ind.classList.toggle("bg-white", on);
-      ind.classList.toggle("shadow-[0_0_8px_rgba(255,255,255,0.8)]", on);
-      ind.classList.toggle("scale-100", !on);
-      ind.classList.toggle("bg-white/40", !on);
+      ind.classList.toggle("active", idx === index);
     });
 
     if (prevBtn) {

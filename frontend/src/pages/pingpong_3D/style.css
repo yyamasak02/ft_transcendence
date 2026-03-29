@@ -8,3 +8,125 @@
 #footer {
   display: none;
 }
+
+/* ここから下はhelp画面用に残して欲しいcss */
+
+/* howToPlay画面 */
+#help-overlay {
+  animation: fadeIn 0.3s forwards;
+}
+
+/* Home画面のバナーと同じ質感（黒背景＋薄い枠線）に統一 */
+.help-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+  text-align: center;
+  display: none;
+}
+
+.help-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-slide-image {
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.help-slide-image img {
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+}
+
+.help-slide-desc .highlight {
+  color: #ffeb3b;
+  font-weight: bold;
+}
+
+.help-slide-desc .key {
+  display: inline-block;
+  background: #222;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #666;
+  font-family: monospace;
+  box-shadow: 0 3px 0 #111;
+  margin: 0 4px;
+}
+
+.help-nav {
+  position: absolute;
+  top: 40%;
+  width: 48px;
+  height: 48px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  user-select: none;
+  padding: 8px 12px;
+}
+
+@media (max-width: 768px) {
+  .help-nav {
+    font-size: 40px;
+    top: 75%;
+  }
+}
+
+.help-nav:hover {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.prev-btn {
+  left: 0;
+}
+.next-btn {
+  right: 0;
+}
+
+.help-indicator {
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+  border: none;
+  flex: 0 0 12px;
+  display: block;
+}
+
+.help-indicator.active {
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  transform: scale(1.3);
+}

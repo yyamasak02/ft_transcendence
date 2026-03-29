@@ -53,7 +53,13 @@ jobs:
             echo "Checking $url"
             ok=false
             for i in {1..60}; do
-              if curl -k -fLsS "$url" >/dev/null 2>&1; then
+              # if curl -k -fLsS "$url" >/dev/null 2>&1; then
+              #   ok=true
+              #   break
+              # fi
+              code="$(curl -k -o /dev/null -s -w '%{http_code}' "$url" || true)"
+              echo "try=$i url=$url code=$code"
+              if [ "$code" = "200" ]; then
                 ok=true
                 break
               fi
@@ -61,6 +67,8 @@ jobs:
             done
             if [ "$ok" != true ]; then
               echo "Health check failed for $url" >&2
+              echo "Last response body:"
+              curl -k -i "$url" || true
               exit 1
             fi
           done
