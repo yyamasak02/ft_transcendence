@@ -29,7 +29,7 @@ services:
       - ./frontend/.env
     networks:
       - ft_network
-    command: ${FE_CMD:-npm run start}
+    command: ${FE_CMD:-npm run preview}
   be_common:
     build:
       context: ./backends/common
