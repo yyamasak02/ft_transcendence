@@ -20,6 +20,7 @@ import { navigate } from "@/router";
 import { GAME_CONFIG } from "../core/constants3D";
 import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
 import { InputManager } from "../input/keyboard";
+import { getStoredAccessToken } from "../../../utils/token-storage";
 import { Player } from "./player/Player";
 import { HumanController } from "./player/HumanController";
 import { AIController } from "./player/AIController";
@@ -43,6 +44,9 @@ const MAIN_CONSTS = {
     TARGET_RADIUS: 150,
     ZOOM_OUT_DURATION: 10000,
   },
+  REMOTE_RESULT: {
+    SUBMIT_TIMEOUT_MS: 5000,
+  },
 } as const;
 
 export class GameScreen {
@@ -50,13 +54,13 @@ export class GameScreen {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private ball: Ball | null = null;
-  private player1!: Player;
-  private player2!: Player;
+  private player1: Player | null = null;
+  private player2: Player | null = null;
   private stage: Stage | null = null;
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
   private p2Score: number = 0;
-  private wasEnterDown: boolean = false;
+  private wasMenuConfirmDown: boolean = false;
   private lastRallyTime: number = 0;
   public gameState: GameState = {
     phase: "menu",
@@ -67,6 +71,8 @@ export class GameScreen {
     countdownID: 0,
     rallyCount: 0,
   };
+
+  private readonly REMOTE_GUEST_USER_ID = "guest";
   private canvas: HTMLCanvasElement;
   private engine: Engine;
   private scene: Scene;
@@ -85,6 +91,7 @@ export class GameScreen {
   private serverAuthority: boolean = false;
   private serverState: any = null;
   private serverStarted: boolean = false;
+  private remoteResultSubmitted: boolean = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -122,6 +129,10 @@ export class GameScreen {
       this.remoteStartAt = startAt ? Number(startAt) : null;
       this.serverAuthority = params.get("auth") === "server";
     }
+  }
+
+  getInputManager(): InputManager {
+    return this.inputManager;
   }
 
   private applyServerState() {
@@ -181,40 +192,38 @@ export class GameScreen {
       this.hud.clearCountdown();
     }
   }
-  private initPlayers(p1: Paddle, p2: Paddle) {
+  private initPlayers(
+    p1: Paddle,
+    p2: Paddle,
+  ): { player1: Player; player2: Player } {
+    let player1: Player;
+    let player2: Player;
     if (this.remoteMode) {
       const oppCtrl = new RemoteController();
       this.remoteOpponentCtrl = oppCtrl;
       if (this.remoteSide === "p1") {
         // Host (side="p1"): control player1(left) with ArrowUp/Down
-        this.player1 = new Player(
-          p1,
-          new HumanController(this.inputManager, 1),
-          1,
-        );
-        this.player2 = new Player(p2, oppCtrl, 2);
+        player1 = new Player(p1, new HumanController(this.inputManager, 1), 1);
+        player2 = new Player(p2, oppCtrl, 2);
       } else {
         // Guest (side="p2"): control player2(right) with ArrowUp/Down
-        this.player1 = new Player(p1, oppCtrl, 1);
-        this.player2 = new Player(
-          p2,
-          new HumanController(this.inputManager, 2),
-          2,
-        );
+        player1 = new Player(p1, oppCtrl, 1);
+        player2 = new Player(p2, new HumanController(this.inputManager, 2), 2);
       }
-      return;
+      return { player1, player2 };
     }
 
     const humanController1 = new HumanController(this.inputManager, 1);
-    this.player1 = new Player(p1, humanController1, 1);
+    player1 = new Player(p1, humanController1, 1);
 
     if (this.settings.player2Type !== "Player") {
       const aiController = new AIController(this.settings.player2Type);
-      this.player2 = new Player(p2, aiController, 2);
+      player2 = new Player(p2, aiController, 2);
     } else {
       const humanController2 = new HumanController(this.inputManager, 2);
-      this.player2 = new Player(p2, humanController2, 2);
+      player2 = new Player(p2, humanController2, 2);
     }
+    return { player1, player2 };
   }
 
   // ------------------------
@@ -238,11 +247,13 @@ export class GameScreen {
     this.p2Score = 0;
 
     this.hud = new GameHUD(this.scene);
-    this.inputManager.setup();
+    this.inputManager.setup(this.canvas);
 
     // パドル生成 + プレイヤー生成（共通ロジック）
     const { p1, p2 } = createPaddles(this.scene, this.settings);
-    this.initPlayers(p1, p2);
+    const { player1, player2 } = this.initPlayers(p1, p2);
+    this.player1 = player1;
+    this.player2 = player2;
 
     this.ball = new Ball(
       this.scene,
@@ -251,13 +262,13 @@ export class GameScreen {
     );
     this.ball.stop();
     this.ball.velocity = new Vector3(0, 0, 0);
-    this.ball.reset("center", this.player1.paddle, this.player2.paddle);
+    this.ball.reset("center", player1.paddle, player2.paddle);
 
     this.stage = new Stage(
       this.scene,
       this.canvas,
-      this.player1.paddle,
-      this.player2.paddle,
+      player1.paddle,
+      player2.paddle,
       this.ball,
       this.settings,
     );
@@ -274,7 +285,7 @@ export class GameScreen {
     this.hud.startFloatingTextAnimation(this.scene);
     this.hud.setRallyCount(0);
 
-    this.wasEnterDown = false;
+    this.wasMenuConfirmDown = false;
     this.gameState.phase = "menu";
     this.gameState.rallyActive = false;
     this.gameState.isServing = false;
@@ -282,6 +293,7 @@ export class GameScreen {
     this.gameState.countdownID = 0;
     this.gameState.resetLocked = false;
     this.gameState.rallyCount = 0;
+    this.remoteResultSubmitted = false;
 
     this.scene.clearColor = new Color4(0, 0, 0, 0.5);
     // 初期UI状態を反映（中央メニューを非表示など）
@@ -384,7 +396,9 @@ export class GameScreen {
       this.player2.paddle.mesh.dispose();
 
       // 新しいパドルでプレイヤーを再生成（共通ロジック）
-      this.initPlayers(p1, p2);
+      const { player1, player2 } = this.initPlayers(p1, p2);
+      this.player1 = player1;
+      this.player2 = player2;
     }
 
     if (this.ball && this.player1 && this.player2) {
@@ -443,6 +457,8 @@ export class GameScreen {
   private gameLoop() {
     if (!this.player1 || !this.player2 || !this.ball) return;
 
+    this.inputManager.setTapToStartAccepting(this.gameState.phase === "menu");
+
     const deltaTime = this.engine.getDeltaTime();
 
     // Apply server state early in server-authoritative mode (for countdown display)
@@ -469,12 +485,14 @@ export class GameScreen {
           this.remoteStartAt = null;
         }
       } else {
-        const isEnterDown = this.inputManager.isEnterPressed();
-        if (isEnterDown && !this.wasEnterDown) {
+        const tapEdge = this.inputManager.consumeTapToStart();
+        const enterDown = this.inputManager.isEnterPressed();
+        const confirmDown = enterDown || tapEdge;
+        if (confirmDown && !this.wasMenuConfirmDown) {
           this.gameState.phase = "starting";
           this.handleEnterToStart();
         }
-        this.wasEnterDown = isEnterDown;
+        this.wasMenuConfirmDown = confirmDown;
       }
     }
 
@@ -606,6 +624,24 @@ export class GameScreen {
             // applyServerState will handle all updates in the game loop
           }
           if (msg?.type === "game:end") {
+            const finalP1Score =
+              typeof msg?.payload?.score?.p1 === "number"
+                ? msg.payload.score.p1
+                : typeof this.serverState?.score?.p1 === "number"
+                  ? this.serverState.score.p1
+                  : this.p1Score;
+            const finalP2Score =
+              typeof msg?.payload?.score?.p2 === "number"
+                ? msg.payload.score.p2
+                : typeof this.serverState?.score?.p2 === "number"
+                  ? this.serverState.score.p2
+                  : this.p2Score;
+
+            this.p1Score = finalP1Score;
+            this.p2Score = finalP2Score;
+            this.hud?.setScore(this.p1Score, this.p2Score);
+
+            void this.submitRemoteMatchResult(finalP1Score, finalP2Score);
             setTimeout(() => this.cleanupAndGoHome(), 3000);
           }
         }
@@ -616,6 +652,75 @@ export class GameScreen {
     ws.onclose = () => {
       this.remoteWS = null;
     };
+  }
+
+  private async submitRemoteMatchResult(ownerScore: number, guestScore: number) {
+    if (
+      !this.remoteMode ||
+      !this.serverAuthority ||
+      this.remoteSide !== "p1" ||
+      this.remoteResultSubmitted ||
+      !this.remoteRoomId
+    ) {
+      return;
+    }
+    this.remoteResultSubmitted = true;
+
+    try {
+      const statusRes = await fetch(
+        `/api/connect/rooms/${encodeURIComponent(this.remoteRoomId)}/status`,
+      );
+      if (!statusRes.ok) {
+        this.remoteResultSubmitted = false;
+        return;
+      }
+
+      const room = (await statusRes.json()) as {
+        hostUserId?: string;
+        guestUserId?: string | null;
+      };
+      if (!room.hostUserId || !room.guestUserId) {
+        this.remoteResultSubmitted = false;
+        return;
+      }
+      if (room.hostUserId.toLowerCase() === this.REMOTE_GUEST_USER_ID) {
+        console.info(
+          "Skip remote match result submission because host user is guest.",
+          { roomId: this.remoteRoomId, hostUserId: room.hostUserId },
+        );
+        return;
+      }
+
+      const controller = new AbortController();
+      const timerId = window.setTimeout(() => {
+        controller.abort();
+      }, MAIN_CONSTS.REMOTE_RESULT.SUBMIT_TIMEOUT_MS);
+
+      try {
+        const resultRes = await fetch("/api/common/match_result/remote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getStoredAccessToken() ?? ""}`,
+          },
+          body: JSON.stringify({
+            ownerUserId: room.hostUserId,
+            guestUserId: room.guestUserId,
+            ownerScore,
+            guestScore,
+          }),
+          signal: controller.signal,
+        });
+
+        if (!resultRes.ok) {
+          this.remoteResultSubmitted = false;
+        }
+      } finally {
+        window.clearTimeout(timerId);
+      }
+    } catch {
+      this.remoteResultSubmitted = false;
+    }
   }
 
   private handleEnterToStart() {

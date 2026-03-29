@@ -2,9 +2,9 @@ import type { Route } from "@/types/routes";
 import { langManager, word, t, i18nAttr } from "@/i18n";
 import { navigate } from "@/router";
 import { ACCESS_TOKEN_KEY, LONG_TERM_TOKEN_KEY } from "@/constants/auth";
-import "./style.css";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { getStoredAccessToken } from "@/utils/token-storage";
+import { getCurrentPath, setReturnTo } from "@/router";
 import {
   DEFAULT_PROFILE_IMAGE,
   PROFILE_IMAGES,
@@ -15,6 +15,8 @@ import {
 import { formatMatchDate } from "@/utils/date-format";
 import { fetchProfileImageBlob } from "@/utils/profile-image-fetch";
 import type { FriendItem } from "@/types/friends";
+import type { I18nKey } from "@/i18n/lang";
+import { escapeHtml } from "@/utils/escape";
 
 const UPLOAD_IMAGE_SIZE = 256;
 
@@ -22,64 +24,161 @@ class MeComponent {
   render = () => {
     const accessToken = getStoredAccessToken();
     const currentName = accessToken
-      ? (decodeJwtPayload(accessToken)?.name ?? word("user_menu"))
-      : word("user_menu");
-    const pickerItems = PROFILE_IMAGES.map(
-      (item) =>
-        `<button type="button" data-profile="${item.key}">${item.label}</button>`,
-    ).join("");
+      ? (decodeJwtPayload(accessToken)?.name ?? null)
+      : null;
+    const safeCurrentName = currentName ? escapeHtml(currentName) : "";
+    const pickerItems = PROFILE_IMAGES.map((item) => {
+    const imgSrc = getProfileImageSrc(item.key);
+      return `
+        <button type="button" 
+                data-profile="${item.key}" 
+                class="
+                  group relative w-12 h-12
+                  rounded-lg border-2 border-slate-800
+                  hover:border-blue-500 overflow-hidden transition-all
+                  bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <img src="${imgSrc}" 
+              alt="${item.label}" 
+              class="w-full h-full object-cover pointer-events-none" 
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+          <span class="hidden text-[10px] text-slate-500">${item.label[0]}</span>
+        </button>`;
+    }).join("");
+
     return `
-      <div class="me-layout">
-        <div class="me-page">
-          <form class="me-search" id="me-user-search">
-            <input
-              type="text"
-              class="me-search-input"
-              name="username"
-              ${i18nAttr("placeholder", "user_search_placeholder")}
-              required
-            />
-            <button class="me-search-btn" type="submit">
+      <div class="
+            w-full flex overflow-x-auto snap-x snap-mandatory snap-stop-always
+            scrollbar-width:none -ms-overflow-style:none
+            md:grid md:grid-cols-[repeat(3,minmax(0,1fr))] md:overflow-visible md:flex-none
+            gap-4 lg:gap-8 lg:p-8 text-white">
+        
+        <div class="w-screen shrink-0 snap-center flex flex-col items-center gap-6 
+                    md:w-full md:min-w-0 md:shrink">
+          
+          <form id="me-user-search" class="flex flex-row gap-2 w-full">
+            <input type="text" name="username"
+                   class="flex-[5] min-w-0 flex-1 py-2 px-3 bg-slate-900
+                          border border-slate-700 rounded-md text-slate-100
+                          focus:outline-none focus:border-blue-500
+                          transition-all text-sm"
+                          ${i18nAttr("placeholder", "user_search_placeholder")} required />
+            <button type="submit"
+                    class="flex-[1] shrink-0 py-2 px-4 bg-slate-800 text-slate-100
+                           border border-slate-700 rounded-md
+                           hover:bg-slate-700 hover:border-slate-600
+                           transition-colors cursor-pointer text-sm font-bold">
               ${t("user_search_button")}
             </button>
+            <p
+              id="me-user-search-msg"
+              class="mt-2 min-h-[1.5rem] text-sm text-red-400">
+            </p>
           </form>
-          <div class="me-search-msg" id="me-user-search-msg"></div>
-          <h2 class="me-title">${currentName}</h2>
-          <div class="me-avatar-row">
-            <img class="me-avatar" id="me-avatar" src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image" />
+
+          <h2 class="text-2xl font-bold tracking-wider text-center">${safeCurrentName}</h2>
+          
+          <img
+            id="me-avatar"
+            class="
+              w-40 h-40 object-cover
+              border border-slate-800 rounded-lg
+              hover:opacity-80 hover:border-blue-500
+              cursor-pointer transition-all
+            "
+            src="${getProfileImageSrc(DEFAULT_PROFILE_IMAGE)}" alt="Profile image"
+          />
+
+          <div id="me-avatar-picker"
+               class="hidden flex-col items-center mt-2 gap-4 p-4
+                      bg-slate-900/60 rounded-lg border border-slate-800 w-full max-w-[240px]">
+            <div class="grid grid-cols-3 gap-4 justify-items-center">
+              ${pickerItems}
+              <label class="w-12 h-12 flex items-center justify-center bg-slate-800
+                            border-2 border-dashed border-slate-600 rounded-full
+                            cursor-pointer
+                            hover:bg-slate-700 hover:border-blue-500 transition-all shadow-lg">
+                <input type="file" id="me-avatar-upload" class="hidden" accept="image/png" />
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </label>
+            </div>
           </div>
-          <div class="me-avatar-picker" id="me-avatar-picker">
-            ${pickerItems}
-            <label class="me-avatar-upload">
-              <input type="file" id="me-avatar-upload" accept="image/png" />
-              ${t("profile_image_upload")}
-            </label>
+          <div id="me-avatar-msg" class="text-xs text-slate-500 text-center"></div>
+
+          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
+            <h3
+              class="
+                text-base font-semibold
+                mb-3 tracking-wide uppercase text-slate-300
+                text-center md:text-left
+              "
+            >
+              ${t("two_factor")}
+            </h3>
+            <button
+              id="me-2fa"
+              class="
+                w-full py-2 px-3.5
+                bg-slate-800
+                text-slate-100 font-semibold text-sm
+                border border-slate-700 rounded-md
+                cursor-pointer
+                hover:bg-slate-700 transition-colors">
+              ${t("two_factor_enable")}
+            </button>
+            <div
+              id="me-qr"
+              class="mt-3 flex flex-col items-center gap-2.5"
+            ></div>
+            <div
+              id="me-2fa-msg"
+              class="mt-2 text-xs text-slate-500 text-center"
+            ></div>
           </div>
-          <div class="me-avatar-msg" id="me-avatar-msg"></div>
-        <div class="me-section">
-          <h3 class="me-section-title">${t("two_factor")}</h3>
-          <p class="me-section-desc">${t("two_factor_desc")}</p>
-          <button class="me-2fa" id="me-2fa">${t("two_factor_enable")}</button>
-          <div class="me-qr" id="me-qr"></div>
-          <p class="me-2fa-msg" id="me-2fa-msg"></p>
+
+          <div class="p-5 border border-slate-800 bg-slate-900/40 rounded-xl w-full">
+            <h3
+              class="
+                text-base font-semibold mb-3
+                tracking-wide uppercase text-slate-300 text-center
+                md:text-left
+              "
+            >
+              ${t("username_change")}
+            </h3>
+            <a href="/username-change" data-nav class="inline-block w-full text-center py-2.5 bg-slate-800 text-slate-100 border border-slate-700 hover:bg-slate-700 transition-colors rounded-md font-semibold text-sm no-underline">
+              ${t("username_change_action")}
+            </a>
+          </div>
+
+          <button id="me-logout" class="mt-4 mb-40 md:mb-10 py-3 px-4 bg-red-950/20 text-red-500 border border-red-900/30 hover:bg-red-900/30 transition-all rounded-md font-bold text-sm cursor-pointer uppercase tracking-widest w-full">
+            ${t("logout")}
+          </button>
         </div>
-        <div class="me-section">
-          <h3 class="me-section-title">${t("username_change")}</h3>
-          <p class="me-section-desc">${t("username_change_desc")}</p>
-          <a class="me-link" href="/username-change" data-nav>
-            ${t("username_change_action")}
-          </a>
-        </div>
-        <button class="me-logout" id="me-logout">${t("logout")}</button>
-        </div>
-        <div class="me-side">
-          <h3 class="me-side-title">${t("match_results")}</h3>
-          <div class="me-matches-summary" id="me-matches-summary"></div>
-          <div class="me-matches" id="me-matches"></div>
-        </div>
-        <div class="me-friends-panel">
-          <h3 class="me-side-title">${t("friends")}</h3>
-          <div class="me-friends-list" id="me-friends-list"></div>
+
+        <div class="min-w-full shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
+                    md:w-full md:min-w-0 md:shrink">
+          <h3 class="text-lg font-bold mb-5 border-b border-slate-800 pb-3 flex justify-between items-end">
+            ${t("match_results")}
+            <span id="me-matches-summary" class="text-[10px] text-slate-500 font-mono font-normal"></span>
+          </h3>
+          <div id="me-matches" class="flex flex-col gap-3"></div>
+        </div> 
+
+        <div class="min-w-full shrink-0 snap-center bg-slate-900/20 p-6 border border-slate-900 rounded-2xl 
+                    md:w-full md:min-w-0 md:shrink">
+          <h3 class="text-lg font-bold mb-5 border-b border-slate-800 pb-3">${t("friends")}</h3>
+          <div id="me-friends-list" class="flex flex-col gap-3"></div>
         </div>
       </div>
     `;
@@ -91,34 +190,33 @@ const setTwoFactorMsg = (message: string) => {
   if (el) el.textContent = message;
 };
 
-const QR_CODE_SIZE = 200;
-
-const renderQr = (data: string) => {
+// NOTE:
+// 2FA secret は実際に使用する（Stateとして保持）。
+// QRコード表示用コンテナ (#me-qr) は将来のUI実装向け。
+// 現在の画面ではUI未実装のため、表示処理はスキップする。
+const renderTwoFactorSecret = (secret: string) => {
   const container = document.querySelector<HTMLDivElement>("#me-qr");
   if (!container) return;
-  const src =
-    "https://api.qrserver.com/v1/create-qr-code/?" +
-    `size=${QR_CODE_SIZE}x${QR_CODE_SIZE}&data=${encodeURIComponent(data)}`;
-  container.innerHTML = "";
-  const img = document.createElement("img");
-  img.src = src;
-  img.alt = "2FA QR";
-  img.width = QR_CODE_SIZE;
-  img.height = QR_CODE_SIZE;
-  const tokenText = document.createElement("div");
-  tokenText.className = "me-qr-token";
-  tokenText.textContent = data;
-  container.append(img, tokenText);
-};
-
-const buildOtpAuthUri = (secret: string, name?: string) => {
-  const issuer = "ft_transcendence";
-  const label = `${issuer}:${name ?? "user"}`;
-  return (
-    `otpauth://totp/${encodeURIComponent(label)}` +
-    `?secret=${encodeURIComponent(secret)}` +
-    `&issuer=${encodeURIComponent(issuer)}`
-  );
+  container.innerHTML = `
+    <div class="w-full p-3 bg-black border border-slate-800 rounded font-mono text-[11px] break-all text-blue-400 text-center">
+      ${secret}
+    </div>
+    <button type="button" class="me-qr-copy w-full py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors cursor-pointer text-sm font-bold">
+      COPY KEY
+    </button>
+    <div class="me-qr-copy-msg text-[10px] text-slate-500 italic" aria-live="polite"></div>
+  `; 
+  const copyButton = container.querySelector<HTMLButtonElement>(".me-qr-copy");
+  const copyMsg = container.querySelector<HTMLDivElement>(".me-qr-copy-msg");
+  if (!copyButton) return;
+  copyButton.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(secret);
+      if (copyMsg) copyMsg.textContent = word("copied");
+    } catch {
+      if (copyMsg) copyMsg.textContent = word("failed");
+    }
+  });
 };
 
 const revokeLongTermToken = async () => {
@@ -146,12 +244,12 @@ const clearTokens = () => {
 const setupTwoFactor = () => {
   const button = document.querySelector<HTMLButtonElement>("#me-2fa");
   if (!button) return;
-  const accessToken =
-    sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
-    localStorage.getItem(ACCESS_TOKEN_KEY);
+  const accessToken = getStoredAccessToken();
   if (!accessToken) {
     setTwoFactorMsg(word("two_factor_missing_login"));
     button.disabled = true;
+    setReturnTo(getCurrentPath());
+    navigate("/login");
     return;
   }
 
@@ -163,7 +261,13 @@ const setupTwoFactor = () => {
   })
     .then(async (res) => {
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (res.status === 401) {
+          setReturnTo(getCurrentPath());
+          navigate("/login");
+        }
+        return;
+      }
       if (body?.enabled) {
         button.disabled = true;
         button.style.display = "none";
@@ -174,9 +278,18 @@ const setupTwoFactor = () => {
 
   button.addEventListener("click", async () => {
     setTwoFactorMsg("");
-    const payload = decodeJwtPayload(accessToken);
+    const currentToken = getStoredAccessToken();
+    if (!currentToken) {
+      setTwoFactorMsg(word("two_factor_missing_login"));
+      setReturnTo(getCurrentPath());
+      navigate("/login");
+      return;
+    }
+    const payload = decodeJwtPayload(currentToken);
     if (!payload?.name) {
       setTwoFactorMsg(word("two_factor_missing_login"));
+      setReturnTo(getCurrentPath());
+      navigate("/login");
       return;
     }
     button.disabled = true;
@@ -184,7 +297,7 @@ const setupTwoFactor = () => {
       const res = await fetch("/api/common/user/enable_2fa", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${currentToken}`,
         },
       });
       const body = await res.json().catch(() => ({}));
@@ -193,6 +306,10 @@ const setupTwoFactor = () => {
           body?.message ??
             `${word("two_factor_failed")} (status ${res.status})`,
         );
+        if (res.status === 401) {
+          setReturnTo(getCurrentPath());
+          navigate("/login");
+        }
         return;
       }
       const token = String(body.token ?? "");
@@ -200,7 +317,7 @@ const setupTwoFactor = () => {
         setTwoFactorMsg(word("two_factor_failed"));
         return;
       }
-      renderQr(buildOtpAuthUri(token, payload.name));
+      renderTwoFactorSecret(token);
       setTwoFactorMsg(word("two_factor_enabled"));
       button.disabled = true;
       button.style.display = "none";
@@ -243,8 +360,19 @@ const setupUserSearch = () => {
   const form = document.querySelector<HTMLFormElement>("#me-user-search");
   const message = document.querySelector<HTMLDivElement>("#me-user-search-msg");
   if (!form) return;
+
+  const setMsg = (key: I18nKey) => {
+    if (!message) return;
+    message.innerHTML = t(key);
+  };
+  const clearMsg = () => {
+    if (!message) return;
+    message.textContent = "";
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    clearMsg();
     if (message) message.textContent = "";
     const formData = new FormData(form);
     const name = String(formData.get("username") ?? "").trim();
@@ -254,10 +382,11 @@ const setupUserSearch = () => {
       ? (decodeJwtPayload(accessToken)?.name ?? "")
       : "";
     if (currentName && currentName.toLowerCase() === name.toLowerCase()) {
-      if (message) message.textContent = word("user_search_self");
+      setMsg("user_search_self");
       return;
     }
     if (!accessToken) {
+      setReturnTo(getCurrentPath());
       navigate("/login");
       return;
     }
@@ -272,17 +401,17 @@ const setupUserSearch = () => {
         },
       );
       if (res.status === 404) {
-        if (message) message.textContent = word("user_profile_not_found");
+        setMsg("user_profile_not_found");
         return;
       }
       if (!res.ok) {
-        if (message) message.textContent = word("user_search_failed");
+        setMsg("user_search_failed");
         return;
       }
       navigate(`/user?name=${encodeURIComponent(name)}`);
     } catch (error) {
       console.error("User search failed", error);
-      if (message) message.textContent = word("user_search_failed");
+      setMsg("user_search_failed");
     }
   });
 };
@@ -305,10 +434,10 @@ const renderFriends = (items: FriendItem[]) => {
   }
   items.forEach((item) => {
     const row = document.createElement("div");
-    row.className = "me-friend";
+    row.className = "flex gap-2.5 items-center p-2 px-2.5 border border-slate-800 bg-slate-900/40 rounded-md";
 
     const avatar = document.createElement("img");
-    avatar.className = "me-friend-avatar";
+    avatar.className = "w-10 h-10 rounded-md object-cover border border-slate-700";
     avatar.alt = word("profile_image_alt");
     if (item.profileImage && isProfileImageKey(item.profileImage)) {
       avatar.src = getProfileImageSrc(item.profileImage);
@@ -318,22 +447,23 @@ const renderFriends = (items: FriendItem[]) => {
     }
 
     const info = document.createElement("div");
-    info.className = "me-friend-info";
+    info.className = "flex flex-col gap-0.5 flex-1 min-w-0";
 
     const nameLink = document.createElement("a");
-    nameLink.className = "me-friend-link";
+    nameLink.className = "text-slate-100 text-sm no-underline hover:underline truncate";
     nameLink.href = `/user?name=${encodeURIComponent(item.name)}`;
     nameLink.textContent = item.name;
     nameLink.setAttribute("data-name", item.name);
 
     const status = document.createElement("div");
-    status.className = "me-friend-status";
+    const statusColor = item.online ? "text-blue-400" : "text-slate-500";
+    status.className = `text-[11px] ${statusColor}`;
     if (item.status === "accepted") {
       status.textContent = item.online
         ? word("user_profile_online")
         : word("user_profile_offline");
-      status.classList.toggle("is-online", item.online);
-      status.classList.toggle("is-offline", !item.online);
+      // status.classList.toggle("is-online", item.online);
+      // status.classList.toggle("is-offline", !item.online);
     } else if (item.status === "pending_incoming") {
       status.textContent = word("friend_status_pending_incoming");
     } else {
@@ -343,18 +473,19 @@ const renderFriends = (items: FriendItem[]) => {
     info.append(nameLink, status);
 
     const actions = document.createElement("div");
-    actions.className = "me-friend-actions";
+    actions.className = "flex gap-1.5";
     if (item.status === "pending_incoming") {
       const accept = document.createElement("button");
+      const buttonClass = "py-1 px-2 bg-slate-800 text-slate-200 border border-slate-600 rounded cursor-pointer text-[11px] hover:bg-slate-700 transition-colors";
       accept.type = "button";
-      accept.className = "me-friend-accept";
+      accept.className = buttonClass;
       accept.textContent = word("friend_accept");
       accept.setAttribute("data-id", String(item.id));
       accept.setAttribute("data-action", "accept");
 
       const decline = document.createElement("button");
       decline.type = "button";
-      decline.className = "me-friend-decline";
+      decline.className = buttonClass;
       decline.textContent = word("friend_decline");
       decline.setAttribute("data-id", String(item.id));
       decline.setAttribute("data-action", "decline");
@@ -369,7 +500,11 @@ const renderFriends = (items: FriendItem[]) => {
 
 const loadFriends = async () => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   try {
     const res = await fetch("/api/common/user/friends", {
       method: "GET",
@@ -377,7 +512,13 @@ const loadFriends = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        setReturnTo(getCurrentPath());
+        navigate("/login");
+      }
+      return;
+    }
     const body = await res.json().catch(() => ({}));
     const items = Array.isArray(body?.friends) ? body.friends : [];
     const sorted = [...items].sort((a, b) => {
@@ -401,8 +542,12 @@ const loadFriends = async () => {
 
 const respondFriendRequest = async (requestId: number, accept: boolean) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
-  await fetch("/api/common/user/friends/respond", {
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
+  const res = await fetch("/api/common/user/friends/respond", {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -410,6 +555,11 @@ const respondFriendRequest = async (requestId: number, accept: boolean) => {
     },
     body: JSON.stringify({ requestId, accept }),
   }).catch(() => null);
+  if (res?.status === 401) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   loadFriends();
 };
 
@@ -436,14 +586,10 @@ const setupFriendActions = () => {
 
 const MATCH_RESULT_CONFIG = {
   win: {
-    statusClass: "status-win",
     symbol: "●",
-    resultText: "WIN",
   },
   lose: {
-    statusClass: "status-lose",
     symbol: "○",
-    resultText: "LOSE",
   },
 } as const;
 
@@ -477,7 +623,8 @@ const renderMatches = (
     const isOwner = currentName ? item.ownerName === currentName : true;
     const opponent = isOwner
       ? (item.guestName ?? word("unknown_user"))
-      : item.ownerName;
+      : (item.ownerName ?? word("unknown_user"));
+    const safeOpponent = escapeHtml(opponent);
     const myScore = isOwner ? item.ownerScore : item.guestScore;
     const oppScore = isOwner ? item.guestScore : item.ownerScore;
     const isWin = myScore > oppScore;
@@ -488,26 +635,37 @@ const renderMatches = (
       losses += 1;
     }
 
-    const { statusClass, symbol, resultText } = isWin
-      ? MATCH_RESULT_CONFIG.win
-      : MATCH_RESULT_CONFIG.lose;
     const formattedDate = formatMatchDateByLang(item.createdAt);
 
-    row.className = `me-match-card ${statusClass}`;
+    const { symbol } = isWin
+      ? MATCH_RESULT_CONFIG.win
+      : MATCH_RESULT_CONFIG.lose;
+
+    const resultText = isWin ? t("result_win") : t("result_lose"); 
+
+    const baseClass = `
+      flex items-center gap-4 rounded-lg border
+      px-4 py-3 bg-slate-900/40 border-slate-700/80
+    `;
+    const rowStatusClass = isWin
+      ? "border-l-4 border-l-emerald-500"
+      : "border-l-4 border-l-rose-500 opacity-80";
+
+    row.className = `${baseClass} ${rowStatusClass}`;
 
     row.innerHTML = `
-      <div class="card-left">
-        <span class="result-symbol">${symbol}</span>
-        <span class="result-label">${resultText}</span>
+      <div class="flex flex-col items-center justify-center gap-1 shrink-0">
+        <span class="mt-0.5 text-xl text-slate-100 leading-none">${symbol}</span>
+        <span class="text-xs font-semibold text-slate-400 tracking-tight">${resultText}</span>
       </div>
-      <div class="card-center">
-        <div class="opponent-name">${opponent}</div>
-        <div class="match-date">${formattedDate}</div>
+      <div class="flex flex-col flex-1 overflow-hidden">
+        <div class="text-base font-semibold text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis">${safeOpponent}</div>
+        <div class="text-xs text-slate-500 mt-0.5">${formattedDate}</div>
       </div>
-      <div class="card-right">
-        <span class="score-num my-score">${myScore}</span>
-        <span class="score-sep">-</span>
-        <span class="score-num opp-score">${oppScore}</span>
+      <div class="flex items-center gap-2 font-mono font-semibold text-xl ml-4">
+        <span class="min-w-[20px] text-white">${myScore}</span>
+        <span class="text-slate-600 text-base">-</span>
+        <span class="min-w-[20px] text-slate-500">${oppScore}</span>
       </div>
     `;
 
@@ -529,7 +687,11 @@ const setMatchesMessage = (message: string) => {
 
 const loadCustomProfileImage = async (name: string) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   const img = document.querySelector<HTMLImageElement>("#me-avatar");
   if (!img) return;
   const blob = await fetchProfileImageBlob(name, accessToken);
@@ -551,7 +713,11 @@ const setProfileImage = (profileImage: string | null, name: string | null) => {
 
 const loadProfileImage = async (name: string) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   try {
     const res = await fetch(
       `/api/common/user/profile_image?name=${encodeURIComponent(name)}`,
@@ -562,7 +728,13 @@ const loadProfileImage = async (name: string) => {
         },
       },
     );
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        setReturnTo(getCurrentPath());
+        navigate("/login");
+      }
+      return;
+    }
     const body = await res.json().catch(() => ({}));
     const profileImage = body?.profileImage ?? null;
     const profileImageKey =
@@ -578,7 +750,11 @@ const updateProfileImage = async (
   name: string | null,
 ) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   try {
     const res = await fetch("/api/common/user/profile_image", {
       method: "PATCH",
@@ -588,7 +764,13 @@ const updateProfileImage = async (
       },
       body: JSON.stringify({ profileImage }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        setReturnTo(getCurrentPath());
+        navigate("/login");
+      }
+      return;
+    }
     setProfileImage(profileImage, name);
   } catch {
     return;
@@ -597,7 +779,11 @@ const updateProfileImage = async (
 
 const uploadProfileImage = async (imageBase64: string, name: string | null) => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   try {
     const res = await fetch("/api/common/user/profile_image_upload", {
       method: "POST",
@@ -607,7 +793,19 @@ const uploadProfileImage = async (imageBase64: string, name: string | null) => {
       },
       body: JSON.stringify({ imageBase64 }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 401) {
+        setReturnTo(getCurrentPath());
+        navigate("/login");
+      }
+      return;
+    }
+
+    // upload成功後
+    const picker = document.querySelector<HTMLDivElement>("#me-avatar-picker");
+    if (picker) {
+      picker.classList.add("hidden");
+    }
     const img = document.querySelector<HTMLImageElement>("#me-avatar");
     if (img) {
       img.src = imageBase64;
@@ -626,11 +824,22 @@ const setupProfileImagePicker = () => {
   const uploadInput =
     document.querySelector<HTMLInputElement>("#me-avatar-upload");
   const message = document.querySelector<HTMLDivElement>("#me-avatar-msg");
-  if (!avatarImg || !picker) return;
-  avatarImg.addEventListener("click", (event) => {
-    event.preventDefault();
-    picker.classList.toggle("is-open");
-  });
+
+  if (!avatarImg || !picker || !uploadInput) return;
+  if (picker.dataset.bound === "1") return;
+
+  picker.dataset.bound = "1";
+
+  const closePicker = () => { picker.classList.add("hidden"); };
+  const togglePicker = () => { picker.classList.toggle("hidden"); };
+
+  avatarImg.addEventListener("click", togglePicker);
+  document.addEventListener("click", (e) => {
+    const target = e.target as Node;
+    if (picker.contains(target) || avatarImg.contains(target)) return;
+    closePicker();
+  })
+
   picker.addEventListener("click", (event) => {
     const target = event.target as HTMLElement | null;
     if (!target) return;
@@ -644,7 +853,6 @@ const setupProfileImagePicker = () => {
       ? (decodeJwtPayload(accessToken)?.name ?? null)
       : null;
     updateProfileImage(profileImage, name);
-    picker.classList.remove("is-open");
   });
   if (uploadInput) {
     uploadInput.addEventListener("change", () => {
@@ -664,7 +872,6 @@ const setupProfileImagePicker = () => {
         uploadInput.value = "";
         return;
       }
-      picker.classList.remove("is-open");
       const reader = new FileReader();
       reader.onload = () => {
         const result = typeof reader.result === "string" ? reader.result : null;
@@ -717,7 +924,11 @@ const setupProfileImagePicker = () => {
 
 const setupRecentMatches = () => {
   const accessToken = getStoredAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) {
+    setReturnTo(getCurrentPath());
+    navigate("/login");
+    return;
+  }
   const currentName = decodeJwtPayload(accessToken)?.name ?? null;
   fetch("/api/common/match_results?limit=10", {
     method: "GET",
@@ -727,6 +938,11 @@ const setupRecentMatches = () => {
   })
     .then(async (res) => {
       if (!res.ok) {
+        if (res.status === 401) {
+          setReturnTo(getCurrentPath());
+          navigate("/login");
+          return;
+        }
         setMatchesMessage(word("match_results_fetch_failed"));
         return;
       }
@@ -747,6 +963,7 @@ export const MeRoute: Route = {
   content: () => new MeComponent().render(),
   onMount: () => {
     if (!getStoredAccessToken()) {
+      setReturnTo(getCurrentPath());
       navigate("/login");
       return;
     }

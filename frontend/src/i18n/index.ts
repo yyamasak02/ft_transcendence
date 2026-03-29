@@ -1,16 +1,23 @@
 import { LangManager } from "./class/LangManager";
 import type { I18nKey } from "./lang";
+import { escapeHtml } from "@/utils/escape";
 
 export const langManager = new LangManager("en");
 export function word(key: I18nKey): string {
-  return langManager.word(key);
+  const raw = langManager.word(key);
+  return typeof raw === "string" ? raw : `[missing:${String(key)}]`;
 }
 
 // DOMに紐づくi18nテキストノードを生成（data-i18n付与）
 export function t(key: I18nKey): string {
-  const text = langManager.word(key);
-  // Use a custom inline element with no semantics
-  return `<span data-i18n="${key}">${text}</span>`;
+	const raw = langManager.word(key);
+
+	// 辞書にない or undefinedの時に落とさない
+	const text = typeof raw === "string" ? raw : `[missing:${String(key)}]`;
+  // const text = langManager.word(key);
+  // HTMLエスケープ（XSS対策）
+  const escaped = escapeHtml(text);
+  return `<span data-i18n="${key}">${escaped}</span>`;
 }
 
 // 属性を翻訳する（例: `${i18nAttr('placeholder','username')}`）

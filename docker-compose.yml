@@ -3,51 +3,59 @@ services:
     build:
       context: ./nginx
       dockerfile: ./docker/Dockerfile
-    image: ft_nginx
+    image: ft_nginx_prd
     container_name: ft_nginx
     ports:
       - 8443:443
     networks:
       - ft_network
-    env_file:
-      - ./nginx/.env.local
+    environment:
+      - DOMAIN_NAME=localhost
+      - SSL_CERT=/etc/nginx/ssl/localhost.crt
+      - SSL_KEY=/etc/nginx/ssl/localhost.key
     depends_on:
       - frontend
       - be_common
+      - be_connect
   frontend:
     build:
       context: ./frontend
       dockerfile: ./docker/Dockerfile
     image: ft_frontend
     container_name: ft_frontend
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
     env_file:
-      - ./frontend/.env.local
+      - ./frontend/.env
     networks:
       - ft_network
-    command: npm run dev
+    command: ${FE_CMD:-npm run preview}
   be_common:
     build:
       context: ./backends/common
       dockerfile: ./docker/Dockerfile
-    image: ft_be_common
+    image: ft_be_common_prd
     container_name: ft_be_common
-    volumes:
-      - ./backends/common:/app
-      - /app/node_modules
-      - /app/dist
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
     env_file:
-      - ./backends/common/.env.development
-    ports:
-      - 8080:8080
+      - ./backends/common/.env
     networks:
       - ft_network
+    command: ${BE_COM_CMD:-npm run start}
+  be_connect:
+    build:
+      context: ./backends/connect
+      dockerfile: ./docker/Dockerfile
+    image: ft_be_connect_prd
+    container_name: ft_be_connect
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ./backends/connect/.env
+    networks:
+      - ft_network
+    command: ${BE_CN_CMD:-npm run start}
 networks:
   ft_network:
     driver: bridge

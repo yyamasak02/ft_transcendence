@@ -8,13 +8,10 @@ import {
   TWO_FACTOR_LONG_TERM_KEY,
   TWO_FACTOR_TOKEN_KEY,
 } from "@/constants/auth";
-import {
-  MIN_USERNAME_LENGTH,
-  USERNAME_ROMAN_PATTERN,
-} from "@/constants/validation";
+import { EMAIL_PATTERN } from "@/constants/validation";
 import { storeTokens } from "@/utils/token-storage";
 import { loadGsi } from "@/utils/google-auth";
-import "./style.css";
+import { clearReturnTo, getReturnTo } from "@/router";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 const API_BASE = "/api/common";
@@ -22,68 +19,145 @@ const API_BASE = "/api/common";
 class LoginComponent implements Component {
   render = () => {
     return `
-						<div class="login-screen">
-							<div class="login-box">
+            <div class="
+                  min-h-[calc(100vh-64px)]
+                  flex items-center justify-center
+                  bg-[radial-gradient(circle_at_center,#1c1c1c,#0b0b0b)]
+                ">
+              <div class="
+                    w-[380px]	p-8
+                    border-2 border-slate-500 rounded-2xl
+                    shadow-[0_0_30px_rgba(0,0,0,0.8)]
+                   ">
+                <h2 class="
+                      text-center text-slate-50 text-5xl
+                      font-bold tracking-[0.1em]
+                      mb-7
+                    ">
+                  ${t("login")}
+                </h2>
 
-								<h2 class="login-title">${t("login")}</h2>
+                <form id="login-form" class="accent-slate-800">
 
-								<form class="login-form" id="login-form">
+                  <!-- Email -->
+                  <div class="accent-slate-800">
+                    <label for="email"
+                           class="
+                            block mb-1 text-sm
+                            font-bold tracking-[0.1em]
+                            text-slate-200
+                           ">
+                      ${t("email")}
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="you@example.com"
+                      required
+                      class="
+                      w-full px-2 py-3 mb-5
+                        bg-slate-700
+                        border border-slate-500 rounded-md
+                        text-slate-200 text-base
+                        leading-normal
+                      "
+                    />
+                  </div>
 
-									<!-- Username(Email) -->
-									<div class="login-field">
-										<label for="username">
-											${t("username")}
-										</label>
-										<input
-											type="text"
-											id="username"
-											name="username"
-											placeholder="yourname"
-											required
-											class="login-input"
-										/>
-									</div>
+                  <!-- Password -->
+                  <div class="accent-slate-800">
+                    <label for="password"
+                           class="
+                            block mb-1 text-sm
+                            font-bold tracking-[0.1em]
+                            text-slate-200
+                           ">
+                      ${t("password")}
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="••••••••"
+                      required
+                      class="
+                        w-full px-2 py-3 mb-5
+                        bg-slate-700
+                        border border-slate-500 rounded-md
+                        text-white text-base
+                        leading-normal
+                      "
+                    />
+                  </div>
 
-									<!-- Password -->
-									<div class="login-field">
-										<label for="password">${t("password")}</label>
-										<input
-											type="password"
-											id="password"
-											name="password"
-											placeholder="••••••••"
-											required
-											class="login-input"
-										/>
-									</div>
+                  <!-- Submit -->
+                  <button type="submit" 
+                          class="
+                            w-full mt-4 py-2
+                            bg-slate-800
+                            text-slate-200 text-base font-bold
+                            border border-slate-600
+                            tracking-[0.1em]
+                            cursor-pointer
+                            transition-all ease-in-out duration-200
+                            hover:bg-slate-600 hover:border-slate-200
+                            hover:translate-y-[1px]
+                          ">
+                    ${t("enter")}
+                  </button>
 
-									<!-- Remember -->
-									<div class="login-remember">
-										<input
-											type="checkbox"
-											id="remember"
-											name="remember"
-										/>
-										<label for="remember">${t("keep_login")}</label>
-									</div>
+                  <!-- Footer -->
+                  <div class="mt-5 text-center underline decoration-slate-400">
+                    <a class="hover:bg-blue-500" href="/register" data-nav>${t("to_signup")}</a>
+                  </div>
 
-									<!-- Submit -->
-									<button type="submit" class="login-submit">${t("enter")}</button>
+                  <div class="mt-4 mb-8 text-center underline decoration-slate-400">
+                    <a class="hover:bg-blue-500" href="/" data-nav>${t("home_return")}</a>
+                  </div>
 
-									<!-- Footer -->
-									<div class="login-footer">
-										<a class="login-link" href="/register" data-nav>${t("to_signup")}</a>
-									</div>
+                  <div class="
+                        mb-3
+                        border-t border-slate-300
+                        relative text-center
+                       ">
+                    <span class="
+                            relative -top-3
+                            bg-slate-900
+                            px-3
+                            text-xs text-slate-200
+                            tracking-[0.1em]
+                            whitespace-nowrap
+                          ">
+                      ${t("other_login_methods")}
+                    </span>
+                  </div>
 
-									<div class="login-footer">
-										<div id="google-btn"></div>
-										<p id="google-msg" class="login-google-msg"></p>
-									</div>
+                  <div class="flex flex-col items-center space-y-2">
+                    <div id="google-btn"
+                         class="
+                          flex justify-center
+                          hover:translate-y-[1px]
+                         ">
+                    </div>
+                    <p id="google-msg"
+                       class="
+                        mt-2.5 text-xs 
+                        text-slate-500 text-center 
+                        whitespace-pre-wrap
+                    "></p>
+                  </div>
 
-									<p id="login-msg" class="login-msg"></p>
-								</form>
-						</div>
-	`;
+                  <p id="login-msg" 
+                     class="
+                      mt-3
+                      text-xs text-slate-300 text-center
+                      whitespace-pre-wrap
+                  "></p>
+                </form>
+              </div>
+            </div>
+          `;
   };
 }
 
@@ -113,13 +187,14 @@ const handleGoogleCredential = async (
 ) => {
   setGoogleMsg(word("google_login_processing"));
   try {
+    const returnTo = getReturnTo();
     const res = await fetch(`${API_BASE}/user/google_login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken: credential, longTerm }),
     });
     const body = await res.json().catch(() => ({}));
-    if (res.status === 404) {
+    if (body?.requiresSignup || res.status === 404) {
       storePendingGoogleSignup(credential, longTerm);
       navigate("/google-signup");
       return;
@@ -138,7 +213,8 @@ const handleGoogleCredential = async (
     }
     storeTokens(body.accessToken, body.longTermToken);
     setGoogleMsg(word("google_login_success"));
-    navigate("/");
+    clearReturnTo();
+    navigate(returnTo);
   } catch (error) {
     setGoogleMsg(`${word("google_login_error")}: ${error}`);
   }
@@ -157,14 +233,16 @@ const setupGoogleLogin = async () => {
 
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
-    callback: ({ credential }) => {
+    callback: ({ credential }: { credential: string }) => {
       const remember = Boolean(
         document.querySelector<HTMLInputElement>("#remember")?.checked,
       );
       if (credential) handleGoogleCredential(credential, remember);
     },
   });
-  google.accounts.id.renderButton(document.getElementById("google-btn"), {
+  const googleButton = document.body.querySelector<HTMLElement>("#google-btn");
+  if (!googleButton) return;
+  google.accounts.id.renderButton(googleButton, {
     theme: "outline",
     size: "large",
     type: "standard",
@@ -174,9 +252,14 @@ const setupGoogleLogin = async () => {
 
 const setupLoginForm = () => {
   const form = document.querySelector<HTMLFormElement>("#login-form");
-  const submitButton = form?.querySelector<HTMLButtonElement>(".login-submit");
+  const submitButton = form?.querySelector<HTMLButtonElement>(
+    "button[type='submit']",
+  );
   const toSignupLink = document.querySelector<HTMLAnchorElement>(
-    ".login-link[href='/register']",
+    "a[data-nav][href='/register']",
+  );
+  const toHomeLink = document.querySelector<HTMLAnchorElement>(
+    "a[data-nav][href='/']",
   );
 
   if (toSignupLink) {
@@ -186,35 +269,39 @@ const setupLoginForm = () => {
     });
   }
 
+  if (toHomeLink) {
+    toHomeLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate("/");
+    });
+  }
+
   if (!form) return;
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     setLoginMsg("");
 
     const formData = new FormData(form);
-    const name = String(formData.get("username") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const longTerm = Boolean(formData.get("remember"));
 
-    if (!name || !password) {
+    if (!email || !password) {
       setLoginMsg(word("login_required"));
       return;
     }
-    if (name.length < MIN_USERNAME_LENGTH) {
-      setLoginMsg(word("username_min_length"));
-      return;
-    }
-    if (!USERNAME_ROMAN_PATTERN.test(name)) {
-      setLoginMsg(word("username_roman_only"));
+    if (!EMAIL_PATTERN.test(email)) {
+      setLoginMsg(word("email_invalid"));
       return;
     }
 
     if (submitButton) submitButton.disabled = true;
     try {
+      const returnTo = getReturnTo();
       const res = await fetch(`${API_BASE}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password, longTerm }),
+        body: JSON.stringify({ email, password, longTerm }),
       });
       const body = await res.json().catch(() => ({}));
       if (body?.twoFactorRequired && body?.twoFactorToken) {
@@ -230,7 +317,8 @@ const setupLoginForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       setLoginMsg(word("login_success"));
-      navigate("/");
+      clearReturnTo();
+      navigate(returnTo);
     } catch (error) {
       setLoginMsg(`${word("login_error")}: ${error}`);
     } finally {

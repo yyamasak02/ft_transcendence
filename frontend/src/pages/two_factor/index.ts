@@ -6,20 +6,42 @@ import {
   TWO_FACTOR_TOKEN_KEY,
 } from "@/constants/auth";
 import { storeTokens } from "@/utils/token-storage";
-import "./style.css";
+import { clearReturnTo, getReturnTo } from "@/router";
 
 const API_BASE = "/api/common";
 
 class TwoFactorComponent {
   render = () => {
     return `
-      <div class="two-factor-screen">
-        <div class="two-factor-box">
-          <h2 class="two-factor-title">${t("two_factor_title")}</h2>
-          <p class="two-factor-desc">${t("two_factor_prompt")}</p>
-          <form class="two-factor-form" id="two-factor-form">
-            <div class="two-factor-field">
-              <label for="code">${t("two_factor_code")}</label>
+      <div class="
+            min-h-[calc(100vh-64px)]
+            flex items-center justify-center
+            bg-[radial-gradient(circle_at_center,#1c1c1c,#0b0b0b)]">
+        <div class="
+              w-full max-w-[380px]
+              p-8 bg-slate-900
+              text-center
+              border-2 border-slate-700 rounded-2xl
+              shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+          <h2 class="
+                text-slate-100 text-3xl
+                tracking-widest mb-3 font-bold
+          ">${t("two_factor_title")}</h2>
+          <p class="
+              text-slate-300 text-sm mb-[22px]          
+          ">${t("two_factor_prompt")}</p>
+
+          <form id="two-factor-form">
+            <div class="mb-[18px]">
+              <label
+                for="code"
+                class="
+                  block mb-1.5 text-sm font-bold
+                  tracking-wider text-slate-400
+                "
+              >
+                ${t("two_factor_code")}
+              </label>
               <input
                 type="text"
                 id="code"
@@ -28,18 +50,55 @@ class TwoFactorComponent {
                 autocomplete="one-time-code"
                 placeholder="123456"
                 required
-                class="two-factor-input"
+                class="
+                  w-full py-2.5 px-3
+                  bg-slate-900 border border-slate-600
+                  text-slate-100 text-base rounded-md
+                  tracking-[0.2em]
+                  placeholder:text-slate-600
+                  focus:outline-none focus:border-slate-400
+                  focus:bg-slate-900                  
+                "
               />
             </div>
-            <button type="submit" class="two-factor-submit">
+
+            <button
+              type="submit"
+              class="
+                w-full mt-2 py-2.5
+                bg-slate-800 text-slate-100
+                border border-slate-600
+                text-base font-bold tracking-widest
+                cursor-pointer
+                transition duration-200 ease-in-out
+                hover:bg-slate-700 hover:border-slate-300
+                active:translate-y-px
+              "
+            >
               ${t("two_factor_verify")}
             </button>
-            <div class="two-factor-footer">
-              <a class="two-factor-link" href="/login">
+
+            <div class="mt-[18px] text-center">
+              <a 
+                href="/login"
+                class="
+                  text-slate-300 no-underline text-sm
+                  tracking-wide
+                  hover:text-slate-100 hover:underline
+                "
+              >
                 ${t("to_login")}
               </a>
             </div>
-            <p id="two-factor-msg" class="two-factor-msg"></p>
+
+            <p
+              id="two-factor-msg"
+              class="
+                mt-3 text-sm
+                text-slate-100 text-center
+                whitespace-pre-wrap
+              "
+            ></p>
           </form>
         </div>
       </div>
@@ -64,10 +123,9 @@ const clearTwoFactorState = () => {
 const setupTwoFactorForm = () => {
   const form = document.querySelector<HTMLFormElement>("#two-factor-form");
   const submitButton =
-    form?.querySelector<HTMLButtonElement>(".two-factor-submit");
-  const toLoginLink = document.querySelector<HTMLAnchorElement>(
-    ".two-factor-link[href='/login']",
-  );
+    form?.querySelector<HTMLButtonElement>("button[type='submit']");
+  const toLoginLink =
+    form?.querySelector<HTMLAnchorElement>("a[href='/login']");
 
   if (toLoginLink) {
     toLoginLink.addEventListener("click", (event) => {
@@ -120,7 +178,8 @@ const setupTwoFactorForm = () => {
       }
       storeTokens(body.accessToken, body.longTermToken);
       clearTwoFactorState();
-      navigate("/");
+      clearReturnTo();
+      navigate(getReturnTo());
     } catch (error) {
       setTwoFactorMsg(`${word("two_factor_verify_failed")}: ${error}`);
     } finally {

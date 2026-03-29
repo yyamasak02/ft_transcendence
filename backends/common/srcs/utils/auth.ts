@@ -14,6 +14,7 @@ export type StoredUser = {
   id: number;
   puid: string;
   name: string;
+  email: string;
   password: string;
   salt: string;
 };
@@ -94,7 +95,7 @@ export async function issueTwoFactorToken(
     { expiresIn: TWO_FACTOR_TOKEN_EXPIRES_IN },
   );
 }
-
+// TODO: erase long term tokens periodically
 export async function issueLongTermToken(
   fastify: FastifyInstance,
   userId: number,
@@ -113,6 +114,7 @@ export async function issueLongTermToken(
   return { token: rawToken, expiresAt };
 }
 
+// TODO: erase long term tokens periodically
 export async function verifyLongTermToken(
   fastify: FastifyInstance,
   token: string,
@@ -141,6 +143,7 @@ export async function verifyLongTermToken(
   return { userId: record.user_id };
 }
 
+// TODO: erase long term tokens periodically
 export async function removeLongTermToken(
   fastify: FastifyInstance,
   token: string,
@@ -153,8 +156,15 @@ export async function removeLongTermToken(
 
 export async function findUserByName(fastify: FastifyInstance, name: string) {
   return fastify.db.get<StoredUser>(
-    "SELECT id, puid, name, password, salt FROM users WHERE name = ?",
+    "SELECT id, puid, name, email, password, salt FROM users WHERE name = ?",
     name,
+  );
+}
+
+export async function findUserByEmail(fastify: FastifyInstance, email: string) {
+  return fastify.db.get<StoredUser>(
+    "SELECT id, puid, name, email, password, salt FROM users WHERE email = ?",
+    email,
   );
 }
 
@@ -163,7 +173,7 @@ export async function findUserByGoogleSub(
   googleSub: string,
 ) {
   return fastify.db.get<StoredUser>(
-    `SELECT users.id, users.puid, users.name, users.password, users.salt
+    `SELECT users.id, users.puid, users.name, users.email, users.password, users.salt
      FROM users
      INNER JOIN google_accounts ON google_accounts.user_id = users.id
      WHERE google_accounts.google_sub = ?`,
@@ -190,17 +200,17 @@ export async function linkGoogleAccount(
 
 export async function findUserByPuid(fastify: FastifyInstance, puid: string) {
   return fastify.db.get<StoredUser>(
-    "SELECT id, puid, name, password, salt FROM users WHERE puid = ?",
+    "SELECT id, puid, name, email, password, salt FROM users WHERE puid = ?",
     puid,
   );
 }
 
 export async function verifyUserCredentials(
   fastify: FastifyInstance,
-  name: string,
+  email: string,
   password: string,
 ) {
-  const user = await findUserByName(fastify, name);
+  const user = await findUserByEmail(fastify, email);
   if (!user) {
     return null;
   }

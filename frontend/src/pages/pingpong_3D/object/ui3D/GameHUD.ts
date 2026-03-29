@@ -32,6 +32,12 @@ export class GameHUD {
 
   // フォントサイズ
   private static readonly FONT_SIZE_TITLE = 100;
+  private static readonly FONT_SIZE_TITLE_NARROW = 36;
+  /** 長文翻訳用（見出しより小さくし、折り返しで収める） */
+  private static readonly FONT_SIZE_TITLE_CTA = 40;
+  private static readonly FONT_SIZE_TITLE_CTA_NARROW = 20;
+  private static readonly TITLE_CTA_MIN_HEIGHT_PX = 200;
+  private static readonly TITLE_CTA_MIN_HEIGHT_NARROW_PX = 120;
   private static readonly FONT_SIZE_SCORE = 64;
   private static readonly FONT_SIZE_COUNTDOWN = 80;
   private static readonly FONT_SIZE_INFO = 36;
@@ -56,6 +62,12 @@ export class GameHUD {
   private static readonly RESULT_PANEL_START_LEFT_PX = 1200;
   private static readonly RESULT_PANEL_TARGET_LEFT_PX = -80;
   private static readonly RESULT_PANEL_TOP_PX = -80;
+  /** `cameraControl` のモバイル判定と揃える */
+  private static readonly RESULT_VIEWPORT_NARROW_MAX = 767;
+  private static readonly RESULT_PANEL_SCREEN_MARGIN_PX = 20;
+  private static readonly FONT_SIZE_RESULT_WINNER_NARROW = 38;
+  private static readonly FONT_SIZE_RESULT_SCORE_NARROW = 34;
+  private static readonly TITLE_SCREEN_MARGIN_PX = 24;
 
   // アウトライン
   private static readonly OUTLINE_WIDTH_BOLD = 10;
@@ -109,7 +121,9 @@ export class GameHUD {
   private scoreText: TextBlock;
   private countdownText: TextBlock;
   private infoText: TextBlock;
-  private titleText: TextBlock;
+  private titlePanel: StackPanel;
+  private titleHeadlineText: TextBlock;
+  private titleCtaText: TextBlock;
 
   private rallyPanel: StackPanel;
   private rallyCountText: TextBlock;
@@ -127,6 +141,112 @@ export class GameHUD {
   private slideInObserver: Observer<Scene> | null = null;
   private isNextPing: boolean = true;
 
+  private readonly boundOnViewportResize = (): void => {
+    if (this.resultPanel.isVisible) {
+      this.applyResultPanelLayout();
+    }
+    if (this.titlePanel.isVisible) {
+      this.applyTitleScreenLayout();
+      this.refreshTitleText();
+    }
+  };
+
+  private static isNarrowResultViewport(): boolean {
+    return (
+      typeof window !== "undefined" &&
+      window.innerWidth <= GameHUD.RESULT_VIEWPORT_NARROW_MAX
+    );
+  }
+
+  /** 画面幅に合わせてリザルト UI の幅・フォント・折り返しを調整（モバイルはみ出し対策） */
+  private applyResultPanelLayout(): void {
+    const narrow = GameHUD.isNarrowResultViewport();
+    const vw =
+      typeof window !== "undefined"
+        ? window.innerWidth
+        : GameHUD.RESULT_PANEL_WIDTH_PX;
+    const panelW = narrow
+      ? Math.max(220, vw - GameHUD.RESULT_PANEL_SCREEN_MARGIN_PX * 2)
+      : GameHUD.RESULT_PANEL_WIDTH_PX;
+    const innerW = Math.max(180, panelW - 16);
+
+    this.resultPanel.width = `${panelW}px`;
+
+    this.resultWinnerText.fontSize = narrow
+      ? GameHUD.FONT_SIZE_RESULT_WINNER_NARROW
+      : GameHUD.FONT_SIZE_RESULT_WINNER;
+    this.resultWinnerText.width = `${innerW}px`;
+    this.resultWinnerText.textWrapping = narrow;
+    this.resultWinnerText.resizeToFit = !narrow;
+    this.resultWinnerText.height = narrow ? "160px" : "120px";
+    this.resultWinnerText.outlineWidth = narrow
+      ? GameHUD.OUTLINE_WIDTH_THIN
+      : GameHUD.OUTLINE_WIDTH_NORMAL;
+
+    this.resultScoreText.fontSize = narrow
+      ? GameHUD.FONT_SIZE_RESULT_SCORE_NARROW
+      : GameHUD.FONT_SIZE_RESULT_SCORE;
+    this.resultScoreText.width = `${innerW}px`;
+    this.resultScoreText.textWrapping = false;
+    this.resultScoreText.resizeToFit = true;
+    this.resultScoreText.height = narrow ? "72px" : "80px";
+    this.resultScoreText.outlineWidth = narrow
+      ? GameHUD.OUTLINE_WIDTH_THIN
+      : GameHUD.OUTLINE_WIDTH_NORMAL;
+  }
+
+  /** タイトル画面（PRESS START）を画面幅に収める */
+  private applyTitleScreenLayout(): void {
+    const narrow = GameHUD.isNarrowResultViewport();
+    const vw =
+      typeof window !== "undefined"
+        ? window.innerWidth
+        : GameHUD.RESULT_PANEL_WIDTH_PX;
+    const w = Math.max(200, vw - GameHUD.TITLE_SCREEN_MARGIN_PX * 2);
+
+    this.titlePanel.width = `${w}px`;
+
+    this.titleHeadlineText.width = `${w}px`;
+    this.titleHeadlineText.textWrapping = false;
+    this.titleHeadlineText.resizeToFit = true;
+    this.titleHeadlineText.fontSize = narrow
+      ? GameHUD.FONT_SIZE_TITLE_NARROW
+      : GameHUD.FONT_SIZE_TITLE;
+    this.titleHeadlineText.outlineWidth = narrow
+      ? GameHUD.OUTLINE_WIDTH_NORMAL
+      : GameHUD.OUTLINE_WIDTH_BOLD;
+
+    this.titleCtaText.width = `${w}px`;
+    this.titleCtaText.textWrapping = true;
+    this.titleCtaText.resizeToFit = false;
+    this.titleCtaText.fontSize = narrow
+      ? GameHUD.FONT_SIZE_TITLE_CTA_NARROW
+      : GameHUD.FONT_SIZE_TITLE_CTA;
+    this.titleCtaText.outlineWidth = narrow
+      ? GameHUD.OUTLINE_WIDTH_NORMAL
+      : GameHUD.OUTLINE_WIDTH_BOLD;
+
+    const ctaCopy = word("press_enter_or_click_to_start");
+    const ctaFs = narrow
+      ? GameHUD.FONT_SIZE_TITLE_CTA_NARROW
+      : GameHUD.FONT_SIZE_TITLE_CTA;
+    const approxCharsPerLine = Math.max(
+      5,
+      Math.floor(w / (ctaFs * 0.65)),
+    );
+    const approxLines = Math.max(1, Math.ceil(ctaCopy.length / approxCharsPerLine));
+    const lineH = Math.round(ctaFs * 1.35);
+    const ctaMin = narrow
+      ? GameHUD.TITLE_CTA_MIN_HEIGHT_NARROW_PX
+      : GameHUD.TITLE_CTA_MIN_HEIGHT_PX;
+    this.titleCtaText.height = `${Math.max(ctaMin, approxLines * lineH + 24)}px`;
+  }
+
+  private refreshTitleText(): void {
+    this.titleHeadlineText.text = word("pingpong3d_splash_title");
+    this.titleCtaText.text = word("press_enter_or_click_to_start");
+  }
+
   // 初期生成
   constructor(scene: Scene) {
     // 板を作る
@@ -135,7 +255,7 @@ export class GameHUD {
       { width: GameHUD.PLANE_WIDTH, height: GameHUD.PLANE_HEIGHT },
       scene,
     );
-    // billboard　と衝突するので rotation と lookAt は使わない
+    // billboardと衝突するので rotation と lookAt は使わない
     this.plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
     this.plane.position = GameHUD.PLANE_POSITION;
     this.plane.scaling = GameHUD.PLANE_SCALING;
@@ -219,16 +339,42 @@ export class GameHUD {
     this.notificationText.isVisible = false;
     this.screenTexture.addControl(this.notificationText);
 
-    // タイトル
-    this.titleText = new TextBlock("title", "");
-    this.titleText.fontSize = GameHUD.FONT_SIZE_TITLE;
-    this.titleText.color = GameHUD.COLOR_TITLE_TEXT;
-    this.titleText.fontWeight = "bold";
-    this.titleText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
-    this.titleText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
-    this.titleText.isVisible = false;
-    this.titleText.zIndex = 100;
-    this.screenTexture.addControl(this.titleText);
+    // タイトル（見出しと説明文を分離し、長い翻訳でも折り返しで収める）
+    this.titlePanel = new StackPanel("titlePanel");
+    this.titlePanel.isVisible = false;
+    this.titlePanel.zIndex = 100;
+    this.titlePanel.spacing = 20;
+    this.titlePanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.titlePanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+    this.titlePanel.width = "400px";
+
+    this.titleHeadlineText = new TextBlock("titleHeadline", "");
+    this.titleHeadlineText.fontSize = GameHUD.FONT_SIZE_TITLE;
+    this.titleHeadlineText.color = GameHUD.COLOR_TITLE_TEXT;
+    this.titleHeadlineText.fontWeight = "bold";
+    this.titleHeadlineText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
+    this.titleHeadlineText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
+    this.titleHeadlineText.textHorizontalAlignment =
+      Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.titleHeadlineText.textWrapping = false;
+    this.titleHeadlineText.resizeToFit = true;
+
+    this.titleCtaText = new TextBlock("titleCta", "");
+    this.titleCtaText.fontSize = GameHUD.FONT_SIZE_TITLE_CTA;
+    this.titleCtaText.color = GameHUD.COLOR_TITLE_TEXT;
+    this.titleCtaText.fontWeight = "bold";
+    this.titleCtaText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
+    this.titleCtaText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
+    this.titleCtaText.textHorizontalAlignment =
+      Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.titleCtaText.textVerticalAlignment =
+      Control.VERTICAL_ALIGNMENT_CENTER;
+    this.titleCtaText.textWrapping = true;
+    this.titleCtaText.resizeToFit = false;
+
+    this.titlePanel.addControl(this.titleHeadlineText);
+    this.titlePanel.addControl(this.titleCtaText);
+    this.screenTexture.addControl(this.titlePanel);
 
     // リザルトパネル
     this.resultPanel = new StackPanel("resultPanel");
@@ -264,6 +410,11 @@ export class GameHUD {
       Control.HORIZONTAL_ALIGNMENT_RIGHT;
     this.resultScoreText.resizeToFit = true;
     this.resultPanel.addControl(this.resultScoreText);
+
+    this.applyResultPanelLayout();
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", this.boundOnViewportResize);
+    }
   }
 
   // ラリー数更新と演出
@@ -372,10 +523,12 @@ export class GameHUD {
       const now = Date.now();
       const dt = scene.getEngine().getDeltaTime() / 1000;
 
-      if (this.titleText.isVisible) {
+      if (this.titlePanel.isVisible) {
         const pulse = (Math.sin(now * GameHUD.TITLE_PULSE_SPEED) + 1) / 2;
-        this.titleText.outlineWidth =
+        const ow =
           GameHUD.TITLE_PULSE_MIN_WIDTH + pulse * GameHUD.TITLE_PULSE_RANGE;
+        this.titleHeadlineText.outlineWidth = ow;
+        this.titleCtaText.outlineWidth = ow;
       }
 
       if (now - this.lastSpawnTime > GameHUD.FLOATING_SPAWN_INTERVAL_MS) {
@@ -466,12 +619,13 @@ export class GameHUD {
   }
 
   showTitle() {
-    this.titleText.text = "PING PONG 3D\n\nPRESS ENTER TO START";
-    this.titleText.isVisible = true;
+    this.applyTitleScreenLayout();
+    this.refreshTitleText();
+    this.titlePanel.isVisible = true;
   }
 
   clearTitle() {
-    this.titleText.isVisible = false;
+    this.titlePanel.isVisible = false;
   }
 
   showFinalResult(
@@ -479,6 +633,7 @@ export class GameHUD {
     p1Score: number,
     p2Score: number,
   ) {
+    this.applyResultPanelLayout();
     const winnerName = winner === "Player1" ? word("player1") : word("player2");
     this.resultWinnerText.text = `${winnerName} ${word("wins")}!`;
     this.resultScoreText.text = `${p1Score} - ${p2Score}`;
@@ -530,6 +685,9 @@ export class GameHUD {
   }
 
   public dispose() {
+    if (typeof window !== "undefined") {
+      window.removeEventListener("resize", this.boundOnViewportResize);
+    }
     const scene = this.plane.getScene();
 
     // Observer の解除

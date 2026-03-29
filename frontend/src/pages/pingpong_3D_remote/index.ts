@@ -8,6 +8,9 @@ import {
 } from "@/utils/pingpong3D/remoteSetting";
 import { t, word } from "@/i18n";
 
+const POLLING_INTERVAL_MS = 1500;
+const FEEDBACK_DISPLAY_MS = 1500;
+
 type RoomJoinContext = {
   roomId: string;
   userId: string;
@@ -18,10 +21,12 @@ class PingPong3DRemoteWaiting implements Component {
   private _root: HTMLElement;
   private _roomId = "";
   private _statusEl!: HTMLElement;
-  private _roomEl!: HTMLElement;
+  private _roomValueEl!: HTMLElement;
+  private _roomDisplayEl!: HTMLElement;
+  private _copyFeedbackEl!: HTMLElement;
   private _readyBtn!: HTMLButtonElement;
+  private _loaderEl!: HTMLElement;
   private _ws: WebSocket | null = null;
-  private _wsReady: boolean = false;
   private _tmpUserId!: string;
   private _pollTimer: number | null = null;
 
@@ -31,24 +36,73 @@ class PingPong3DRemoteWaiting implements Component {
 
   render(): string {
     return `
-      <div class="w-[800px] max-w-full p-6 space-y-4">
-        <h2 class="text-xl font-semibold">${t("remote_wait_for")}</h2>
-        <div>${t("room_id")}: <span id="room-id" class="font-mono"></span></div>
-        <div class="text-sm">${t("remote_status")}: <span id="status" class="font-mono"></span>...</div>
-        <button id="ready-btn" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" disabled>READY</button>
-        <div id="start-banner" class="hidden text-green-600 font-bold">START!</div>
+      <div class="pp3d-wait-wrapper">
+        <div class="pp3d-wait-card">
+          <h2 class="pp3d-title-holo">${t("remote_wait_for")}</h2>
+          
+          <div id="room-display" class="pp3d-room-display" title="${word("click_to_copy")}">
+             <span class="pp3d-room-label">${t("room_id")}</span>
+             <span id="room-id-value" class="pp3d-room-value">Loading...</span>
+             
+             <div class="pp3d-copy-hint">
+               <img src="/button/copy.svg" class="pp3d-copy-icon" style="width: 1.2em; height: 1.2em; vertical-align: middle;" />
+               <span>${t("click_to_copy")}</span>
+             </div>
+             
+             <div id="copy-feedback" class="pp3d-copy-feedback">${t("copied")}</div>
+          </div>
+
+          <div class="pp3d-status-area">
+             <div id="loading-42" class="pp3d-loading-42">
+                <span class="walking-number num-4">4</span>
+                <span class="walking-number num-2">2</span>
+             </div>
+             <div id="status-text" class="pp3d-status-text">${t("remote_status")}...</div>
+          </div>
+
+          <button id="ready-btn" class="pp3d-ready-btn" disabled>
+            ${t("remote_ready")}
+          </button>
+        </div>
       </div>
     `;
   }
 
   init() {
-    this._roomEl = this._root.querySelector<HTMLElement>("#room-id")!;
-    this._statusEl = this._root.querySelector<HTMLElement>("#status")!;
+    this._roomDisplayEl =
+      this._root.querySelector<HTMLElement>("#room-display")!;
+    this._roomValueEl =
+      this._root.querySelector<HTMLElement>("#room-id-value")!;
+    this._copyFeedbackEl =
+      this._root.querySelector<HTMLElement>("#copy-feedback")!;
+    this._statusEl = this._root.querySelector<HTMLElement>("#status-text")!;
+    this._loaderEl = this._root.querySelector<HTMLElement>("#loading-42")!;
     this._readyBtn = this._root.querySelector<HTMLButtonElement>("#ready-btn")!;
     this._tmpUserId = isLoggedIn()
       ? (userName() as string)
       : (getRemoteUserId() as string);
     setRemoteUserId(this._tmpUserId);
+    this._roomDisplayEl.addEventListener("click", () => this.handleCopy());
+  }
+  private handleCopy() {
+    if (!this._roomId) return;
+    navigator.clipboard
+      .writeText(this._roomId)
+      .then(() => {
+        this._copyFeedbackEl.textContent = word("copied");
+        this._copyFeedbackEl.classList.add("show");
+        setTimeout(() => {
+          this._copyFeedbackEl.classList.remove("show");
+        }, FEEDBACK_DISPLAY_MS);
+      })
+      .catch((err) => {
+        console.error("Failed to copy:", err);
+        this._copyFeedbackEl.textContent = word("failed");
+        this._copyFeedbackEl.classList.add("show");
+        setTimeout(() => {
+          this._copyFeedbackEl.classList.remove("show");
+        }, FEEDBACK_DISPLAY_MS);
+      });
   }
 
   private startPolling() {
@@ -62,6 +116,7 @@ class PingPong3DRemoteWaiting implements Component {
         if (data.status === "matched") {
           this._statusEl.textContent = `${word("remote_ready_message")}`;
           this._readyBtn.disabled = false;
+          this._loaderEl.style.display = "none";
           if (this._pollTimer !== null) {
             clearInterval(this._pollTimer);
             this._pollTimer = null;
@@ -69,13 +124,14 @@ class PingPong3DRemoteWaiting implements Component {
           this.connectWS();
         } else {
           this._statusEl.textContent = `${word("remote_wait_for")}`;
+          this._loaderEl.style.display = "flex";
         }
       } catch (e) {
         // ignore transient errors
       }
     };
     poll();
-    this._pollTimer = window.setInterval(poll, 1500);
+    this._pollTimer = window.setInterval(poll, POLLING_INTERVAL_MS);
   }
 
   private async fetchRoomSide(
@@ -118,7 +174,6 @@ class PingPong3DRemoteWaiting implements Component {
     const ws = new WebSocket(wsUrl);
     this._ws = ws;
     ws.onopen = () => {
-      this._wsReady = true;
       ws.send(
         JSON.stringify({
           type: "connect",
@@ -170,7 +225,6 @@ class PingPong3DRemoteWaiting implements Component {
     };
     ws.onclose = () => {
       this._ws = null;
-      this._wsReady = false;
     };
   }
 
@@ -180,10 +234,11 @@ class PingPong3DRemoteWaiting implements Component {
     const roomId = params.get("roomId");
     if (!roomId) {
       this._statusEl.textContent = word("remote_no_room_id_message");
+      this._loaderEl.style.display = "none";
       return;
     }
     this._roomId = roomId;
-    this._roomEl.textContent = roomId;
+    this._roomValueEl.textContent = roomId;
     this._readyBtn.addEventListener("click", () => {
       const sendReady = () => {
         this._ws?.send(
@@ -195,6 +250,7 @@ class PingPong3DRemoteWaiting implements Component {
         );
         this._readyBtn.disabled = true;
         this._statusEl.textContent = word("remote_ready_done_waiting_message");
+        this._loaderEl.style.display = "flex";
       };
 
       const ws = this._ws;

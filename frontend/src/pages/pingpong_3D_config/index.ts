@@ -12,9 +12,51 @@ import { isLoggedIn, userName } from "@/utils/auth-util";
 import { setRemoteUserId } from "@/utils/pingpong3D/remoteSetting";
 
 // ゲーム設定画面
+const ICONS = {
+  local: "/button/local.svg",
+  host: "/button/host.svg",
+  guest: "/button/guest.svg",
+};
+
+interface ModeOption {
+  id: string;
+  icon: string;
+  titleKey: "mode_local" | "mode_host" | "mode_guest";
+  descKey: "mode_local_desc" | "mode_host_desc" | "mode_guest_desc";
+}
+
+const MODES: ModeOption[] = [
+  {
+    id: "local",
+    icon: ICONS.local,
+    titleKey: "mode_local",
+    descKey: "mode_local_desc",
+  },
+  {
+    id: "host",
+    icon: ICONS.host,
+    titleKey: "mode_host",
+    descKey: "mode_host_desc",
+  },
+  {
+    id: "guest",
+    icon: ICONS.guest,
+    titleKey: "mode_guest",
+    descKey: "mode_guest_desc",
+  },
+];
+
 class PingPongComponent implements Component {
   private _root: HTMLElement;
   private _pp3dConfigRoot!: HTMLElement;
+
+  private _modeCards!: NodeListOf<HTMLElement>;
+  private _sections!: {
+    local: HTMLElement;
+    remote: HTMLElement;
+  };
+  private _commonSettingsGroups!: NodeListOf<HTMLElement>;
+  private _previewContainer!: HTMLElement;
 
   private _remoteUI!: {
     container: HTMLElement;
@@ -24,6 +66,8 @@ class PingPongComponent implements Component {
 
   private _ruleInputs!: {
     winningScore: HTMLInputElement;
+    // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
+    ballSpeed: HTMLInputElement;
     rallyRush: HTMLInputElement;
     countdown: HTMLSelectElement;
     stage: HTMLSelectElement;
@@ -52,115 +96,162 @@ class PingPongComponent implements Component {
     this._root = root;
   }
 
+  private _renderModeCards(): string {
+    const MODE_COUNT = MODES.length;
+    const MAIN_START_INDEX = MODE_COUNT;
+    const MAIN_END_INDEX = MAIN_START_INDEX + MODE_COUNT - 1;
+    const repeatedModes = [...MODES, ...MODES, ...MODES];
+    
+return repeatedModes.map((mode, index) => {
+      const isMain = index >= MAIN_START_INDEX && index <= MAIN_END_INDEX;
+      const cloneClass = isMain ? "" : "md:hidden";
+      const activeClass = index === MAIN_START_INDEX ? "active" : "";
+
+      return `
+      <div class="pp3d-mode-card flex flex-col justify-center items-center ${activeClass} ${cloneClass} snap-center w-[85%] shrink-0 md:w-auto md:flex-1" data-mode="${mode.id}" data-index="${index}">
+          <div class="pp3d-mode-icon">
+              <img src="${mode.icon}" alt="${word(mode.titleKey)}" />
+          </div>
+          <div class="pp3d-mode-info">
+              <h3>${t(mode.titleKey)}</h3>
+              <p>${t(mode.descKey)}</p>
+          </div>
+      </div>
+      `;
+    }).join("");
+  }
+  // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるためball_speedは提出時に削除予定
   render(): string {
     return `
-            <div class="w-[800px] max-w-full" id="pp3d-config-root" class="pp3d-config">
-                <div class="pp3d-config">
-                    <h2>${t("pingpong3d_config")}</h2>
-                    <div class="pp3d-config-row">
-                        <label>${t("player2Type") || "Opponent"}</label>
-                        <select id="player2-type">
-                            <option value="Player">${t("player2")}</option>
-                            <option value="Easy">${t("easyLv")}</option>
-                            <option value="Normal" selected>${t("normalLv")}</option>
-                            <option value="Hard">${t("hardLv")}</option>
-                            <option value="Remote">${t("remote")}</option>
-                        </select>
-                    </div>
-                    <!-- Remote Config -->
-                    <div id="remote-config" class="hidden">
-                      <div class="pp3d-config-row">
-                        <label class="pp3d-label">${t("connection_mode")}</label>
-                        <select id="remote-mode">
-                          <option value="guest">${t("guest")}</option>
-                          <option value="host">${t("host")}</option>
-                        </select>
+      <div class="w-[900px] max-w-full" id="pp3d-config-root">
+          <div class="pp3d-config">
+              <h2 class="pp3d-title mb-4">${t("pingpong3d_config")}</h2>
+
+              <div class="pp3d-mode-selector relative flex overflow-x-auto snap-x snap-mandatory md:overflow-x-visible md:justify-center gap-4 mb-2 py-4 hide-scrollbar w-full px-[7.5%] md:px-0">
+                  ${this._renderModeCards()}
+              </div>
+
+              <div class="pp3d-settings-container flex flex-col">
+                  
+                  <div id="settings-scroll-container" class="flex overflow-x-auto snap-x snap-mandatory md:flex-col md:overflow-x-visible hide-scrollbar w-full gap-6 md:gap-0 pb-2 md:pb-0">
+                      
+                      <div class="snap-center w-full shrink-0 md:w-full flex flex-col">
+                          
+                          <div id="local-section" class="pp3d-section">
+                              <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("player2Type")}</label>
+                                  <select id="player2-type" class="w-full md:w-auto">
+                                      <option value="Player">${t("player2")}</option>
+                                      <option value="Easy">${t("easyLv")}</option>
+                                      <option value="Normal" selected>${t("normalLv")}</option>
+                                      <option value="Hard">${t("hardLv")}</option>
+                                      <option value="Remote" class="hidden">Remote</option>
+                                  </select>
+                              </div>
+                          </div>
+                          
+                          <div id="remote-section" class="pp3d-section hidden">
+                                <select id="remote-mode" class="hidden">
+                                  <option value="guest">${t("guest")}</option>
+                                  <option value="host">${t("host")}</option>
+                                </select>
+
+                                <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("room_id")}</label>
+                                  <input id="remote-room-id" type="text" placeholder="${word("room_id_placeholder_guest")}" class="w-full md:w-auto" />
+                                </div>
+                          </div>
+
+                          <div class="common-settings-group">
+                              <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("score_to_win")}</label>
+                                  <input id="winning-score" type="number" min="1" max="20" value="3" class="w-full md:w-auto" />
+                              </div>
+
+                              <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("ball_speed")}</label>
+                                  <input id="ball-speed" type="range" min="0.1" max="2" step="0.1" value="1" class="w-full md:w-auto" />
+                              </div>
+
+                              <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("count_speed")}</label>
+                                  <select id="countdown-interval" class="w-full md:w-auto">
+                                      <option value="500">${t("fast")}</option>
+                                      <option value="1000" selected>${t("normal")}</option>
+                                      <option value="2000">${t("slow")}</option>
+                                  </select>
+                              </div>
+                              
+                              <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("stage")}</label>
+                                  <select id="stage-select" class="w-full md:w-auto">
+                                      <option value="0">${t("classic")}</option>
+                                      <option value="1">${t("shadow")}</option>
+                                      <option value="2">${t("warp")}</option>
+                                  </select>
+                              </div>
+
+                              <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                  <label class="w-full text-left md:w-[140px] shrink-0">${t("collapse_mode")}</label>
+                                  <div class="pp3d-toggle-container flex items-center gap-3 w-full md:w-auto">
+                                      <input id="rally-rush-toggle" type="checkbox" checked class="pp3d-toggle-input shrink-0" />
+                                      <span class="pp3d-toggle-text text-left">${t("collapse_explanation")}</span>
+                                  </div>
+                              </div>
+                          </div>
                       </div>
-                      <div class="pp3d-config-row">
-                        <label class="pp3d-label">${t("room_id")}</label>
-                        <input id="remote-room-id" type="text" placeholder="ABCD-1234" />
+
+                      <div class="snap-center w-full shrink-0 md:w-full flex flex-col common-settings-group">
+                          <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                              <label class="w-full text-left md:w-[140px] shrink-0">${t("color1")}</label>
+                              <select id="paddle1-color" class="w-full md:w-[90px]">
+                                  <option value="blue">${t("blue")}</option>
+                                  <option value="green">${t("green")}</option>
+                                  <option value="red">${t("red")}</option>
+                                  <option value="yellow">${t("yellow")}</option>
+                                  <option value="white">${t("white")}</option>
+                                  <option value="black">${t("black")}</option>
+                                  <option value="pink">${t("pink")}</option>
+                              </select>
+
+                              <div class="pp3d-length-group flex justify-between md:justify-start items-center w-full md:w-auto mt-2 md:mt-0 gap-4">
+                                  <label class="pp3d-sub-label md:ml-[20px] m-0 text-left shrink-0">${t("length")}</label>
+                                  <input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" class="flex-1 md:w-auto" />
+                              </div>
+                          </div>
+
+                          <div class="pp3d-config-row flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                              <label class="w-full text-left md:w-[140px] shrink-0">${t("color2")}</label>
+                              <select id="paddle2-color" class="w-full md:w-[90px]">
+                                  <option value="green">${t("green")}</option>
+                                  <option value="blue">${t("blue")}</option>
+                                  <option value="red">${t("red")}</option>
+                                  <option value="yellow">${t("yellow")}</option>
+                                  <option value="white">${t("white")}</option>
+                                  <option value="black">${t("black")}</option>
+                                  <option value="pink">${t("pink")}</option>
+                              </select>
+
+                              <div class="pp3d-length-group flex justify-between md:justify-start items-center w-full md:w-auto mt-2 md:mt-0 gap-4">
+                                  <label class="pp3d-sub-label md:ml-[20px] m-0 text-left shrink-0">${t("length")}</label>
+                                  <input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" class="flex-1 md:w-auto" />
+                              </div>
+                          </div>
+
+                          <div class="pp-preview-container w-full mt-2">
+                              <canvas id="previewCanvas3D"></canvas>
+                          </div>
                       </div>
-                    </div>
 
+                  </div>
 
-                    <div class="pp3d-config-row">
-                        <label>${t("score_to_win")}</label>
-                        <input id="winning-score" type="number" min="1" max="20" value="3" />
-                    </div>
-
-                    <div class="pp3d-config-row">
-                        <label>${t("count_speed")}</label>
-                        <select id="countdown-interval">
-                            <option value="500">${t("fast")}</option>
-                            <option value="1000" selected>${t("normal")}</option>
-                            <option value="2000">${t("slow")}</option>
-                        </select>
-                    </div>
-                    
-                    <div class="pp3d-config-row">
-                        <label>${t("stage")}</label>
-                        <select id="stage-select">
-                            <option value="0">${t("classic")}</option>
-                            <option value="1">${t("shadow")}</option>
-                            <option value="2">${t("warp")}</option>
-                        </select>
-                    </div>
-
-                    <div class="pp3d-config-row pp3d-inline-row">
-                            <label class="pp3d-label">${t("color1")}</label>
-                            <select id="paddle1-color" class="pp3d-color-select">
-                                <option value="blue">${t("blue")}</option>
-                                <option value="green">${t("green")}</option>
-                                <option value="red">${t("red")}</option>
-                                <option value="yellow">${t("yellow")}</option>
-                                <option value="white">${t("white")}</option>
-                                <option value="black">${t("black")}</option>
-                                <option value="pink">${t("pink")}</option>
-                            </select>
-
-                            <div class="pp3d-length-group">
-                                <label class="pp3d-sub-label">${t("length")}</label>
-                                <input id="paddle1-length" type="range" min="1" max="10" step="1" value="8" />
-                            </div>
-                        </div>
-
-                        <div class="pp3d-config-row pp3d-inline-row">
-                            <label class="pp3d-label">${t("color2")}</label>
-                            <select id="paddle2-color" class="pp3d-color-select">
-                                <option value="green">${t("green")}</option>
-                                <option value="blue">${t("blue")}</option>
-                                <option value="red">${t("red")}</option>
-                                <option value="yellow">${t("yellow")}</option>
-                                <option value="white">${t("white")}</option>
-                                <option value="black">${t("black")}</option>
-                                <option value="pink">${t("pink")}</option>
-                            </select>
-
-                            <div class="pp3d-length-group">
-                                <label class="pp3d-sub-label">${t("length")}</label>
-                                <input id="paddle2-length" type="range" min="1" max="10" step="1" value="8" />
-                            </div>
-                        </div>
-
-                    <div class="pp3d-config-row">
-                        <label>${t("collapse_mode")}</label>
-                        <div class="pp3d-toggle-container">
-                            <input id="rally-rush-toggle" type="checkbox" checked class="pp3d-toggle-input" />
-                            <span class="pp3d-toggle-text">${t("collapse_explanation")}</span>
-                        </div>
-                    </div>
-
-                    <div class="pp-preview-container">
-                        <canvas id="previewCanvas3D"></canvas>
-                    </div>
-
-                    <div class="pp3d-config-row pp3d-config-row--button">
-                        <button id="pingpong-start-btn">${t("start")}</button>
-                    </div>
-
-                </div>
-            </div>
-        `;
+                  <div class="pp3d-config-row pp3d-config-row--button mt-6 flex justify-center w-full">
+                      <button id="pingpong-start-btn" class="w-full md:w-auto">${t("start")}</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+    `;
   }
 
   private _get<T extends HTMLElement>(selector: string): T {
@@ -174,14 +265,26 @@ class PingPongComponent implements Component {
     if (!root) throw new Error("Failed to get DOM pp3dConfigRoot");
     this._pp3dConfigRoot = root;
 
+    this._modeCards =
+      this._pp3dConfigRoot.querySelectorAll<HTMLElement>(".pp3d-mode-card");
+
+    this._sections = {
+      local: this._get("#local-section"),
+      remote: this._get("#remote-section"),
+    };
+    this._commonSettingsGroups = this._pp3dConfigRoot.querySelectorAll<HTMLElement>(".common-settings-group");
+    this._previewContainer = this._get(".pp-preview-container");
+
     this._remoteUI = {
-      container: this._get("#remote-config"),
+      container: this._get("#remote-section"),
       modeSelect: this._get("#remote-mode"),
       roomInput: this._get("#remote-room-id"),
     };
 
     this._ruleInputs = {
       winningScore: this._get("#winning-score"),
+      //   TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
+      ballSpeed: this._get("#ball-speed"),
       rallyRush: this._get("#rally-rush-toggle"),
       countdown: this._get("#countdown-interval"),
       stage: this._get("#stage-select"),
@@ -208,10 +311,11 @@ class PingPongComponent implements Component {
   }
 
   onMount() {
-    document.body.classList.add("pingpong-page", "overflow-hidden");
+    document.body.classList.add("pingpong-page");
     document.documentElement.classList.add("overflow-hidden");
 
     this.init();
+    this.handleModeChange("local");
 
     this._previewUI.scene = new PreviewScene(this._previewUI.canvas);
 
@@ -228,21 +332,107 @@ class PingPongComponent implements Component {
       );
     };
 
-    this._playerInputs.p2.type.addEventListener("change", () => {
-      const isRemote = this._playerInputs.p2.type.value === "Remote";
-      this._remoteUI.container.classList.toggle("hidden", !isRemote);
-      if (isRemote) {
-        // Default to guest for editable ID input
-        this._remoteUI.modeSelect.value = "guest";
-        this._remoteUI.roomInput.readOnly = false;
-        this._remoteUI.roomInput.placeholder = "ABCD-1234";
+    // モードカードクリック時のイベント
+const modeSelector = this._get(".pp3d-mode-selector");
+    let isWarping = false;
+    let scrollTimeout: number | undefined = undefined;
+    const MOBILE_BREAKPOINT = 768;
+    const MODE_COUNT = MODES.length;
+    const MAIN_START_INDEX = MODE_COUNT;
+    const MAIN_END_INDEX = MAIN_START_INDEX + MODE_COUNT - 1;
+    const SCROLL_DEBOUNCE_MS = 15;
+    const WARP_COOLDOWN_MS = 5;
+
+    const initScrollPosition = () => {
+        if (window.innerWidth < MOBILE_BREAKPOINT) {
+            const initialCard = Array.from(this._modeCards).find(
+                c => parseInt(c.dataset.index || "0", 10) === MAIN_START_INDEX
+            ) as HTMLElement;
+            
+            if (initialCard) {
+                const scrollLeft = initialCard.offsetLeft - modeSelector.clientWidth / 2 + initialCard.clientWidth / 2;
+                modeSelector.scrollTo({ left: scrollLeft, behavior: "auto" });
+            }
+        }
+    };
+    setTimeout(initScrollPosition, 0);
+
+    modeSelector.addEventListener("scroll", () => {
+      if (window.innerWidth >= MOBILE_BREAKPOINT || isWarping) return;
+
+      const containerRect = modeSelector.getBoundingClientRect();
+      const containerCenter = containerRect.left + containerRect.width / 2;
+
+      let closestCard: HTMLElement | null = null;
+      let minDistance = Infinity;
+      let closestIndex = 0;
+
+      this._modeCards.forEach((card) => {
+        if (card.offsetParent === null) return; 
+
+        const cardRect = card.getBoundingClientRect();
+        const cardCenter = cardRect.left + cardRect.width / 2;
+        const distance = Math.abs(containerCenter - cardCenter);
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestCard = card;
+          closestIndex = parseInt(card.dataset.index || "0", 10);
+        }
+      });
+
+      if (scrollTimeout !== undefined)
+      {
+          clearTimeout(scrollTimeout);
       }
+      scrollTimeout = window.setTimeout(() => {
+        if (!closestCard) return;
+
+        if (!closestCard.classList.contains("active")) {
+          this._modeCards.forEach((c) => c.classList.remove("active"));
+          closestCard.classList.add("active");
+          this.handleModeChange(closestCard.dataset.mode);
+        }
+
+        let targetIndex = -1;
+        if (closestIndex < MAIN_START_INDEX) {
+          targetIndex = closestIndex + MODE_COUNT; 
+        } 
+        else if (closestIndex > MAIN_END_INDEX) {
+          targetIndex = closestIndex - MODE_COUNT; 
+        }
+
+        if (targetIndex !== -1) {
+          isWarping = true;
+          const targetCard = Array.from(this._modeCards).find(
+            c => parseInt(c.dataset.index || "0", 10) === targetIndex
+          ) as HTMLElement;
+
+          if (targetCard) {
+            const scrollLeft = targetCard.offsetLeft - modeSelector.clientWidth / 2 + targetCard.clientWidth / 2;
+            modeSelector.scrollTo({ left: scrollLeft, behavior: "auto" });
+            
+            this._modeCards.forEach((c) => c.classList.remove("active"));
+            targetCard.classList.add("active");
+          }
+          
+          setTimeout(() => { isWarping = false; }, WARP_COOLDOWN_MS);
+        }
+      }, SCROLL_DEBOUNCE_MS);
     });
 
-    this._remoteUI.modeSelect.addEventListener("change", () => {
-      const isHost = this._remoteUI.modeSelect.value === "host";
-      this._remoteUI.roomInput.readOnly = isHost;
-      this._remoteUI.roomInput.placeholder = "ABCD-1234";
+    this._modeCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        if (window.innerWidth < MOBILE_BREAKPOINT) {
+          const scrollLeft = card.offsetLeft - modeSelector.clientWidth / 2 + card.clientWidth / 2;
+          modeSelector.scrollTo({ left: scrollLeft, behavior: "smooth" });
+        } else {
+          this._modeCards.forEach((c) => c.classList.remove("active"));
+          card.classList.add("active");
+          const mode = card.dataset.mode;
+          this.handleModeChange(mode);
+        }
+      });
     });
 
     this._playerInputs.p1.length.addEventListener("input", updatePreview);
@@ -256,6 +446,8 @@ class PingPongComponent implements Component {
       // Always save local game settings
       saveSettings({
         winningScore: Number(this._ruleInputs.winningScore.value),
+        // TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
+        ballSpeed: Number(this._ruleInputs.ballSpeed.value),
         rallyRush: this._ruleInputs.rallyRush.checked,
         selectedCountdownSpeed: Number(this._ruleInputs.countdown.value),
         selectedStageIndex: Number(this._ruleInputs.stage.value),
@@ -315,10 +507,47 @@ class PingPongComponent implements Component {
     });
   }
 
+  handleModeChange(mode: string | undefined) {
+    if (!mode) return;
+
+    if (mode === "local") {
+      this._sections.local.classList.remove("hidden");
+      this._sections.remote.classList.add("hidden");
+      this._commonSettingsGroups.forEach(g => g.classList.remove("hidden"));
+      this._previewContainer.classList.remove("hidden");
+
+      if (this._playerInputs.p2.type.value === "Remote") {
+        this._playerInputs.p2.type.value = "Normal";
+      }
+    } else {
+      this._sections.local.classList.add("hidden");
+      this._sections.remote.classList.remove("hidden");
+      this._playerInputs.p2.type.value = "Remote";
+
+      if (mode === "host") {
+        this._remoteUI.modeSelect.value = "host";
+        this._remoteUI.roomInput.readOnly = true;
+        this._sections.remote.classList.add("hidden");
+        this._remoteUI.roomInput.value = "";
+        this._commonSettingsGroups.forEach(g => g.classList.remove("hidden"));
+        this._previewContainer.classList.remove("hidden");
+      } else if (mode === "guest") {
+        this._remoteUI.modeSelect.value = "guest";
+        this._remoteUI.roomInput.readOnly = false;
+        this._remoteUI.roomInput.placeholder = word(
+          "room_id_placeholder_guest",
+        );
+        this._remoteUI.roomInput.focus();
+        this._commonSettingsGroups.forEach(g => g.classList.add("hidden"));
+        this._previewContainer.classList.add("hidden");
+      }
+    }
+  }
+
   onUnmount() {
     this._previewUI.scene?.dispose();
     this._previewUI.scene = null;
-    document.body.classList.remove("pingpong-page", "overflow-hidden");
+    document.body.classList.remove("pingpong-page");
     document.documentElement.classList.remove("overflow-hidden");
   }
 }

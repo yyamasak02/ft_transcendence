@@ -1,0 +1,153 @@
+/* src/components/banner-slider/style.css */
+
+.banner-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.banner-slide-block {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.banner-container {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  aspect-ratio: 2816 / 1536;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background-color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.banner-slide {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  z-index: 0;
+  pointer-events: none;
+  cursor: default;
+}
+
+.banner-slide.active {
+  opacity: 1;
+  z-index: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.banner-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.banner-nav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: rgba(0, 0, 0, 0);
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  font-size: 4rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.banner-nav:hover {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.prev-btn {
+  left: 0;
+}
+.next-btn {
+  right: 0;
+}
+
+.banner-indicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  z-index: 10;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #fff;
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 768px) {
+  .banner-wrapper {
+    padding: 0 12px;
+  }
+
+  .banner-container {
+    border-radius: 12px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .banner-slide img{
+    object-fit: contain;
+    object-position: center;
+    background-color: #000;
+  }
+
+  .banner-nav {
+    width: 40px;
+    font-size: 2rem;
+  }
+
+  .banner-nav:hover {
+    background: transparent;
+  }
+
+  .indicator {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .banner-indicators {
+    position: static;
+    transform: none;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .indicator.active {
+    transform: scale(1.15);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.7);
+  }
+}

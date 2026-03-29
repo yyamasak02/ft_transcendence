@@ -1,37 +1,29 @@
-export type LangKey = "en" | "ja" | "edo";
+export type LangKey = "en" | "ja" | "ita" | "edo";
 
 const TIME_ZONE = "Asia/Tokyo";
 
-export const parseMatchDate = (value: string) => {
+const parseMatchDate = (value: string) => {
+  const normalized = value.replace(" ", "T");
+  const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(normalized);
+  const withZone = hasTimezone ? normalized : `${normalized}Z`;
+  const parsed = new Date(withZone);
+  if (!Number.isNaN(parsed.getTime())) return parsed;
   const direct = new Date(value);
   if (!Number.isNaN(direct.getTime())) return direct;
-  const normalized = value.replace(" ", "T");
-  const withZone = normalized.endsWith("Z") ? normalized : `${normalized}Z`;
-  const fallback = new Date(withZone);
-  if (!Number.isNaN(fallback.getTime())) return fallback;
   return null;
 };
 
-export const formatDateByLang = (date: Date, lang: LangKey) => {
-  if (lang === "ja") {
-    return new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: TIME_ZONE,
-    }).format(date);
-  }
-  if (lang === "edo") {
-    const edoDate = new Date(date.getTime());
-    edoDate.setFullYear(edoDate.getFullYear() - 300);
-    return new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: TIME_ZONE,
-    }).format(edoDate);
-  }
-  return new Intl.DateTimeFormat("en-US", {
+const formatDateByLang = (date: Date, lang: LangKey) => {
+  const localeMap: Record<LangKey, string> = {
+    ja: "ja-JP",
+    en: "en-US",
+    ita: "it-IT",
+    edo: "ja-JP",
+  };
+  return new Intl.DateTimeFormat(localeMap[lang], {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: TIME_ZONE,
   }).format(date);
 };
 

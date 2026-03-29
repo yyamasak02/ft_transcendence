@@ -4,6 +4,8 @@ export type PlayerType = "Player" | "Easy" | "Normal" | "Hard" | "Remote";
 
 export type GameSettings = {
   winningScore: number;
+  //   TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
+  ballSpeed: number;
   rallyRush: boolean;
   selectedCountdownSpeed: number;
   selectedStageIndex: number;
@@ -16,6 +18,8 @@ export type GameSettings = {
 
 const DEFAULT_SETTINGS: GameSettings = {
   winningScore: 3,
+  //   TODO: ボールスピードを上げてパドルとの当たり判定が作用しないことを避けるため提出時に削除予定
+  ballSpeed: 1,
   rallyRush: true,
   selectedCountdownSpeed: 1000,
   selectedStageIndex: 0,
