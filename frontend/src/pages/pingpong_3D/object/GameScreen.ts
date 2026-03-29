@@ -1,6 +1,7 @@
 // src/pages/pingpong_3D/GameScreen.ts
 import { Vector3, Color4, Mesh, Engine, Scene } from "@babylonjs/core";
 import { loadSettings } from "../../../utils/pingpong3D/gameSettings";
+import { getStoredAccessToken } from "../../../utils/token-storage";
 import { Ball } from "./Ball";
 import { createPaddles } from "./Paddle";
 import type { Paddle } from "./Paddle";
@@ -84,6 +85,9 @@ export class GameScreen {
   private lastSentDirection: "up" | "down" | "stop" = "stop";
   private serverAuthority: boolean = false;
   private serverState: any = null;
+  private prevServerState: any = null;
+  private stateReceivedAt: number = 0;
+  private lastAppliedEventsState: any = null;
   private serverStarted: boolean = false;
 
   constructor(
@@ -127,29 +131,42 @@ export class GameScreen {
   private applyServerState() {
     if (!this.serverState || !this.player1 || !this.player2 || !this.ball)
       return;
+
+    // サーバーのティック間隔（ms）。backends/connect の TICK_MS と合わせる。
+    const SERVER_TICK_MS = 33;
     const courtW = GAME_CONFIG.COURT_WIDTH;
     const courtH = GAME_CONFIG.COURT_HEIGHT;
 
-    // Apply ball position from server
-    const x = (this.serverState.ball?.x ?? 0) * (courtW / 2);
-    const z = (this.serverState.ball?.y ?? 0) * (courtH / 2);
-    this.ball.mesh.position.x = x;
-    this.ball.mesh.position.z = z;
+    const curr = this.serverState;
+    const prev = this.prevServerState ?? curr;
 
-    const serverP1x = this.serverState.players?.p1?.x ?? 0;
-    const serverP1y = this.serverState.players?.p1?.y ?? 0;
-    const serverP2x = this.serverState.players?.p2?.x ?? 0;
-    const serverP2y = this.serverState.players?.p2?.y ?? 0;
+    // 補間係数: 前回受信→今回受信の間を経過時間でなめらかに補間
+    const elapsed = performance.now() - this.stateReceivedAt;
+    const t = Math.min(elapsed / SERVER_TICK_MS, 1.0);
+    const lerp = (a: number, b: number) => a + (b - a) * t;
 
-    this.player1.paddle.mesh.position.x = serverP1x * (courtW / 2);
-    this.player1.paddle.mesh.position.z = serverP1y * (courtH / 2);
-    this.player2.paddle.mesh.position.x = serverP2x * (courtW / 2);
-    this.player2.paddle.mesh.position.z = serverP2y * (courtH / 2);
+    // ボール位置を補間
+    this.ball.mesh.position.x =
+      lerp(prev.ball?.x ?? 0, curr.ball?.x ?? 0) * (courtW / 2);
+    this.ball.mesh.position.z =
+      lerp(prev.ball?.y ?? 0, curr.ball?.y ?? 0) * (courtH / 2);
 
-    // Apply score from server
-    if (this.serverState.score) {
-      const newP1Score = this.serverState.score.p1 ?? 0;
-      const newP2Score = this.serverState.score.p2 ?? 0;
+    // パドル位置を補間
+    this.player1.paddle.mesh.position.x =
+      lerp(prev.players?.p1?.x ?? 0, curr.players?.p1?.x ?? 0) * (courtW / 2);
+    this.player1.paddle.mesh.position.z =
+      lerp(prev.players?.p1?.y ?? 0, curr.players?.p1?.y ?? 0) * (courtH / 2);
+    this.player2.paddle.mesh.position.x =
+      lerp(prev.players?.p2?.x ?? 0, curr.players?.p2?.x ?? 0) * (courtW / 2);
+    this.player2.paddle.mesh.position.z =
+      lerp(prev.players?.p2?.y ?? 0, curr.players?.p2?.y ?? 0) * (courtH / 2);
+
+    // 以下は補間なし（最新の状態をそのまま使用）
+
+    // スコア
+    if (curr.score) {
+      const newP1Score = curr.score.p1 ?? 0;
+      const newP2Score = curr.score.p2 ?? 0;
       if (newP1Score !== this.p1Score || newP2Score !== this.p2Score) {
         this.p1Score = newP1Score;
         this.p2Score = newP2Score;
@@ -160,25 +177,42 @@ export class GameScreen {
     }
 
     // ラリー数カウント
-    if (typeof this.serverState.rallyCount === "number") {
-      if (this.gameState.rallyCount !== this.serverState.rallyCount) {
-        this.gameState.rallyCount = this.serverState.rallyCount;
+    if (typeof curr.rallyCount === "number") {
+      if (this.gameState.rallyCount !== curr.rallyCount) {
+        const prevLevel = Math.floor(this.gameState.rallyCount / 10);
+        const wasNonZero = this.gameState.rallyCount > 0;
+        this.gameState.rallyCount = curr.rallyCount;
         if (this.hud) {
           this.hud.setRallyCount(this.gameState.rallyCount);
+        }
+        // 10ラリーごとにレベルが上がったときだけ壁崩壊（パドルが中央に前進するタイミング）
+        const newLevel = Math.floor(this.gameState.rallyCount / 10);
+        if (newLevel > prevLevel) {
+          this.stage?.updateDestruction(
+            this.player1.paddle,
+            this.player2.paddle,
+          );
+        }
+        // ラリーカウントが0にリセットされた = ポイント発生 → コートリセット
+        if (this.gameState.rallyCount === 0 && wasNonZero) {
+          this.stage?.resetCourt();
         }
       }
     }
 
-    // Apply countdown from server (if in countdown phase)
-    if (
-      this.serverState.status === "countdown" &&
-      this.serverState.countdown > 0 &&
-      this.hud
-    ) {
-      const countdownValue = Math.ceil(this.serverState.countdown);
-      this.hud.setCountdown(String(countdownValue));
-    } else if (this.hud && this.serverState.status === "playing") {
+    // カウントダウン表示
+    if (curr.status === "countdown" && curr.countdown > 0 && this.hud) {
+      this.hud.setCountdown(String(Math.ceil(curr.countdown)));
+    } else if (this.hud && curr.status === "playing") {
       this.hud.clearCountdown();
+    }
+
+    // A3: 壁衝突アニメーション（同じ状態で重複発火しないよう1回だけ）
+    if (curr !== this.lastAppliedEventsState) {
+      if (Array.isArray(curr.events) && curr.events.includes("wall_hit")) {
+        this.ball.sparkWallHit();
+      }
+      this.lastAppliedEventsState = curr;
     }
   }
   private initPlayers(
@@ -604,11 +638,28 @@ export class GameScreen {
         if (this.serverAuthority) {
           // Server-authoritative mode: receive complete game state
           if (msg?.type === "game:state" && msg?.payload) {
+            this.prevServerState = this.serverState;
             this.serverState = msg.payload;
-            // applyServerState will handle all updates in the game loop
+            this.stateReceivedAt = performance.now();
           }
-          if (msg?.type === "game:end") {
-            setTimeout(() => this.cleanupAndGoHome(), 3000);
+          // A4: endGame()を呼んでアニメーションを出す
+          if (msg?.type === "game:end" && msg?.payload) {
+            const winner = msg.payload.winner === "p1" ? 1 : 2;
+            // Update final score from game:end payload before endGame uses it
+            if (msg.payload.score) {
+              this.p1Score = msg.payload.score.p1;
+              this.p2Score = msg.payload.score.p2;
+              if (this.hud) {
+                this.hud.setScore(this.p1Score, this.p2Score);
+              }
+            }
+            // Clear server state to prevent applyServerState from overwriting final scores
+            this.serverState = null;
+            this.endGame(winner);
+            // A5: ホスト(p1)かつログイン済みの場合のみ結果を保存
+            if (this.remoteSide === "p1") {
+              this._saveMatchResult(msg.payload);
+            }
           }
         }
       } catch {
@@ -746,6 +797,43 @@ export class GameScreen {
       MAIN_CONSTS.END_GAME_CAMERA.TARGET_RADIUS,
       MAIN_CONSTS.END_GAME_CAMERA.ZOOM_OUT_DURATION,
     );
+  }
+
+  private async _saveMatchResult(endPayload: {
+    score: { p1: number; p2: number };
+    hostPuid: string;
+    guestPuid: string;
+  }) {
+    const token = getStoredAccessToken();
+    if (!token) return; // 未ログインは保存しない
+
+    try {
+      const sessionRes = await fetch("/api/common/match_session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ guestPuid: endPayload.guestPuid }),
+      });
+      if (!sessionRes.ok) return;
+      const { id: matchId } = await sessionRes.json();
+
+      await fetch("/api/common/match_result", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          matchId,
+          ownerScore: endPayload.score.p1,
+          guestScore: endPayload.score.p2,
+        }),
+      });
+    } catch {
+      // 結果保存は best-effort（失敗してもゲーム自体には影響させない）
+    }
   }
 
   private cleanupAndGoHome() {

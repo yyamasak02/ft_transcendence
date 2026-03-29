@@ -56,6 +56,7 @@ export class GameComponent implements Component {
   private _gameInstance!: GameScreen;
   private _rootElm!: HTMLElement;
   private _helpLogic: SliderLogic;
+  private _isRemote: boolean = false;
   private _uiElements: ButtonUIElements = {
     overlay: null,
     helpOverlay: null,
@@ -167,6 +168,8 @@ export class GameComponent implements Component {
         `;
   }
   onMount() {
+    this._isRemote =
+      new URLSearchParams(window.location.search).get("mode") === "remote";
     this._appElm.classList.add("no-overflow");
     document.body.classList.add("game-body");
     const root = this._appElm.querySelector<HTMLElement>("#pingpong-3d-root");
@@ -410,13 +413,13 @@ export class GameComponent implements Component {
       btn.style.display = menuButtons ? "inline-flex" : "none";
     });
 
-    // Nav buttons
-    this.setButtonVisibility(hud.help, hudNavButtons);
+    // Nav buttons（リモート時はヘルプを非表示）
+    this.setButtonVisibility(hud.help, hudNavButtons && !this._isRemote);
     this.setButtonVisibility(hud.home, hudNavButtons);
     this.setButtonVisibility(hud.settings, hudNavButtons);
 
-    // Game buttons
-    this.setButtonVisibility(hud.pause, hudGameButtons);
+    // Game buttons（リモート時は一時停止を非表示）
+    this.setButtonVisibility(hud.pause, hudGameButtons && !this._isRemote);
     this.setButtonVisibility(
       hud.cameraReset,
       hudGameButtons || this._gameInstance.gameState.phase === "pause",

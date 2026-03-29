@@ -77,6 +77,11 @@ export class Ball {
     reflectBallImp(this, paddle, isLeftPaddle, sparkCallback);
   }
 
+  // 壁衝突エフェクトをトリガー（リモートモードでサーバーイベントから呼ぶ）
+  sparkWallHit() {
+    this.ballTrack.spark(this.mesh.position);
+  }
+
   // プレイ開始時のball positionと射出角度
   reset(startFrom: 1 | 2 | "center", paddle1: Paddle, paddle2: Paddle) {
     resetBallImp(this, startFrom, paddle1, paddle2);
