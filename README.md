@@ -90,7 +90,7 @@ Overall, the project demonstrates the use of modern development practices, teamw
 | yyamasak | Project Manager    | Task planning, meeting facilitation, validated features          |
 | tobaba   | Tech Lead Frontend | Architecture decisions, code reviews, technical guidance         |
 | tashiget | Tech Lead Backend  | Architecture decisions, code reviews, technical guidance         |
-| all      | Developer          | Feature implementation, testing, bug fixes                       |
+| rkawahar | Developer          | Feature implementation, testing, bug fixes                       |
 
 ## Project Management
 
@@ -277,9 +277,18 @@ Each module was implemented following the project architecture and thoroughly te
 
 ## 👤 rkawahar
 
- - **xx**
- - **xx**
- - **xx**
+#### 3D PingPong — Gameplay UX & Responsiveness
+- **Match Start Flow** – Completed click-to-start handling so players can reliably begin a match from the opening state.
+- **Court Layout** – Implemented vertical table orientation and layout adjustments so the 3D court reads clearly across screen sizes.
+- **Mobile-First HUD** – Tuned on-screen controls and copy sizing for small viewports, including mobile-only control affordances where appropriate.
+
+#### Rendering & Session Quality
+- **Lighting** – Reduced harsh highlights and blow-out in the Three.js scene for more stable, readable visuals during play.
+- **Remote / Mobile Play** – Adjusted camera behavior during mobile play to avoid distracting movement and keep focus on the ball and paddles.
+
+#### Integration & Maintenance
+- **Internationalization Polish** – Fixed layout overflow when switching languages and aligned related frontend package configuration.
+- **Code Quality** – Resolved merge conflicts and applied review and automated tooling feedback to keep the 3D game branch integration-ready.
 
 ## 👤 yotsurud
 
