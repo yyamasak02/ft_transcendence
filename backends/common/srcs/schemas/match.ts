@@ -28,6 +28,26 @@ export const matchResultResponseSchema = Type.Object({
 
 export type MatchResultResponse = Static<typeof matchResultResponseSchema>;
 
+export const remoteMatchResultBodySchema = Type.Object({
+  ownerUserId: Type.String({ minLength: 1 }),
+  guestUserId: Type.String({ minLength: 1 }),
+  ownerScore: Type.Integer({ minimum: 0 }),
+  guestScore: Type.Integer({ minimum: 0 }),
+});
+
+export type RemoteMatchResultBody = Static<typeof remoteMatchResultBodySchema>;
+
+export const remoteMatchResultResponseSchema = Type.Object({
+  stored: Type.Boolean(),
+  id: Type.Optional(Type.Integer({ minimum: 1 })),
+  createdAt: Type.Optional(Type.String({ minLength: 1 })),
+  reason: Type.Optional(Type.String({ minLength: 1 })),
+});
+
+export type RemoteMatchResultResponse = Static<
+  typeof remoteMatchResultResponseSchema
+>;
+
 export const matchRecentQuerySchema = Type.Object({
   limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 10 })),
 });

@@ -10,12 +10,17 @@ import {
   matchSessionResponseSchema,
   matchRecentQuerySchema,
   matchRecentResponseSchema,
+  remoteMatchResultBodySchema,
+  remoteMatchResultResponseSchema,
 } from "../../../schemas/match.js";
 import type {
   MatchResultBody,
   MatchSessionBody,
   MatchRecentQuery,
+  RemoteMatchResultBody,
 } from "../../../schemas/match.js";
+
+const GUEST_USER_NAME = "guest";
 
 export default async function (fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
@@ -155,6 +160,77 @@ export default async function (fastify: FastifyInstance) {
 
       reply.code(201);
       return { id: row.id, createdAt: row.created_at };
+    },
+  );
+
+  f.post<{ Body: RemoteMatchResultBody }>(
+    "/match_result/remote",
+    {
+      schema: {
+        tags: ["Match"],
+        body: remoteMatchResultBodySchema,
+        response: {
+          200: remoteMatchResultResponseSchema,
+          201: remoteMatchResultResponseSchema,
+          500: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { ownerUserId, guestUserId, ownerScore, guestScore } = request.body;
+
+      const guestAccount = await fastify.db.get<{ puid: string }>(
+        "SELECT puid FROM users WHERE name = ?",
+        GUEST_USER_NAME,
+      );
+      if (!guestAccount) {
+        reply.code(500);
+        return { message: "Guest account is not configured." };
+      }
+
+      const owner = await fastify.db.get<{ puid: string }>(
+        "SELECT puid FROM users WHERE name = ?",
+        ownerUserId,
+      );
+      const guest = await fastify.db.get<{ puid: string }>(
+        "SELECT puid FROM users WHERE name = ?",
+        guestUserId,
+      );
+
+      const ownerIsGuest = !owner || ownerUserId === GUEST_USER_NAME;
+      const guestIsGuest = !guest || guestUserId === GUEST_USER_NAME;
+      if (ownerIsGuest && guestIsGuest) {
+        reply.code(200);
+        return { stored: false, reason: "guest_vs_guest" };
+      }
+
+      const ownerPuid = owner?.puid ?? guestAccount.puid;
+      const guestPuid = guest?.puid ?? guestAccount.puid;
+
+      const result = await fastify.db.run(
+        "INSERT INTO match_results (owner_puid, guest_puid, owner_score, guest_score) VALUES (?, ?, ?, ?)",
+        ownerPuid,
+        guestPuid,
+        ownerScore,
+        guestScore,
+      );
+
+      const row = await fastify.db.get<{ id: number; created_at: string }>(
+        "SELECT id, created_at FROM match_results WHERE id = ?",
+        result.lastID,
+      );
+
+      if (!row) {
+        reply.code(500);
+        return { message: "Failed to store remote match result." };
+      }
+
+      reply.code(201);
+      return {
+        stored: true,
+        id: row.id,
+        createdAt: row.created_at,
+      };
     },
   );
 

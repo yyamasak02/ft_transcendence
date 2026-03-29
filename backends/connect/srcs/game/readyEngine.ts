@@ -286,7 +286,10 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
       state.status = "ended";
       broadcast(roomId, {
         type: "game:end",
-        payload: { winner: state.score.p1 >= WINNING_SCORE ? "p1" : "p2" },
+        payload: {
+          winner: state.score.p1 >= WINNING_SCORE ? "p1" : "p2",
+          score: { p1: state.score.p1, p2: state.score.p2 },
+        },
       });
       const loop = roomLoops.get(roomId);
       if (loop) clearInterval(loop.timer);
