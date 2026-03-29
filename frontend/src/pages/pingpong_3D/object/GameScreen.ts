@@ -20,6 +20,7 @@ import { navigate } from "@/router";
 import { GAME_CONFIG } from "../core/constants3D";
 import type { GameSettings } from "../../../utils/pingpong3D/gameSettings";
 import { InputManager } from "../input/keyboard";
+import { getStoredAccessToken } from "../../../utils/token-storage";
 import { Player } from "./player/Player";
 import { HumanController } from "./player/HumanController";
 import { AIController } from "./player/AIController";
@@ -70,6 +71,8 @@ export class GameScreen {
     countdownID: 0,
     rallyCount: 0,
   };
+
+  private readonly REMOTE_GUEST_USER_ID = "guest";
   private canvas: HTMLCanvasElement;
   private engine: Engine;
   private scene: Scene;
@@ -680,6 +683,13 @@ export class GameScreen {
         this.remoteResultSubmitted = false;
         return;
       }
+      if (room.hostUserId.toLowerCase() === this.REMOTE_GUEST_USER_ID) {
+        console.info(
+          "Skip remote match result submission because host user is guest.",
+          { roomId: this.remoteRoomId, hostUserId: room.hostUserId },
+        );
+        return;
+      }
 
       const controller = new AbortController();
       const timerId = window.setTimeout(() => {
@@ -691,6 +701,7 @@ export class GameScreen {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${getStoredAccessToken() ?? ""}`,
           },
           body: JSON.stringify({
             ownerUserId: room.hostUserId,
