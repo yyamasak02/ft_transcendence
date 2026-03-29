@@ -4,6 +4,8 @@ import { GameScreen } from "./object/GameScreen";
 import { navigate } from "@/router";
 import type { GamePhase } from "./core/game";
 import { SliderLogic } from "@/components/banner-slider";
+import { renderHelpOverlay } from "./HelpOverlay";
+import { HELP_SLIDES } from "./helpSlider";
 
 type ButtonUIElements = {
   overlay: HTMLElement | null;
@@ -31,25 +33,6 @@ type ButtonUIVisibility = {
   hudNavButtons: boolean;
   hudGameButtons: boolean;
 };
-
-const HELP_SLIDES = [
-  {
-    image: "/howToPlay/page1.png",
-    desc: t("htp_page1"),
-  },
-  {
-    image: "/howToPlay/page2.png",
-    desc: t("htp_page2"),
-  },
-  {
-    image: "/howToPlay/page3.png",
-    desc: t("htp_page3"),
-  },
-  {
-    image: "/howToPlay/page4.png",
-    desc: t("htp_page4"),
-  },
-];
 
 export class GameComponent implements Component {
   private _appElm: HTMLElement;
@@ -90,43 +73,15 @@ export class GameComponent implements Component {
   }
 
   render(): string {
-    const slidesHtml = HELP_SLIDES.map(
-      (slide, index) => `
-      <div class="help-slide ${index === 0 ? "active" : ""}" data-index="${index}">
-        <div class="help-slide-image">
-          <img src="${slide.image}" alt="tutorial image">
-        </div>
-        <p class="help-slide-desc">${slide.desc}</p>
-      </div>
-    `,
-    ).join("");
-
-    const indicatorsHtml = HELP_SLIDES.map(
-      (_, index) => `
-      <div class="help-indicator ${index === 0 ? "active" : ""}" data-index="${index}"></div>
-    `,
-    ).join("");
-
     return `
             <div id="pingpong-3d-root">
                 <div id="game-container-3d">
                     <canvas id="gameCanvas3D"></canvas>
                     <div id="pause-overlay"></div>
-                    <div id="help-overlay">
-                        <div class="help-content">
-                            <div class="help-slider-container">
-                                ${slidesHtml}
-                                
-                                <button class="help-nav prev-btn" id="help-prev">&#10094;</button>
-                                <button class="help-nav next-btn" id="help-next">&#10095;</button>
-                                
-                                <div class="help-indicators">
-                                    ${indicatorsHtml}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="game-ui-3d">
+
+                      ${renderHelpOverlay()}
+                    
+                      <div id="game-ui-3d">
                         <button id="btn-3d-help" title="${word("how_to_play")}">
                             <img src="/button/help.svg" style="width: 24px; height: 24px;">
                         </button>
