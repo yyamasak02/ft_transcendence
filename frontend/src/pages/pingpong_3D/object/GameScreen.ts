@@ -43,6 +43,9 @@ const MAIN_CONSTS = {
     TARGET_RADIUS: 150,
     ZOOM_OUT_DURATION: 10000,
   },
+  REMOTE_RESULT: {
+    SUBMIT_TIMEOUT_MS: 5000,
+  },
 } as const;
 
 export class GameScreen {
@@ -85,6 +88,7 @@ export class GameScreen {
   private serverAuthority: boolean = false;
   private serverState: any = null;
   private serverStarted: boolean = false;
+  private remoteResultSubmitted: boolean = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -286,6 +290,7 @@ export class GameScreen {
     this.gameState.countdownID = 0;
     this.gameState.resetLocked = false;
     this.gameState.rallyCount = 0;
+    this.remoteResultSubmitted = false;
 
     this.scene.clearColor = new Color4(0, 0, 0, 0.5);
     // 初期UI状態を反映（中央メニューを非表示など）
@@ -616,6 +621,24 @@ export class GameScreen {
             // applyServerState will handle all updates in the game loop
           }
           if (msg?.type === "game:end") {
+            const finalP1Score =
+              typeof msg?.payload?.score?.p1 === "number"
+                ? msg.payload.score.p1
+                : typeof this.serverState?.score?.p1 === "number"
+                  ? this.serverState.score.p1
+                  : this.p1Score;
+            const finalP2Score =
+              typeof msg?.payload?.score?.p2 === "number"
+                ? msg.payload.score.p2
+                : typeof this.serverState?.score?.p2 === "number"
+                  ? this.serverState.score.p2
+                  : this.p2Score;
+
+            this.p1Score = finalP1Score;
+            this.p2Score = finalP2Score;
+            this.hud?.setScore(this.p1Score, this.p2Score);
+
+            void this.submitRemoteMatchResult(finalP1Score, finalP2Score);
             setTimeout(() => this.cleanupAndGoHome(), 3000);
           }
         }
@@ -626,6 +649,67 @@ export class GameScreen {
     ws.onclose = () => {
       this.remoteWS = null;
     };
+  }
+
+  private async submitRemoteMatchResult(ownerScore: number, guestScore: number) {
+    if (
+      !this.remoteMode ||
+      !this.serverAuthority ||
+      this.remoteSide !== "p1" ||
+      this.remoteResultSubmitted ||
+      !this.remoteRoomId
+    ) {
+      return;
+    }
+    this.remoteResultSubmitted = true;
+
+    try {
+      const statusRes = await fetch(
+        `/api/connect/rooms/${encodeURIComponent(this.remoteRoomId)}/status`,
+      );
+      if (!statusRes.ok) {
+        this.remoteResultSubmitted = false;
+        return;
+      }
+
+      const room = (await statusRes.json()) as {
+        hostUserId?: string;
+        guestUserId?: string | null;
+      };
+      if (!room.hostUserId || !room.guestUserId) {
+        this.remoteResultSubmitted = false;
+        return;
+      }
+
+      const controller = new AbortController();
+      const timerId = window.setTimeout(() => {
+        controller.abort();
+      }, MAIN_CONSTS.REMOTE_RESULT.SUBMIT_TIMEOUT_MS);
+
+      try {
+        const resultRes = await fetch("/api/common/match_result/remote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ownerUserId: room.hostUserId,
+            guestUserId: room.guestUserId,
+            ownerScore,
+            guestScore,
+          }),
+          signal: controller.signal,
+        });
+
+        if (!resultRes.ok) {
+          this.remoteResultSubmitted = false;
+        }
+      } finally {
+        window.clearTimeout(timerId);
+      }
+    } catch {
+      this.remoteResultSubmitted = false;
+    }
   }
 
   private handleEnterToStart() {

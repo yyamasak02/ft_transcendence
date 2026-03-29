@@ -25,7 +25,7 @@ const PADDLE_HITBOX = 0.25; // half length normalized
 const PADDLE_X_INITIAL = 0.97; // initial paddle x position near edges
 const BALL_X_LIMIT = 1.05; // scoring threshold
 const TICK_MS = 33;
-const WINNING_SCORE = 5;
+const WINNING_SCORE = 3;
 const GAME_DELAY_TIME = 2000;
 const INITIAL_COUNTDOWN_SECONDS = 3;
 const BALL_DEFLECTION_FACTOR = 0.05;
@@ -284,9 +284,14 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
     }
     if (state.score.p1 >= WINNING_SCORE || state.score.p2 >= WINNING_SCORE) {
       state.status = "ended";
+      // Send the terminal state first so clients can sync the final score.
+      broadcast(roomId, { type: "game:state", payload: snapshot(state) });
       broadcast(roomId, {
         type: "game:end",
-        payload: { winner: state.score.p1 >= WINNING_SCORE ? "p1" : "p2" },
+        payload: {
+          winner: state.score.p1 >= WINNING_SCORE ? "p1" : "p2",
+          score: { p1: state.score.p1, p2: state.score.p2 },
+        },
       });
       const loop = roomLoops.get(roomId);
       if (loop) clearInterval(loop.timer);
