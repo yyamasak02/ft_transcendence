@@ -250,7 +250,7 @@
   padding: 8px 12px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .help-nav {
     font-size: 40px;
     top: 75%;

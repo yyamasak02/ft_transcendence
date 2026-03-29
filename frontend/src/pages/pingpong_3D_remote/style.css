@@ -85,7 +85,7 @@
   margin: 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pp3d-title-holo {
     font-size: 24px;
   }
@@ -152,7 +152,7 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pp3d-room-value {
     font-size: 20px;
     word-break: break-all;
@@ -236,7 +236,7 @@
   transform-origin: bottom center;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pp3d-loading-42 {
     transform: translateY(-30px);
   }
