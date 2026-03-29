@@ -284,6 +284,8 @@ export function makeReadyWsHandler(fastify: FastifyInstance) {
     }
     if (state.score.p1 >= WINNING_SCORE || state.score.p2 >= WINNING_SCORE) {
       state.status = "ended";
+      // Send the terminal state first so clients can sync the final score.
+      broadcast(roomId, { type: "game:state", payload: snapshot(state) });
       broadcast(roomId, {
         type: "game:end",
         payload: {

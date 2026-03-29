@@ -613,16 +613,24 @@ export class GameScreen {
             // applyServerState will handle all updates in the game loop
           }
           if (msg?.type === "game:end") {
-            if (
-              msg?.payload?.score &&
-              typeof msg.payload.score.p1 === "number" &&
-              typeof msg.payload.score.p2 === "number"
-            ) {
-              this.p1Score = msg.payload.score.p1;
-              this.p2Score = msg.payload.score.p2;
-              this.hud?.setScore(this.p1Score, this.p2Score);
-            }
-            void this.submitRemoteMatchResult();
+            const finalP1Score =
+              typeof msg?.payload?.score?.p1 === "number"
+                ? msg.payload.score.p1
+                : typeof this.serverState?.score?.p1 === "number"
+                  ? this.serverState.score.p1
+                  : this.p1Score;
+            const finalP2Score =
+              typeof msg?.payload?.score?.p2 === "number"
+                ? msg.payload.score.p2
+                : typeof this.serverState?.score?.p2 === "number"
+                  ? this.serverState.score.p2
+                  : this.p2Score;
+
+            this.p1Score = finalP1Score;
+            this.p2Score = finalP2Score;
+            this.hud?.setScore(this.p1Score, this.p2Score);
+
+            void this.submitRemoteMatchResult(finalP1Score, finalP2Score);
             setTimeout(() => this.cleanupAndGoHome(), 3000);
           }
         }
@@ -635,7 +643,7 @@ export class GameScreen {
     };
   }
 
-  private async submitRemoteMatchResult() {
+  private async submitRemoteMatchResult(ownerScore: number, guestScore: number) {
     if (
       !this.remoteMode ||
       !this.serverAuthority ||
@@ -679,8 +687,8 @@ export class GameScreen {
           body: JSON.stringify({
             ownerUserId: room.hostUserId,
             guestUserId: room.guestUserId,
-            ownerScore: this.p1Score,
-            guestScore: this.p2Score,
+            ownerScore,
+            guestScore,
           }),
           signal: controller.signal,
         });
