@@ -1,12 +1,17 @@
 import type { Component } from "@/types/component";
 import type { Route } from "@/types/routes";
 import { domRoots } from "@/layout/root";
-import { isLoggedIn, userName } from "@/utils/auth-util";
+import { isLoggedIn, userName, userPuid } from "@/utils/auth-util";
 import {
   getRemoteUserId,
   setRemoteUserId,
 } from "@/utils/pingpong3D/remoteSetting";
+import { loadSettings } from "@/utils/pingpong3D/gameSettings";
 import { t, word } from "@/i18n";
+
+// 未ログインユーザー用のシステムゲストpuid（DBのseedデータと対応）
+const GUEST_PUID =
+  "829e8458ef0b7881a4438449b90912f1b730b628020e6fec4a8d3ef45b5fd8f1";
 
 const POLLING_INTERVAL_MS = 1500;
 const FEEDBACK_DISPLAY_MS = 1500;
@@ -241,11 +246,18 @@ class PingPong3DRemoteWaiting implements Component {
     this._roomValueEl.textContent = roomId;
     this._readyBtn.addEventListener("click", () => {
       const sendReady = () => {
+        const puid = userPuid() ?? GUEST_PUID;
+        const settings = loadSettings();
         this._ws?.send(
           JSON.stringify({
             type: "game:ready",
             roomId: this._roomId,
             userId: this._tmpUserId,
+            userPuid: puid,
+            settings: {
+              winningScore: settings.winningScore,
+              ballSpeed: settings.ballSpeed,
+            },
           }),
         );
         this._readyBtn.disabled = true;
@@ -258,6 +270,7 @@ class PingPong3DRemoteWaiting implements Component {
         sendReady();
         return;
       }
+
       // If connecting, wait for open; if not present, (re)connect and then send
       this._readyBtn.disabled = true;
       this._statusEl.textContent = word(

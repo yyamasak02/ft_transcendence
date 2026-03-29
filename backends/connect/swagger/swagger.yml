@@ -44,28 +44,6 @@ paths:
                 required:
                   - roomId
                   - status
-        "400":
-          description: Default Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                required:
-                  - message
-        "500":
-          description: Default Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                required:
-                  - message
   /api/connect/rooms/{roomId}/join:
     post:
       tags:

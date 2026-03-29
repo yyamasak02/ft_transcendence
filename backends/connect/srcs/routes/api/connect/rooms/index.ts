@@ -24,8 +24,6 @@ export default async function (fastify: FastifyInstance) {
         body: createRoomBodySchema,
         response: {
           201: createRoomResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
         },
       },
     },

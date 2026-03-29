@@ -1,5 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 
+const T_WAITING = Type.Literal("waiting");
+const T_MATCHED = Type.Literal("matched");
+
+export const ROOM_STATUS = {
+  WAITING: T_WAITING.const,
+  MATCHED: T_MATCHED.const,
+} as const;
+
+const RoomStatusType = Type.Union([T_WAITING, T_MATCHED]);
+
 // Common error response (aligned with backends/common style)
 export const errorResponseSchema = Type.Object({
   message: Type.String(),
@@ -14,7 +24,7 @@ export type CreateRoomBody = Static<typeof createRoomBodySchema>;
 
 export const createRoomResponseSchema = Type.Object({
   roomId: Type.String({ minLength: 1 }),
-  status: Type.Union([Type.Literal("waiting"), Type.Literal("matched")]),
+  status: RoomStatusType,
 });
 export type CreateRoomResponse = Static<typeof createRoomResponseSchema>;
 
@@ -26,7 +36,7 @@ export type JoinRoomBody = Static<typeof joinRoomBodySchema>;
 
 export const joinRoomResponseSchema = Type.Object({
   roomId: Type.String({ minLength: 1 }),
-  status: Type.Union([Type.Literal("waiting"), Type.Literal("matched")]),
+  status: RoomStatusType,
 });
 export type JoinRoomResponse = Static<typeof joinRoomResponseSchema>;
 
@@ -35,6 +45,6 @@ export const roomStatusResponseSchema = Type.Object({
   roomId: Type.String({ minLength: 1 }),
   hostUserId: Type.String({ minLength: 1 }),
   guestUserId: Type.Union([Type.String({ minLength: 1 }), Type.Null()]),
-  status: Type.Union([Type.Literal("waiting"), Type.Literal("matched")]),
+  status: RoomStatusType,
 });
 export type RoomStatusResponse = Static<typeof roomStatusResponseSchema>;

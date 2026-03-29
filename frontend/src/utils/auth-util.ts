@@ -16,3 +16,10 @@ export const userName = () => {
   if (payload === null) return null;
   return payload.name;
 };
+
+export const userPuid = () => {
+  const accessToken: string | null = getStoredAccessToken();
+  if (accessToken === null) return null;
+  const payload = decodeJwtPayload(accessToken);
+  return payload?.puid ?? null;
+};
