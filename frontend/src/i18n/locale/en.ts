@@ -52,6 +52,8 @@ export const en = {
 
   // setting
   press_enter: "Press 'Enter' to Start",
+  pingpong3d_splash_title: "PING PONG 3D",
+  press_enter_or_click_to_start: "PRESS ENTER OR CLICK TO START",
   local: "LOCAL BATTLE",
   online: "ONLINE BATTLE",
   select_game_mode: "SELECT GAME MODE",

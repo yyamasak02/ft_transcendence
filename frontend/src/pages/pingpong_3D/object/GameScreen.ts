@@ -56,7 +56,7 @@ export class GameScreen {
   private hud: GameHUD | null = null;
   private p1Score: number = 0;
   private p2Score: number = 0;
-  private wasEnterDown: boolean = false;
+  private wasMenuConfirmDown: boolean = false;
   private lastRallyTime: number = 0;
   public gameState: GameState = {
     phase: "menu",
@@ -122,6 +122,10 @@ export class GameScreen {
       this.remoteStartAt = startAt ? Number(startAt) : null;
       this.serverAuthority = params.get("auth") === "server";
     }
+  }
+
+  getInputManager(): InputManager {
+    return this.inputManager;
   }
 
   private applyServerState() {
@@ -236,7 +240,7 @@ export class GameScreen {
     this.p2Score = 0;
 
     this.hud = new GameHUD(this.scene);
-    this.inputManager.setup();
+    this.inputManager.setup(this.canvas);
 
     // パドル生成 + プレイヤー生成（共通ロジック）
     const { p1, p2 } = createPaddles(this.scene, this.settings);
@@ -251,13 +255,13 @@ export class GameScreen {
     );
     this.ball.stop();
     this.ball.velocity = new Vector3(0, 0, 0);
-    this.ball.reset("center", this.player1.paddle, this.player2.paddle);
+    this.ball.reset("center", player1.paddle, player2.paddle);
 
     this.stage = new Stage(
       this.scene,
       this.canvas,
-      this.player1.paddle,
-      this.player2.paddle,
+      player1.paddle,
+      player2.paddle,
       this.ball,
       this.settings,
     );
@@ -274,7 +278,7 @@ export class GameScreen {
     this.hud.startFloatingTextAnimation(this.scene);
     this.hud.setRallyCount(0);
 
-    this.wasEnterDown = false;
+    this.wasMenuConfirmDown = false;
     this.gameState.phase = "menu";
     this.gameState.rallyActive = false;
     this.gameState.isServing = false;
@@ -445,6 +449,8 @@ export class GameScreen {
   private gameLoop() {
     if (!this.player1 || !this.player2 || !this.ball) return;
 
+    this.inputManager.setTapToStartAccepting(this.gameState.phase === "menu");
+
     const deltaTime = this.engine.getDeltaTime();
 
     // Apply server state early in server-authoritative mode (for countdown display)
@@ -471,12 +477,14 @@ export class GameScreen {
           this.remoteStartAt = null;
         }
       } else {
-        const isEnterDown = this.inputManager.isEnterPressed();
-        if (isEnterDown && !this.wasEnterDown) {
+        const tapEdge = this.inputManager.consumeTapToStart();
+        const enterDown = this.inputManager.isEnterPressed();
+        const confirmDown = enterDown || tapEdge;
+        if (confirmDown && !this.wasMenuConfirmDown) {
           this.gameState.phase = "starting";
           this.handleEnterToStart();
         }
-        this.wasEnterDown = isEnterDown;
+        this.wasMenuConfirmDown = confirmDown;
       }
     }
 

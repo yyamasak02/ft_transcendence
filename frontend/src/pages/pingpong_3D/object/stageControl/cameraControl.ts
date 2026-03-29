@@ -3,6 +3,7 @@ import { ArcRotateCamera } from "@babylonjs/core";
 
 export function setupCameraForMobile(camera: ArcRotateCamera) {
 	if (window.innerWidth < 768) {
+		camera.inputs.removeByType("ArcRotateCameraPointersInput");
 		camera.radius *= 1.8;
 		camera.lowerRadiusLimit = camera.radius;
 		camera.upperRadiusLimit = camera.radius;
