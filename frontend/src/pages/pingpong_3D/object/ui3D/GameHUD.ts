@@ -33,6 +33,11 @@ export class GameHUD {
   // フォントサイズ
   private static readonly FONT_SIZE_TITLE = 100;
   private static readonly FONT_SIZE_TITLE_NARROW = 36;
+  /** 長文翻訳用（見出しより小さくし、折り返しで収める） */
+  private static readonly FONT_SIZE_TITLE_CTA = 40;
+  private static readonly FONT_SIZE_TITLE_CTA_NARROW = 20;
+  private static readonly TITLE_CTA_MIN_HEIGHT_PX = 200;
+  private static readonly TITLE_CTA_MIN_HEIGHT_NARROW_PX = 120;
   private static readonly FONT_SIZE_SCORE = 64;
   private static readonly FONT_SIZE_COUNTDOWN = 80;
   private static readonly FONT_SIZE_INFO = 36;
@@ -116,7 +121,9 @@ export class GameHUD {
   private scoreText: TextBlock;
   private countdownText: TextBlock;
   private infoText: TextBlock;
-  private titleText: TextBlock;
+  private titlePanel: StackPanel;
+  private titleHeadlineText: TextBlock;
+  private titleCtaText: TextBlock;
 
   private rallyPanel: StackPanel;
   private rallyCountText: TextBlock;
@@ -138,7 +145,7 @@ export class GameHUD {
     if (this.resultPanel.isVisible) {
       this.applyResultPanelLayout();
     }
-    if (this.titleText.isVisible) {
+    if (this.titlePanel.isVisible) {
       this.applyTitleScreenLayout();
       this.refreshTitleText();
     }
@@ -197,19 +204,47 @@ export class GameHUD {
         : GameHUD.RESULT_PANEL_WIDTH_PX;
     const w = Math.max(200, vw - GameHUD.TITLE_SCREEN_MARGIN_PX * 2);
 
-    this.titleText.width = `${w}px`;
-    this.titleText.textWrapping = true;
-    this.titleText.resizeToFit = false;
-    this.titleText.fontSize = narrow
+    this.titlePanel.width = `${w}px`;
+
+    this.titleHeadlineText.width = `${w}px`;
+    this.titleHeadlineText.textWrapping = false;
+    this.titleHeadlineText.resizeToFit = true;
+    this.titleHeadlineText.fontSize = narrow
       ? GameHUD.FONT_SIZE_TITLE_NARROW
       : GameHUD.FONT_SIZE_TITLE;
-    this.titleText.outlineWidth = narrow
+    this.titleHeadlineText.outlineWidth = narrow
       ? GameHUD.OUTLINE_WIDTH_NORMAL
       : GameHUD.OUTLINE_WIDTH_BOLD;
+
+    this.titleCtaText.width = `${w}px`;
+    this.titleCtaText.textWrapping = true;
+    this.titleCtaText.resizeToFit = false;
+    this.titleCtaText.fontSize = narrow
+      ? GameHUD.FONT_SIZE_TITLE_CTA_NARROW
+      : GameHUD.FONT_SIZE_TITLE_CTA;
+    this.titleCtaText.outlineWidth = narrow
+      ? GameHUD.OUTLINE_WIDTH_NORMAL
+      : GameHUD.OUTLINE_WIDTH_BOLD;
+
+    const ctaCopy = word("press_enter_or_click_to_start");
+    const ctaFs = narrow
+      ? GameHUD.FONT_SIZE_TITLE_CTA_NARROW
+      : GameHUD.FONT_SIZE_TITLE_CTA;
+    const approxCharsPerLine = Math.max(
+      5,
+      Math.floor(w / (ctaFs * 0.65)),
+    );
+    const approxLines = Math.max(1, Math.ceil(ctaCopy.length / approxCharsPerLine));
+    const lineH = Math.round(ctaFs * 1.35);
+    const ctaMin = narrow
+      ? GameHUD.TITLE_CTA_MIN_HEIGHT_NARROW_PX
+      : GameHUD.TITLE_CTA_MIN_HEIGHT_PX;
+    this.titleCtaText.height = `${Math.max(ctaMin, approxLines * lineH + 24)}px`;
   }
 
   private refreshTitleText(): void {
-    this.titleText.text = `${word("pingpong3d_splash_title")}\n\n${word("press_enter_or_click_to_start")}`;
+    this.titleHeadlineText.text = word("pingpong3d_splash_title");
+    this.titleCtaText.text = word("press_enter_or_click_to_start");
   }
 
   // 初期生成
@@ -304,20 +339,42 @@ export class GameHUD {
     this.notificationText.isVisible = false;
     this.screenTexture.addControl(this.notificationText);
 
-    // タイトル
-    this.titleText = new TextBlock("title", "");
-    this.titleText.fontSize = GameHUD.FONT_SIZE_TITLE;
-    this.titleText.color = GameHUD.COLOR_TITLE_TEXT;
-    this.titleText.fontWeight = "bold";
-    this.titleText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
-    this.titleText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
-    this.titleText.isVisible = false;
-    this.titleText.zIndex = 100;
-    this.titleText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.titleText.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-    this.titleText.textHorizontalAlignment =
+    // タイトル（見出しと説明文を分離し、長い翻訳でも折り返しで収める）
+    this.titlePanel = new StackPanel("titlePanel");
+    this.titlePanel.isVisible = false;
+    this.titlePanel.zIndex = 100;
+    this.titlePanel.spacing = 20;
+    this.titlePanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.titlePanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+    this.titlePanel.width = "400px";
+
+    this.titleHeadlineText = new TextBlock("titleHeadline", "");
+    this.titleHeadlineText.fontSize = GameHUD.FONT_SIZE_TITLE;
+    this.titleHeadlineText.color = GameHUD.COLOR_TITLE_TEXT;
+    this.titleHeadlineText.fontWeight = "bold";
+    this.titleHeadlineText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
+    this.titleHeadlineText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
+    this.titleHeadlineText.textHorizontalAlignment =
       Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.screenTexture.addControl(this.titleText);
+    this.titleHeadlineText.textWrapping = false;
+    this.titleHeadlineText.resizeToFit = true;
+
+    this.titleCtaText = new TextBlock("titleCta", "");
+    this.titleCtaText.fontSize = GameHUD.FONT_SIZE_TITLE_CTA;
+    this.titleCtaText.color = GameHUD.COLOR_TITLE_TEXT;
+    this.titleCtaText.fontWeight = "bold";
+    this.titleCtaText.outlineWidth = GameHUD.OUTLINE_WIDTH_BOLD;
+    this.titleCtaText.outlineColor = GameHUD.COLOR_TITLE_OUTLINE;
+    this.titleCtaText.textHorizontalAlignment =
+      Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.titleCtaText.textVerticalAlignment =
+      Control.VERTICAL_ALIGNMENT_CENTER;
+    this.titleCtaText.textWrapping = true;
+    this.titleCtaText.resizeToFit = false;
+
+    this.titlePanel.addControl(this.titleHeadlineText);
+    this.titlePanel.addControl(this.titleCtaText);
+    this.screenTexture.addControl(this.titlePanel);
 
     // リザルトパネル
     this.resultPanel = new StackPanel("resultPanel");
@@ -466,10 +523,12 @@ export class GameHUD {
       const now = Date.now();
       const dt = scene.getEngine().getDeltaTime() / 1000;
 
-      if (this.titleText.isVisible) {
+      if (this.titlePanel.isVisible) {
         const pulse = (Math.sin(now * GameHUD.TITLE_PULSE_SPEED) + 1) / 2;
-        this.titleText.outlineWidth =
+        const ow =
           GameHUD.TITLE_PULSE_MIN_WIDTH + pulse * GameHUD.TITLE_PULSE_RANGE;
+        this.titleHeadlineText.outlineWidth = ow;
+        this.titleCtaText.outlineWidth = ow;
       }
 
       if (now - this.lastSpawnTime > GameHUD.FLOATING_SPAWN_INTERVAL_MS) {
@@ -562,11 +621,11 @@ export class GameHUD {
   showTitle() {
     this.applyTitleScreenLayout();
     this.refreshTitleText();
-    this.titleText.isVisible = true;
+    this.titlePanel.isVisible = true;
   }
 
   clearTitle() {
-    this.titleText.isVisible = false;
+    this.titlePanel.isVisible = false;
   }
 
   showFinalResult(
