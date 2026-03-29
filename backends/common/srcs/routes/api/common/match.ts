@@ -175,10 +175,16 @@ export default async function (fastify: FastifyInstance) {
           500: errorResponseSchema,
         },
       },
+      preHandler: fastify.authenticate,
     },
     async (request, reply) => {
       const { ownerUserId, guestUserId, ownerScore, guestScore } = request.body;
 
+      const authUser = request.user as { name?: string } | undefined;
+      if (!authUser?.name || authUser.name !== ownerUserId) {
+        reply.code(500);
+        return { message: "You are not allowed to record this match result as owner." };
+      }
       const guestAccount = await fastify.db.get<{ puid: string }>(
         "SELECT puid FROM users WHERE name = ?",
         GUEST_USER_NAME,
