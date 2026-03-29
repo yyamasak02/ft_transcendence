@@ -96,7 +96,7 @@ export class GameComponent implements Component {
                         <button type="button" id="btn-3d-pause" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("pause")}">
                             <img src="/button/pause.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
-                        <button type="button" id="btn-3d-camera-reset" class="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("camera_reset")}">
+                        <button type="button" id="btn-3d-camera-reset" class="hidden max-sm:!hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-[#f77001] text-white transition-all duration-200 ease-out hover:scale-105 hover:bg-[#ff8c33] hover:shadow-[0_0_15px_rgba(247,112,1,0.4)] sm:h-11 sm:w-11" title="${word("camera_reset")}">
                             <img src="/button/camera.svg" class="pointer-events-none h-5 w-5 brightness-0 invert sm:h-6 sm:w-6" alt="">
                         </button>
                     </div>
